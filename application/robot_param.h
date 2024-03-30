@@ -24,17 +24,22 @@
 #define CHASSIS_BALANCE 3        // 平衡底盘
 
 // 选择底盘类型
-#define CHASSIS_TYPE CHASSIS_BALANCE
+#define CHASSIS_TYPE CHASSIS_OMNI_WHEEL
 
 // 不同底盘下需要不同的底盘参数
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
-#define WHEEL_NUM 4
+#define WZ_SET_SCALE 0.1f               //
+#define MOTOR_DISTANCE_TO_CENTER 0.235f // (m)电机到底盘中心距离
+
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
-#define WHEEL_NUM 4
+#define LENGTH_L 0.545f //(m)底盘对角线长度
+
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
 #define WHEEL_NUM 4
+
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
 #define WHEEL_NUM 2
+
 #else
 #error "Please select a valid chassis type"
 #endif

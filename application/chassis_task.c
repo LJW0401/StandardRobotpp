@@ -18,6 +18,7 @@
   */
 #include "chassis_task.h"
 #include "chassis_behaviour.h"
+#include "chassis_calculate.h"
 
 #include "cmsis_os.h"
 
