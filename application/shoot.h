@@ -85,57 +85,6 @@
 
 #define SHOOT_HEAT_REMAIN_VALUE     80
 
-typedef enum
-{
-    SHOOT_STOP = 0,
-    SHOOT_READY_FRIC,
-    SHOOT_READY_BULLET,
-    SHOOT_READY,
-    SHOOT_BULLET,
-    SHOOT_CONTINUE_BULLET,
-    SHOOT_DONE,
-} shoot_mode_e;
 
-
-typedef struct
-{
-    shoot_mode_e shoot_mode;
-    const RC_ctrl_t *shoot_rc;
-    const motor_measure_t *shoot_motor_measure;
-    ramp_function_source_t fric1_ramp;
-    uint16_t fric_pwm1;
-    ramp_function_source_t fric2_ramp;
-    uint16_t fric_pwm2;
-    pid_type_def trigger_motor_pid;
-    fp32 trigger_speed_set;
-    fp32 speed;
-    fp32 speed_set;
-    fp32 angle;
-    fp32 set_angle;
-    int16_t given_current;
-    int8_t ecd_count;
-
-    bool_t press_l;
-    bool_t press_r;
-    bool_t last_press_l;
-    bool_t last_press_r;
-    uint16_t press_l_time;
-    uint16_t press_r_time;
-    uint16_t rc_s_time;
-
-    uint16_t block_time;
-    uint16_t reverse_time;
-    bool_t move_flag;
-
-    bool_t key;
-    uint8_t key_time;
-
-    uint16_t heat_limit;
-    uint16_t heat;
-} shoot_control_t;
-
-//由于射击和云台使用同一个can的id故也射击任务在云台任务中执行
-extern void shoot_init(void);
-extern int16_t shoot_control_loop(void);
 
 #endif
