@@ -18,6 +18,9 @@
   */
 #ifndef CHASSIS_TASK_H
 #define CHASSIS_TASK_H
+
+#include <stdbool.h>
+
 #include "struct_typedef.h"
 #include "CAN_receive.h"
 #include "gimbal_task.h"
@@ -131,6 +134,12 @@
 #define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 6.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 0.2f
+
+void ChassisInit(void);
+
+void ChassisConsole(void);
+
+bool DetectChassisMotor(void);
 
 
 /**

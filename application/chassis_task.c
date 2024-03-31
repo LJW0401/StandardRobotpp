@@ -3,7 +3,7 @@
   * @file       chassis.c/h
   * @brief      chassis control task,
   *             底盘控制任务
-  * @note       
+  * @note
   * @history
   *  Version    Date            Author          Modification
   *  V1.0.0     Dec-26-2018     RM              1. done
@@ -42,30 +42,27 @@
         }                                                \
     }
 
-
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t chassis_high_water;
 #endif
 
 /**
-  * @brief          底盘任务，间隔 CHASSIS_CONTROL_TIME_MS 2ms
-  * @param[in]      pvParameters: 空
-  * @retval         none
-  */
+ * @brief          底盘任务，间隔 CHASSIS_CONTROL_TIME_MS 2ms
+ * @param[in]      pvParameters: 空
+ * @retval         none
+ */
 void chassis_task(void const *pvParameters)
 {
-    //wait a time 
-    //空闲一段时间
+    // 空闲一段时间
     vTaskDelay(CHASSIS_TASK_INIT_TIME);
-    //chassis init
-    //底盘初始化
-
-
+    // 底盘初始化
+    ChassisInit();
+    
     while (1)
     {
-
-        //os delay
-        //系统延时
+        //底盘控制
+        ChassisConsole();
+        // 系统延时
         vTaskDelay(CHASSIS_CONTROL_TIME_MS);
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -74,3 +71,28 @@ void chassis_task(void const *pvParameters)
     }
 }
 
+/**
+ * @brief    底盘初始化
+ * @param    none
+ */
+void ChassisInit(void)
+{
+}
+
+/**
+ * @brief    底盘控制器
+ * @param    none
+ */
+void ChassisConsole(void)
+{
+}
+
+/**
+ * @brief 
+ * @param  none
+ * @return true-全部在线 false-不全在线
+ */
+bool DetectChassisMotor(void)
+{
+    return true;
+}

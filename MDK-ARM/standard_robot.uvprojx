@@ -909,6 +909,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\servo_task.c</FilePath>
             </File>
+            <File>
+              <FileName>chassis_calculate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\chassis_calculate.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
