@@ -1,20 +1,19 @@
 /**
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       chassis.c/h
   * @brief      chassis control task,
   *             底盘控制任务
   * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. done
-  *  V1.1.0     Nov-11-2019     RM              1. add chassis power control
+  *  V1.0.0     Apr-1-2024     Penguin          1. done
   *
   @verbatim
   ==============================================================================
 
   ==============================================================================
   @endverbatim
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 #include "chassis_task.h"
 #include "chassis_behaviour.h"
@@ -55,13 +54,19 @@ void chassis_task(void const *pvParameters)
 {
     // 空闲一段时间
     vTaskDelay(CHASSIS_TASK_INIT_TIME);
-    // 底盘初始化
-    ChassisInit();
-    
+    // 初始化底盘
+    InitChassis();
+
     while (1)
     {
-        //底盘控制
+        // 设置底盘模式
+        SetChassisMode();
+        // 更新底盘数据（更新状态量）
+        UpdateChassisData();
+        // 底盘控制（计算控制量）
         ChassisConsole();
+        // 发送底盘控制量
+        SendChassisCmd();
         // 系统延时
         vTaskDelay(CHASSIS_CONTROL_TIME_MS);
 
@@ -75,7 +80,23 @@ void chassis_task(void const *pvParameters)
  * @brief    底盘初始化
  * @param    none
  */
-void ChassisInit(void)
+static void InitChassis(void)
+{
+}
+
+/**
+ * @brief 
+ * @param  
+ */
+static void SetChassisMode(void)
+{
+}
+
+/**
+ * @brief 
+ * @param  
+ */
+static void UpdateChassisData(void)
 {
 }
 
@@ -83,16 +104,24 @@ void ChassisInit(void)
  * @brief    底盘控制器
  * @param    none
  */
-void ChassisConsole(void)
+static void ChassisConsole(void)
 {
 }
 
 /**
  * @brief 
+ * @param  
+ */
+static void SendChassisCmd(void)
+{
+}
+
+/**
+ * @brief
  * @param  none
  * @return true-全部在线 false-不全在线
  */
-bool DetectChassisMotor(void)
-{
-    return true;
-}
+// static bool DetectChassisMotor(void)
+// {
+//     return true;
+// }

@@ -1,20 +1,19 @@
 /**
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       chassis.c/h
   * @brief      chassis control task,
   *             底盘控制任务
-  * @note       
+  * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. 完成
-  *  V1.1.0     Nov-11-2019     RM              1. add chassis power control
+  *  V1.0.0     Apr-1-2024     Penguin          1. done
   *
   @verbatim
   ==============================================================================
 
   ==============================================================================
   @endverbatim
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 #ifndef CHASSIS_TASK_H
 #define CHASSIS_TASK_H
@@ -135,11 +134,17 @@
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 6.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 0.2f
 
-void ChassisInit(void);
+static void InitChassis(void);
 
-void ChassisConsole(void);
+static void SetChassisMode(void);
 
-bool DetectChassisMotor(void);
+static void UpdateChassisData(void);
+
+static void ChassisConsole(void);
+
+static void SendChassisCmd(void);
+
+// static bool DetectChassisMotor(void);
 
 
 /**

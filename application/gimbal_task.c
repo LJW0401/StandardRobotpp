@@ -1,28 +1,19 @@
 /**
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       gimbal_task.c/h
-  * @brief      gimbal control task, because use the euler angle calculated by
-  *             gyro sensor, range (-pi,pi), angle set-point must be in this 
-  *             range.gimbal has two control mode, gyro mode and enconde mode
-  *             gyro mode: use euler angle to control, encond mode: use enconde
-  *             angle to control. and has some special mode:cali mode, motionless
-  *             mode.
-  *             完成云台控制任务，由于云台使用陀螺仪解算出的角度，其范围在（-pi,pi）
-  *             故而设置目标角度均为范围，存在许多对角度计算的函数。云台主要分为2种
-  *             状态，陀螺仪控制状态是利用板载陀螺仪解算的姿态角进行控制，编码器控制
-  *             状态是通过电机反馈的编码值控制的校准，此外还有校准状态，停止状态等。
-  * @note       
+  * @brief      gimbal control task
+  *             完成云台控制任务
+  * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. done
-  *  V1.1.0     Nov-11-2019     RM              1. add some annotation
+  *  V1.0.0     Apr-1-2024     Penguin          1. done
   *
   @verbatim
   ==============================================================================
 
   ==============================================================================
   @endverbatim
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
 #include "gimbal_task.h"
@@ -41,9 +32,8 @@
 #include "shoot.h"
 #include "pid.h"
 
-
-//motor enconde value format, range[0-8191]
-//电机编码值规整 0—8191
+// motor enconde value format, range[0-8191]
+// 电机编码值规整 0—8191
 #define ecd_format(ecd)         \
     {                           \
         if ((ecd) > ECD_RANGE)  \
@@ -68,25 +58,69 @@ uint32_t gimbal_high_water;
 #endif
 
 /**
-  * @brief          云台任务，间隔 GIMBAL_CONTROL_TIME 1ms
-  * @param[in]      pvParameters: 空
-  * @retval         none
-  */
+ * @brief          云台任务，间隔 GIMBAL_CONTROL_TIME 1ms
+ * @param[in]      pvParameters: 空
+ * @retval         none
+ */
 
 void gimbal_task(void const *pvParameters)
 {
-    //等待陀螺仪任务更新陀螺仪数据
-    //wait a time
+    // 等待陀螺仪任务更新陀螺仪数据
     vTaskDelay(GIMBAL_TASK_INIT_TIME);
-    //gimbal init
-    //云台初始化
+    // 云台初始化
+    InitGimbal();
 
     while (1)
     {
-
+        // 设置云台模式
+        SetGimbalMode();
+        // 更新云台数据（更新状态量）
+        UpdateGimbalData();
+        // 云台控制（计算控制量）
+        GimbalConsole();
+        // 发送云台控制量
+        SendGimbalCmd();
+        // 系统延时
         vTaskDelay(GIMBAL_CONTROL_TIME);
-
     }
 }
 
+/**
+ * @brief
+ * @param
+ */
+static void InitGimbal(void)
+{
+}
 
+/**
+ * @brief 
+ * @param  
+ */
+static void SetGimbalMode(void)
+{
+}
+
+/**
+ * @brief 
+ * @param  
+ */
+static void UpdateGimbalData(void)
+{
+}
+
+/**
+ * @brief 
+ * @param  
+ */
+static void GimbalConsole(void)
+{
+}
+
+/**
+ * @brief 
+ * @param  
+ */
+static void SendGimbalCmd(void)
+{
+}
