@@ -14,6 +14,8 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
+#include <math.h>
+
 #include "chassis_calculate.h"
 
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
@@ -80,3 +82,16 @@ void ChassisSpeedVectorToSteeringWheelSpeed(const ChassisSpeedVector_t *speed_ve
     // TODO: add code here
 }
 #endif
+
+/**
+ * @brief          将速度向量从云台坐标系下转换到底盘坐标系下
+ * @param          speed_vector_set 需要变换的速度向量
+ * @param[in]      dyaw (rad)云台到底盘旋转的角度
+ */
+void GimbalSpeedVectorToChassisSpeedVector(ChassisSpeedVector_t *speed_vector_set, float dyaw)
+{
+    float vx_chassis = speed_vector_set->vx * cos(dyaw) + speed_vector_set->vy * sin(dyaw);
+    float vy_chassis = -speed_vector_set->vx * sin(dyaw) + speed_vector_set->vy * cos(dyaw);
+    speed_vector_set->vx = vx_chassis;
+    speed_vector_set->vy = vy_chassis;
+}

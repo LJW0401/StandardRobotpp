@@ -23,7 +23,6 @@
 
 #include "arm_math.h"
 #include "pid.h"
-#include "remote_control.h"
 #include "CAN_receive.h"
 #include "detect_task.h"
 #include "INS_task.h"
@@ -41,6 +40,18 @@
         }                                                \
     }
 
+static void InitChassis(Chassis_s *chassis);
+
+static void SetChassisMode(Chassis_s *chassis);
+
+static void SetChassisTarget(Chassis_s *chassis);
+
+static void UpdateChassisData(Chassis_s *chassis);
+
+static void ChassisConsole(Chassis_s *chassis);
+
+static void SendChassisCmd(Chassis_s *chassis);
+
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t chassis_high_water;
 #endif
@@ -55,18 +66,20 @@ void chassis_task(void const *pvParameters)
     // 空闲一段时间
     vTaskDelay(CHASSIS_TASK_INIT_TIME);
     // 初始化底盘
-    InitChassis();
+    InitChassis(&chassis);
 
     while (1)
     {
         // 设置底盘模式
-        SetChassisMode();
+        SetChassisMode(&chassis);
+        // 设置目标量
+        SetChassisTarget(&chassis);
         // 更新底盘数据（更新状态量）
-        UpdateChassisData();
+        UpdateChassisData(&chassis);
         // 底盘控制（计算控制量）
-        ChassisConsole();
+        ChassisConsole(&chassis);
         // 发送底盘控制量
-        SendChassisCmd();
+        SendChassisCmd(&chassis);
         // 系统延时
         vTaskDelay(CHASSIS_CONTROL_TIME_MS);
 
@@ -77,51 +90,161 @@ void chassis_task(void const *pvParameters)
 }
 
 /**
- * @brief    底盘初始化
- * @param    none
+ * @brief          底盘初始化
+ * @param[in]      chassis 底盘结构体指针
+ * @retval         none
  */
-static void InitChassis(void)
+static void InitChassis(Chassis_s *chassis)
 {
+    if (chassis == NULL)
+    {
+        return;
+    }
+
+    uint8_t i;
+
+    chassis->rc = get_remote_control_point(); // 获取遥控器指针
+
+    chassis->mode = CHASSIS_ZERO_FORCE; // 初始底盘无力
+
+    // 初始化底盘电机
+    for (i = 0; i < 4; i++)
+    {
+        chassis->motor[i].motor_measure = GetDjiMotorMeasurePoint(1, i);
+    }
+
+    // 初始化底盘速度向量
+    chassis->speed_vector_set.vx = 0.0f;
+    chassis->speed_vector_set.vy = 0.0f;
+    chassis->speed_vector_set.wz = 0.0f;
+
+    chassis->speed_vector.vx = 0.0f;
+    chassis->speed_vector.vy = 0.0f;
+    chassis->speed_vector.wz = 0.0f;
+
+    chassis->speed_vector_max.vx = 5.0f;
+    chassis->speed_vector_max.vy = 5.0f;
+    chassis->speed_vector_max.wz = 1.0f;
 }
 
 /**
- * @brief 
- * @param  
+ * @brief          设置底盘模式
+ * @param[in]      chassis 底盘结构体指针
+ * @retval         none
  */
-static void SetChassisMode(void)
+static void SetChassisMode(Chassis_s *chassis)
 {
+    if (chassis == NULL)
+    {
+        return;
+    }
+
+    if (switch_is_up(chassis->rc->rc.s[CHASSIS_MODE_CHANNEL]))
+    {
+        chassis->mode = CHASSIS_FREE;
+    }
+    else if (switch_is_mid(chassis->rc->rc.s[CHASSIS_MODE_CHANNEL]))
+    {
+        chassis->mode = CHASSIS_FOLLOW_GIMBAL_YAW;
+    }
+    else if (switch_is_down(chassis->rc->rc.s[CHASSIS_MODE_CHANNEL]))
+    {
+        chassis->mode = CHASSIS_AUTO;
+    }
 }
 
 /**
- * @brief 
- * @param  
+ * @brief          设置底盘目标量
+ * @param[in]      chassis 底盘结构体指针
  */
-static void UpdateChassisData(void)
+static void SetChassisTarget(Chassis_s *chassis)
 {
+    if (chassis == NULL)
+    {
+        return;
+    }
+
+    int16_t rc_x = 0, rc_y = 0, rc_wz = 0;
+    rc_deadband_limit(chassis->rc->rc.ch[CHASSIS_X_CHANNEL], rc_x, CHASSIS_RC_DEADLINE);
+    rc_deadband_limit(chassis->rc->rc.ch[CHASSIS_Y_CHANNEL], rc_y, CHASSIS_RC_DEADLINE);
+    rc_deadband_limit(chassis->rc->rc.ch[CHASSIS_WZ_CHANNEL], rc_wz, CHASSIS_RC_DEADLINE);
+
+    ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
+    if (chassis->mode == CHASSIS_FREE) // 底盘自由模式下，控制量为底盘坐标系下的速度
+    {
+        v_set.vx = rc_x * RC_TO_ONE * chassis->speed_vector_max.vx;
+        v_set.vy = rc_y * RC_TO_ONE * chassis->speed_vector_max.vy;
+        v_set.wz = rc_wz * RC_TO_ONE * chassis->speed_vector_max.wz;
+    }
+    else if (chassis->mode == CHASSIS_FOLLOW_GIMBAL_YAW) // 云台跟随模式下，控制量为云台坐标系下的速度，需要进行坐标转换
+    {
+        v_set.vx = rc_x * RC_TO_ONE * chassis->speed_vector_max.vx;
+        v_set.vy = rc_y * RC_TO_ONE * chassis->speed_vector_max.vy;
+        v_set.wz = rc_wz * RC_TO_ONE * chassis->speed_vector_max.wz;
+        GimbalSpeedVectorToChassisSpeedVector(&v_set, chassis->dyaw);
+    }
+    else if (chassis->mode == CHASSIS_AUTO) // 底盘自动模式，控制量为云台坐标系下的速度，需要进行坐标转换
+    {
+        // TODO: add code here
+    }
+    chassis->speed_vector_set.vx = v_set.vx;
+    chassis->speed_vector_set.vy = v_set.vy;
+    chassis->speed_vector_set.wz = v_set.wz;
 }
 
 /**
- * @brief    底盘控制器
- * @param    none
+ * @brief          更新底盘状态量
+ * @param[in]      chassis 底盘结构体指针
+ * @retval         none
  */
-static void ChassisConsole(void)
+static void UpdateChassisData(Chassis_s *chassis)
 {
+    if (chassis == NULL)
+    {
+        return;
+    }
+
+    uint8_t i;
+
+#if (CHASSIS_TYPE == CHASSIS_BALANCE)
+    // 更新底盘陀螺仪数据
+    chassis->imu.yaw = get_INS_angle_point()[0];
+    chassis->imu.pitch = get_INS_angle_point()[1];
+    chassis->imu.roll = get_INS_angle_point()[2];
+
+    chassis->imu.yawSpd = get_gyro_data_point()[2];
+    chassis->imu.pitchSpd = get_gyro_data_point()[1];
+    chassis->imu.rollSpd = get_gyro_data_point()[0];
+
+    chassis->imu.xAccel = get_accel_data_point()[0];
+    chassis->imu.yAccel = get_accel_data_point()[1];
+    chassis->imu.zAccel = get_accel_data_point()[2];
+#endif
+    for (i = 0; i < 4; i++)
+    {
+        chassis->motor[i].w = chassis->motor[i].motor_measure->speed_rpm * DJI_GM3508_RPM_TO_OMEGA;
+        chassis->motor[i].v = chassis->motor[i].w * WHEEL_RADIUS;
+    }
+
+    // TODO: 更新底盘dyaw数据
 }
 
 /**
- * @brief 
- * @param  
+ * @brief          底盘控制器
+ * @param[in]      chassis 底盘结构体指针
+ * @retval         none
  */
-static void SendChassisCmd(void)
+static void ChassisConsole(Chassis_s *chassis)
 {
+    // TODO: add code here
 }
 
 /**
  * @brief
- * @param  none
- * @return true-全部在线 false-不全在线
+ * @param[in]      chassis 底盘结构体指针
+ * @retval         none
  */
-// static bool DetectChassisMotor(void)
-// {
-//     return true;
-// }
+static void SendChassisCmd(Chassis_s *chassis)
+{
+    // TODO: add code here
+}

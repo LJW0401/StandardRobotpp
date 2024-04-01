@@ -19,27 +19,19 @@
 
 #include "struct_typedef.h"
 #include "robot_param.h"
-
-typedef struct
-{
-    fp32 vx;
-    fp32 vy;
-    fp32 wz;
-} ChassisSpeedVector_t;
+#include "chassis.h"
 
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
 void ChassisSpeedVectorToMecanumWheelSpeed(const ChassisSpeedVector_t *speed_vector_set, fp32 wheel_speed[4]);
-
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
 void ChassisSpeedVectorToOmniWheelSpeed(const ChassisSpeedVector_t *speed_vector_set, fp32 wheel_speed[4]);
 void OmniWheelSpeedToChassisSpeedVector(const fp32 wheel_speed[4], ChassisSpeedVector_t *speed_vector);
-
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
 void ChassisSpeedVectorToSteeringWheelSpeed(const ChassisSpeedVector_t *speed_vector_set, fp32 wheel_speed[4]);
-
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
 void ChassisSpeedVectorToSteeringWheelSpeed(const ChassisSpeedVector_t *speed_vector_set, fp32 wheel_speed[4]);
-
 #endif
+
+void GimbalSpeedVectorToChassisSpeedVector(ChassisSpeedVector_t *speed_vector_set, float dyaw);
 
 #endif // CHASSIS_CALCULATE_H
