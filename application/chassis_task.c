@@ -112,6 +112,7 @@ static void InitChassis(Chassis_s *chassis)
     {
         chassis->motor[i].motor_measure = GetDjiMotorMeasurePoint(1, i);
     }
+    chassis->yaw_motor->motor_measure = GetDjiMotorMeasurePoint(2, YAW);
 
     // 初始化底盘速度向量
     chassis->speed_vector_set.vx = 0.0f;
@@ -206,7 +207,7 @@ static void UpdateChassisData(Chassis_s *chassis)
 
     uint8_t i;
 
-#if (CHASSIS_TYPE == CHASSIS_BALANCE)
+#if (CHASSIS_TYPE == CHASSIS_BALANCE) // 平衡底盘和其他底盘不太一样
     // 更新底盘陀螺仪数据
     chassis->imu.yaw = get_INS_angle_point()[0];
     chassis->imu.pitch = get_INS_angle_point()[1];
@@ -219,14 +220,14 @@ static void UpdateChassisData(Chassis_s *chassis)
     chassis->imu.xAccel = get_accel_data_point()[0];
     chassis->imu.yAccel = get_accel_data_point()[1];
     chassis->imu.zAccel = get_accel_data_point()[2];
-#endif
+#else
     for (i = 0; i < 4; i++)
     {
         chassis->motor[i].w = chassis->motor[i].motor_measure->speed_rpm * DJI_GM3508_RPM_TO_OMEGA;
         chassis->motor[i].v = chassis->motor[i].w * WHEEL_RADIUS;
     }
-
-    // TODO: 更新底盘dyaw数据
+    chassis->dyaw = (chassis->yaw_motor->motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - chassis->yaw_mid);
+#endif
 }
 
 /**

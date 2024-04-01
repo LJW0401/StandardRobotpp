@@ -39,8 +39,24 @@
 #define MOTOR_DISTANCE_TO_CENTER 0.235f // (m)电机到底盘中心距离
 
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
-#define LENGTH_L 0.545f    //(m)底盘对角线长度
+#define LENGTH_L 0.545f   //(m)底盘对角线长度
 #define WHEEL_RADIUS 0.1f //(m)轮子半径
+typedef enum
+{
+    // 底盘CAN1
+    WHEEL1 = 0,
+    WHEEL2 = 1,
+    WHEEL3 = 2,
+    WHEEL4 = 3,
+    // 云台CAN2
+    YAW = 1,
+    PITCH = 2,
+    TRIGGER = 7,
+    FRIC1 = 0,
+    FRIC2 = 1,
+    FRIC3 = 2,
+    FRIC4 = 3
+} MotorId_e;
 
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
 #define WHEEL_NUM 4
