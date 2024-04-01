@@ -19,7 +19,5 @@
 
 #ifndef CHASSIS_BEHAVIOUR_H
 #define CHASSIS_BEHAVIOUR_H
-#include "struct_typedef.h"
-#include "chassis_task.h"
 
 #endif

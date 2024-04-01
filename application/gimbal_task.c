@@ -17,20 +17,16 @@
   */
 
 #include "gimbal_task.h"
+#include "gimbal_behaviour.h"
 
 #include "main.h"
 
 #include "cmsis_os.h"
 
-#include "arm_math.h"
-#include "CAN_receive.h"
-#include "user_lib.h"
 #include "detect_task.h"
 #include "remote_control.h"
-#include "gimbal_behaviour.h"
 #include "INS_task.h"
 #include "shoot.h"
-#include "pid.h"
 
 // motor enconde value format, range[0-8191]
 // 电机编码值规整 0—8191
@@ -57,6 +53,18 @@
 uint32_t gimbal_high_water;
 #endif
 
+static void InitGimbal(void);
+
+static void SetGimbalMode(void);
+
+static void SetGimbalTarget(void);
+
+static void UpdateGimbalData(void);
+
+static void GimbalConsole(void);
+
+static void SendGimbalCmd(void);
+
 /**
  * @brief          云台任务，间隔 GIMBAL_CONTROL_TIME 1ms
  * @param[in]      pvParameters: 空
@@ -74,12 +82,26 @@ void gimbal_task(void const *pvParameters)
     {
         // 设置云台模式
         SetGimbalMode();
+        // 设置目标量
+        SetGimbalTarget();
         // 更新云台数据（更新状态量）
         UpdateGimbalData();
         // 云台控制（计算控制量）
         GimbalConsole();
         // 发送云台控制量
         SendGimbalCmd();
+
+        // 设置射击模式
+        SetShootMode();
+        // 设置射击目标量
+        SetShootTarget();
+        // 更新射击数据（更新状态量）
+        UpdateShootData();
+        // 射击控制（计算控制量）
+        ShootConsole();
+        // 发送射击控制量
+        SendShootCmd();
+
         // 系统延时
         vTaskDelay(GIMBAL_CONTROL_TIME);
     }
@@ -94,8 +116,8 @@ static void InitGimbal(void)
 }
 
 /**
- * @brief 
- * @param  
+ * @brief
+ * @param
  */
 static void SetGimbalMode(void)
 {
@@ -105,21 +127,29 @@ static void SetGimbalMode(void)
  * @brief 
  * @param  
  */
+static void SetGimbalTarget(void)
+{
+}
+
+/**
+ * @brief
+ * @param
+ */
 static void UpdateGimbalData(void)
 {
 }
 
 /**
- * @brief 
- * @param  
+ * @brief
+ * @param
  */
 static void GimbalConsole(void)
 {
 }
 
 /**
- * @brief 
- * @param  
+ * @brief
+ * @param
  */
 static void SendGimbalCmd(void)
 {
