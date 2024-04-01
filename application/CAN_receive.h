@@ -22,12 +22,13 @@
 #ifndef CAN_RECEIVE_H
 #define CAN_RECEIVE_H
 
-#include "main.h"
+#include "stm32f4xx_hal.h"
+#include "motor.h"
 
 #define CAN_1 hcan1
 #define CAN_2 hcan2
 
-/*DJI电机用相关参数定义*/
+/*DJI电机用相关ID定义*/
 typedef enum
 {
     DJI_200 = 0x200, // 用于3508,2006的电流控制(ID 1~4)
@@ -52,16 +53,7 @@ typedef enum
     DJI_M11_ID = 0x20B, // 6020电机ID
 } DJI_Motor_ID;
 
-typedef struct
-{
-    uint16_t ecd;
-    int16_t speed_rpm;
-    int16_t given_current;
-    uint8_t temperate;
-    int16_t last_ecd;
-} DJI_Motor_Measure_Data_t;
-
-typedef struct
+typedef struct//DJI电机发送数据结构体
 {
     CAN_HandleTypeDef *CAN;
     DJI_Std_ID std_id;
@@ -71,9 +63,7 @@ typedef struct
 
 void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
-// void CAN_CmdDJIMotor_200(CAN_HandleTypeDef *CAN, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
-// void CAN_CmdDJIMotor_1FF(CAN_HandleTypeDef *CAN, int16_t curr_5, int16_t curr_6, int16_t curr_7, int16_t curr_8);
-// void CAN_CmdDJIMotor_2FF(CAN_HandleTypeDef *CAN, int16_t volt_5, int16_t volt_6, int16_t volt_7);
+const DJI_Motor_Measure_t *GetDjiMotorMeasurePoint(uint8_t can, uint8_t i);
 
 /*小米电机用相关参数定义*/
 

@@ -41,8 +41,8 @@ extern CAN_HandleTypeDef hcan2;
     }
 
 // 接收数据
-static DJI_Motor_Measure_Data_t CAN1_DJI_motor[11];
-static DJI_Motor_Measure_Data_t CAN2_DJI_motor[11];
+static DJI_Motor_Measure_t CAN1_DJI_motor[11];
+static DJI_Motor_Measure_t CAN2_DJI_motor[11];
 
 // 发送数据
 DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x200 = {
@@ -202,17 +202,22 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 /**
  * @brief          获取DJI电机接收数据指针
  * @param[in]      can can口 (1 or 2)
+ * @param[in]      i 电机编号,范围[0,11]
  * @return         DJI_Motor_Measure_Data
+ * @note           如果输入值超出范围则返回CAN1_DJI_motor[1]
  */
-const DJI_Motor_Measure_Data_t *GetDjiMotorMeasurePoint(uint8_t can)
+const DJI_Motor_Measure_t *GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
 {
-    if (can == 1)
+    if (i < 12)
     {
-        return CAN1_DJI_motor;
+        if (can == 1)
+        {
+            return &CAN1_DJI_motor[i];
+        }
+        else if (can == 2)
+        {
+            return &CAN2_DJI_motor[i];
+        }
     }
-    else if (can == 2)
-    {
-        return CAN1_DJI_motor;
-    }
-    return CAN1_DJI_motor;
+    return &CAN1_DJI_motor[1];
 }
