@@ -101,18 +101,19 @@ static void InitChassis(Chassis_s *chassis)
         return;
     }
 
-    uint8_t i;
-
     chassis->rc = get_remote_control_point(); // 获取遥控器指针
-
-    chassis->mode = CHASSIS_ZERO_FORCE; // 初始底盘无力
+    chassis->mode = CHASSIS_ZERO_FORCE;       // 初始底盘无力
 
     // 初始化底盘电机
-    for (i = 0; i < 4; i++)
-    {
-        chassis->motor[i].motor_measure = GetDjiMotorMeasurePoint(1, i);
-    }
-    chassis->yaw_motor->motor_measure = GetDjiMotorMeasurePoint(2, YAW);
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+    void InitMecanumChassis(Chassis_s * chassis);
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+    void InitOmniChassis(Chassis_s * chassis);
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+    void InitSteeringChassis(Chassis_s * chassis);
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+    void InitBalanceChassisMotor(Chassis_s * chassis);
+#endif
 
     // 初始化底盘速度向量
     chassis->speed_vector_set.vx = 0.0f;
@@ -142,7 +143,7 @@ static void SetChassisMode(Chassis_s *chassis)
 
     if (switch_is_up(chassis->rc->rc.s[CHASSIS_MODE_CHANNEL]))
     {
-        chassis->mode = CHASSIS_FREE;
+        chassis->mode = CHASSIS_AUTO;
     }
     else if (switch_is_mid(chassis->rc->rc.s[CHASSIS_MODE_CHANNEL]))
     {
@@ -150,7 +151,7 @@ static void SetChassisMode(Chassis_s *chassis)
     }
     else if (switch_is_down(chassis->rc->rc.s[CHASSIS_MODE_CHANNEL]))
     {
-        chassis->mode = CHASSIS_AUTO;
+        chassis->mode = CHASSIS_FREE;
     }
 }
 
@@ -226,8 +227,8 @@ static void UpdateChassisData(Chassis_s *chassis)
         chassis->motor[i].w = chassis->motor[i].motor_measure->speed_rpm * DJI_GM3508_RPM_TO_OMEGA;
         chassis->motor[i].v = chassis->motor[i].w * WHEEL_RADIUS;
     }
-    chassis->dyaw = (chassis->yaw_motor->motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - chassis->yaw_mid);
 #endif
+    chassis->dyaw = (chassis->yaw_motor->motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - chassis->yaw_mid);
 }
 
 /**
@@ -237,7 +238,15 @@ static void UpdateChassisData(Chassis_s *chassis)
  */
 static void ChassisConsole(Chassis_s *chassis)
 {
-    // TODO: add code here
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+    BalanceConsole(chassis);
+#endif
 }
 
 /**
@@ -247,5 +256,13 @@ static void ChassisConsole(Chassis_s *chassis)
  */
 static void SendChassisCmd(Chassis_s *chassis)
 {
-    // TODO: add code here
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+    SendBalanceChassisCmd(chassis);
+#endif
 }

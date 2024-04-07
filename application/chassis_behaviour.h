@@ -20,4 +20,6 @@
 #ifndef CHASSIS_BEHAVIOUR_H
 #define CHASSIS_BEHAVIOUR_H
 
+#include "chassis.h"
+
 #endif

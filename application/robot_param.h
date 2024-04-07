@@ -29,7 +29,7 @@
 #define CHASSIS_AND_GIMBAL 2 // 控制底盘和云台
 
 // 选择底盘类型
-#define CHASSIS_TYPE CHASSIS_OMNI_WHEEL
+#define CHASSIS_TYPE CHASSIS_BALANCE
 // 选择控制类型
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL
 
