@@ -18,4 +18,12 @@
 #ifndef COMPONENTS_CONTROLLER_LEG_MODEL_H
 #define COMPONENTS_CONTROLLER_LEG_MODEL_H
 
+void LegFKine();
+void LegIKine();
+void LegJacobian();
+void LegSpd();
+void LegTransform();
+void LegFeedforward();
+void L2K();
+
 #endif // COMPONENTS_CONTROLLER_LEG_MODEL_H
