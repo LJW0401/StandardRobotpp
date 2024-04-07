@@ -84,10 +84,10 @@ void gimbal_task(void const *pvParameters)
     {
         // 设置云台模式
         SetGimbalMode();
-        // 设置目标量
-        SetGimbalTarget();
         // 更新云台数据（更新状态量）
         UpdateGimbalData();
+        // 设置目标量
+        SetGimbalTarget();
         // 云台控制（计算控制量）
         GimbalConsole();
         // 发送云台控制量
@@ -95,10 +95,10 @@ void gimbal_task(void const *pvParameters)
 
         // 设置射击模式
         SetShootMode(&shoot);
-        // 设置射击目标量
-        SetShootTarget(&shoot);
         // 更新射击数据（更新状态量）
         UpdateShootData(&shoot);
+        // 设置射击目标量
+        SetShootTarget(&shoot);
         // 射击控制（计算控制量）
         ShootConsole(&shoot);
         // 发送射击控制量
@@ -126,8 +126,8 @@ static void SetGimbalMode(void)
 }
 
 /**
- * @brief 
- * @param  
+ * @brief
+ * @param
  */
 static void SetGimbalTarget(void)
 {

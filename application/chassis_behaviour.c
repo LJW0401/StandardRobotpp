@@ -19,24 +19,31 @@
 #include "chassis_behaviour.h"
 
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
-void Mecanumxxx(void)
-{
-}
 
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
-void Omnixxx(void)
-{
-}
 
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
-void Steeringxxx()
+
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+
+void InitBalanceChassisMotor(Chassis_s *chassis)
+{
+    // chassis->joint_motor[0].motor = ;
+    // chassis->joint_motor[1].motor = ;
+    // chassis->joint_motor[2].motor = ;
+    // chassis->joint_motor[3].motor = ;
+    // chassis->wheel_motor[0].motor = ;
+    // chassis->wheel_motor[1].motor = ;
+}
+
+void BalanceConsole(Chassis_s *chassis)
 {
 }
 
-#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
-void BalanceConsole(Chassis_s *chassis)
+void SendBalanceChassisCmd(Chassis_s *chassis)
 {
-
+    SendJointMotorCmd(chassis);
+    SendWheelMotorCmd(chassis);
 }
 
 #endif

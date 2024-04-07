@@ -72,10 +72,10 @@ void chassis_task(void const *pvParameters)
     {
         // 设置底盘模式
         SetChassisMode(&chassis);
-        // 设置目标量
-        SetChassisTarget(&chassis);
         // 更新底盘数据（更新状态量）
         UpdateChassisData(&chassis);
+        // 设置目标量
+        SetChassisTarget(&chassis);
         // 底盘控制（计算控制量）
         ChassisConsole(&chassis);
         // 发送底盘控制量

@@ -21,23 +21,28 @@
 Chassis_s chassis;
 
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
-void InitMecanumChassisMotor(Chassis_s *chassis) {}
+
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
-void InitOmniChassisMotor(Chassis_s *chassis)
-{
-  uint8_t i;
-  for (i = 0; i < 4; i++)
-  {
-    chassis->motor[i].motor_measure = GetDjiMotorMeasurePoint(1, i);
-  }
-  chassis->yaw_motor->motor_measure = GetDjiMotorMeasurePoint(2, YAW);
-}
 
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
-void InitSteeringChassisMotor(Chassis_s *chassis) {}
 
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
-void InitBalanceChassisMotor(Chassis_s *chassis) {}
-void SendBalanceChassisCmd(Chassis_s *chassis){}
+
+/**
+ * @brief 发送关节电机控制指令
+ * @param chassis 
+ */
+void SendJointMotorCmd(Chassis_s *chassis)
+{
+
+}
+/**
+ * @brief 发送驱动轮电机控制指令
+ * @param chassis 
+ */
+void SendWheelMotorCmd(Chassis_s *chassis)
+{
+
+}
 
 #endif

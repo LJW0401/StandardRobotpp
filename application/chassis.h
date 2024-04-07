@@ -82,16 +82,11 @@ typedef struct
 extern Chassis_s chassis;
 
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
-extern void InitMecanumChassisMotor(Chassis_s *chassis);
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
-extern void InitOmniChassisMotor(Chassis_s *chassis);
-
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
-extern void InitSteeringChassisMotor(Chassis_s *chassis);
-
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
-extern void InitBalanceChassisMotor(Chassis_s *chassis);
-extern void SendBalanceChassisCmd(Chassis_s *chassis);
+void SendJointMotorCmd(Chassis_s *chassis);
+void SendWheelMotorCmd(Chassis_s *chassis);
 
 #endif
 

@@ -5,7 +5,7 @@
   * @note
   * @history
   *  Version    Date         Author        Modification
-  *  V1.0.0     2023-11-15   Penguin       1. 完成
+  *  V1.0.0     Apr-7-2024   Penguin       1. 完成
   *
   @verbatim
   ==============================================================================
@@ -16,6 +16,8 @@
   */
 
 #include "kalman_filter.h"
+
+#include <math.h>
 
 /**
  * @brief      初始化卡尔曼滤波器
