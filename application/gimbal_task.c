@@ -77,6 +77,8 @@ void gimbal_task(void const *pvParameters)
     vTaskDelay(GIMBAL_TASK_INIT_TIME);
     // 云台初始化
     InitGimbal();
+    // 射击初始化
+    InitShoot(&shoot);
 
     while (1)
     {
@@ -92,15 +94,15 @@ void gimbal_task(void const *pvParameters)
         SendGimbalCmd();
 
         // 设置射击模式
-        SetShootMode();
+        SetShootMode(&shoot);
         // 设置射击目标量
-        SetShootTarget();
+        SetShootTarget(&shoot);
         // 更新射击数据（更新状态量）
-        UpdateShootData();
+        UpdateShootData(&shoot);
         // 射击控制（计算控制量）
-        ShootConsole();
+        ShootConsole(&shoot);
         // 发送射击控制量
-        SendShootCmd();
+        SendShootCmd(&shoot);
 
         // 系统延时
         vTaskDelay(GIMBAL_CONTROL_TIME);

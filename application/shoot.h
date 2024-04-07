@@ -2,10 +2,10 @@
   ****************************(C) COPYRIGHT 2019 DJI****************************
   * @file       shoot.c/h
   * @brief      射击功能。
-  * @note       
+  * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Dec-26-2018     RM              1. 完成
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
   *
   @verbatim
   ==============================================================================
@@ -18,73 +18,60 @@
 #ifndef SHOOT_H
 #define SHOOT_H
 #include "struct_typedef.h"
+#include "robot_param.h"
 
 #include "CAN_receive.h"
-#include "gimbal_task.h"
 #include "remote_control.h"
 #include "user_lib.h"
+#include "pid.h"
 
+// 遥控器相关宏定义
+#define SHOOT_MODE_CHANNEL 1 // 射击发射开关通道数据
 
+typedef enum
+{
+    LOAD_STOP,     // 停止拨盘
+    LOAD_1_BULLET, // 单发模式,根据鼠标按下的时间,触发一次之后需要进入不响应输入的状态(否则按下的时间内可能多次进入,导致多次发射)
+    LOAD_BURSTFIRE // 连发模式,对速度闭环
+} LoadMode_e;
 
-//射击发射开关通道数据
-#define SHOOT_RC_MODE_CHANNEL       1
-//云台模式使用的开关通道
+typedef enum
+{
+    FRIC_NOT_READY = 0, // 未准备发射
+    FRIC_READY,         // 准备发射
+} FricState_e;
 
-#define SHOOT_CONTROL_TIME          GIMBAL_CONTROL_TIME
+typedef struct
+{
+    const RC_ctrl_t *rc; // 射击使用的遥控器指针
+    LoadMode_e mode;     // 射击模式
+    FricState_e state;   // 摩擦轮状态
 
-#define SHOOT_FRIC_PWM_ADD_VALUE    100.0f
+    DJI_Motor_s fric_motor[4]; // 摩擦轮电机
+    DJI_Motor_s trigger_motor; // 拨弹盘电机
 
-//射击摩擦轮激光打开 关闭
-#define SHOOT_ON_KEYBOARD           KEY_PRESSED_OFFSET_Q
-#define SHOOT_OFF_KEYBOARD          KEY_PRESSED_OFFSET_E
+    /*目标量*/
+    float shoot_frequency; // (Hz)射频
+    float shoot_speed;     // (m/s)射速
+    float dangle;          // (rad)拨弹盘单次转动角度
 
-//射击完成后 子弹弹出去后，判断时间，以防误触发
-#define SHOOT_DONE_KEY_OFF_TIME     15
-//鼠标长按判断
-#define PRESS_LONG_TIME             400
-//遥控器射击开关打下档一段时间后 连续发射子弹 用于清单
-#define RC_S_LONG_TIME              2000
-//摩擦轮高速 加速 时间
-#define UP_ADD_TIME                 80
-//电机反馈码盘值范围
-#define HALF_ECD_RANGE              4096
-#define ECD_RANGE                   8191
-//电机rmp 变化成 旋转速度的比例
-#define MOTOR_RPM_TO_SPEED          0.00290888208665721596153948461415f
-#define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f
-#define FULL_COUNT                  18
-//拨弹速度
-#define TRIGGER_SPEED               10.0f
-#define CONTINUE_TRIGGER_SPEED      15.0f
-#define READY_TRIGGER_SPEED         5.0f
+    //pid
+    pid_type_def trigger_pid;
+    pid_type_def fric_pid[4];
+} Shoot_s;
 
-#define KEY_OFF_JUGUE_TIME          500
-#define SWITCH_TRIGGER_ON           0
-#define SWITCH_TRIGGER_OFF          1
+extern Shoot_s shoot;
 
-//卡单时间 以及反转时间
-#define BLOCK_TRIGGER_SPEED         1.0f
-#define BLOCK_TIME                  700
-#define REVERSE_TIME                500
-#define REVERSE_SPEED_LIMIT         13.0f
+void InitShoot(Shoot_s *shoot);
 
-#define PI_FOUR                     0.78539816339744830961566084581988f
-#define PI_TEN                      0.314f
+void SetShootMode(Shoot_s *shoot);
 
-//拨弹轮电机PID
-#define TRIGGER_ANGLE_PID_KP        800.0f
-#define TRIGGER_ANGLE_PID_KI        0.5f
-#define TRIGGER_ANGLE_PID_KD        0.0f
+void SetShootTarget(Shoot_s *shoot);
 
-#define TRIGGER_BULLET_PID_MAX_OUT  10000.0f
-#define TRIGGER_BULLET_PID_MAX_IOUT 9000.0f
+void UpdateShootData(Shoot_s *shoot);
 
-#define TRIGGER_READY_PID_MAX_OUT   10000.0f
-#define TRIGGER_READY_PID_MAX_IOUT  7000.0f
+void ShootConsole(Shoot_s *shoot);
 
-
-#define SHOOT_HEAT_REMAIN_VALUE     80
-
-
+void SendShootCmd(Shoot_s *shoot);
 
 #endif

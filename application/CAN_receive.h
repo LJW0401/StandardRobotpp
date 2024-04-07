@@ -53,7 +53,7 @@ typedef enum
     DJI_M11_ID = 0x20B, // 6020电机ID
 } DJI_Motor_ID;
 
-typedef struct//DJI电机发送数据结构体
+typedef struct // DJI电机发送数据结构体
 {
     CAN_HandleTypeDef *CAN;
     DJI_Std_ID std_id;
@@ -61,6 +61,12 @@ typedef struct//DJI电机发送数据结构体
     uint8_t can_send_data[8];
 } DJI_Motor_Send_Data_s;
 
+extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x200;
+extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x1FF;
+extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x2FF;
+extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x200;
+extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x1FF;
+extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x2FF;
 void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
 const DJI_Motor_Measure_t *GetDjiMotorMeasurePoint(uint8_t can, uint8_t i);

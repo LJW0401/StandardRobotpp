@@ -33,6 +33,10 @@
 // 选择控制类型
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL
 
+#define GUN_NUM 2         // 定义枪管个数（一个枪管2个摩擦轮）
+#define BULLET_NUM 8      // 定义拨弹盘容纳弹丸个数
+#define FRIC_RADIUS 0.03f // (m)摩擦轮半径
+
 // 不同底盘下需要不同的底盘参数
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
 #define WZ_SET_SCALE 0.1f               //
@@ -43,35 +47,47 @@
 #define WHEEL_RADIUS 0.1f //(m)轮子半径
 typedef enum
 {
-    // 底盘CAN1
-    WHEEL1 = 0,
-    WHEEL2 = 1,
-    WHEEL3 = 2,
-    WHEEL4 = 3,
-    // 云台CAN2
-    YAW = 1,
-    PITCH = 2,
-    TRIGGER = 7,
-    FRIC1 = 0,
-    FRIC2 = 1,
-    FRIC3 = 2,
-    FRIC4 = 3
+  // 底盘CAN1
+  WHEEL1 = 0,
+  WHEEL2 = 1,
+  WHEEL3 = 2,
+  WHEEL4 = 3,
+  // 云台CAN2
+  YAW = 1,
+  PITCH = 2,
+  TRIGGER = 7,
+  FRIC1 = 0,
+  FRIC2 = 1,
+  FRIC3 = 2,
+  FRIC4 = 3
 } MotorId_e;
 
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
 #define WHEEL_NUM 4
 
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
-#define WHEEL_NUM 2
+typedef enum
+{
+  // 底盘CAN1
+  WHEEL1 = 0,
+  WHEEL2 = 1,
+  JOINT1 = 1,
+  JOINT2 = 2,
+  JOINT3 = 3,
+  JOINT4 = 4,
+  // 云台CAN2
+  YAW = 1,
+  PITCH = 2,
+  TRIGGER = 7,
+  FRIC1 = 0,
+  FRIC2 = 1,
+  FRIC3 = 2,
+  FRIC4 = 3
+} MotorId_e;
 
 #else
 #error "Please select a valid chassis type"
 #endif
-
-// 云台模式
-#define GIMBAL_MODE_GYRO 0    // 陀螺仪角度控制
-#define GIMBAL_MODE_ENCODER 1 // 编码器角度控制
-#define GIMBAL_MODE_AUTO 2    // 云台自动控制
 
 // 通用系数
 #define RC_TO_ONE 0.0015151515151515f // 遥控器通道值归一化系数
