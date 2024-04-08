@@ -30,11 +30,6 @@
 #define CHASSIS_WZ_CHANNEL 4   // 旋转的遥控器通道号码
 #define CHASSIS_RC_DEADLINE 10 // 摇杆死区
 
-/**
- * @brief          底盘任务，间隔 CHASSIS_CONTROL_TIME_MS 2ms
- * @param[in]      pvParameters: 空
- * @retval         none
- */
 extern void chassis_task(void const *pvParameters);
 
 #endif

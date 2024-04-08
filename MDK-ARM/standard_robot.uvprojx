@@ -994,6 +994,11 @@
               <FileType>1</FileType>
               <FilePath>..\components\support\mem_mang4.c</FilePath>
             </File>
+            <File>
+              <FileName>kalman_filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\components\support\kalman_filter.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1003,6 +1008,11 @@
               <FileName>pid.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\components\controller\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>leg_model.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\components\controller\leg_model.c</FilePath>
             </File>
           </Files>
         </Group>

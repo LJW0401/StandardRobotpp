@@ -28,14 +28,12 @@
 #define GIMBAL_ONLY 1        // 只控制云台
 #define CHASSIS_AND_GIMBAL 2 // 控制底盘和云台
 
-// 选择底盘类型
-#define CHASSIS_TYPE CHASSIS_BALANCE
-// 选择控制类型
-#define CONTROL_TYPE CHASSIS_AND_GIMBAL
-
-#define GUN_NUM 2         // 定义枪管个数（一个枪管2个摩擦轮）
-#define BULLET_NUM 8      // 定义拨弹盘容纳弹丸个数
-#define FRIC_RADIUS 0.03f // (m)摩擦轮半径
+#define __DEBUG 0                       // 调试模式
+#define CHASSIS_TYPE CHASSIS_BALANCE    // 选择底盘类型
+#define CONTROL_TYPE CHASSIS_AND_GIMBAL // 选择控制类型
+#define GUN_NUM 2                       // 定义枪管个数（一个枪管2个摩擦轮）
+#define BULLET_NUM 8                    // 定义拨弹盘容纳弹丸个数
+#define FRIC_RADIUS 0.03f               // (m)摩擦轮半径
 
 // 不同底盘下需要不同的底盘参数
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
@@ -66,6 +64,7 @@ typedef enum
 #define WHEEL_NUM 4
 
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+#define WHEEL_RADIUS 0.106f //(m)轮子半径
 typedef enum
 {
   // 底盘CAN1

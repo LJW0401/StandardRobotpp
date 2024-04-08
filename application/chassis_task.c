@@ -100,11 +100,9 @@ static void InitChassis(Chassis_s *chassis)
     {
         return;
     }
-
     chassis->rc = get_remote_control_point(); // 获取遥控器指针
-    chassis->mode = CHASSIS_ZERO_FORCE;       // 初始底盘无力
 
-    // 初始化底盘电机
+    /*-------------------- 初始化底盘电机 --------------------*/
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
     void InitMecanumChassis(Chassis_s * chassis);
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
@@ -114,19 +112,6 @@ static void InitChassis(Chassis_s *chassis)
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
     void InitBalanceChassisMotor(Chassis_s * chassis);
 #endif
-
-    // 初始化底盘速度向量
-    chassis->speed_vector_set.vx = 0.0f;
-    chassis->speed_vector_set.vy = 0.0f;
-    chassis->speed_vector_set.wz = 0.0f;
-
-    chassis->speed_vector.vx = 0.0f;
-    chassis->speed_vector.vy = 0.0f;
-    chassis->speed_vector.wz = 0.0f;
-
-    chassis->speed_vector_max.vx = 5.0f;
-    chassis->speed_vector_max.vy = 5.0f;
-    chassis->speed_vector_max.wz = 1.0f;
 }
 
 /**
@@ -174,24 +159,33 @@ static void SetChassisTarget(Chassis_s *chassis)
     ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
     if (chassis->mode == CHASSIS_FREE) // 底盘自由模式下，控制量为底盘坐标系下的速度
     {
-        v_set.vx = rc_x * RC_TO_ONE * chassis->speed_vector_max.vx;
-        v_set.vy = rc_y * RC_TO_ONE * chassis->speed_vector_max.vy;
-        v_set.wz = rc_wz * RC_TO_ONE * chassis->speed_vector_max.wz;
+        v_set.vx = rc_x * RC_TO_ONE * chassis->upper_limit.speed_vector.vx;
+        v_set.vy = rc_y * RC_TO_ONE * chassis->upper_limit.speed_vector.vy;
+        v_set.wz = rc_wz * RC_TO_ONE * chassis->upper_limit.speed_vector.wz;
     }
     else if (chassis->mode == CHASSIS_FOLLOW_GIMBAL_YAW) // 云台跟随模式下，控制量为云台坐标系下的速度，需要进行坐标转换
     {
-        v_set.vx = rc_x * RC_TO_ONE * chassis->speed_vector_max.vx;
-        v_set.vy = rc_y * RC_TO_ONE * chassis->speed_vector_max.vy;
-        v_set.wz = rc_wz * RC_TO_ONE * chassis->speed_vector_max.wz;
+        v_set.vx = rc_x * RC_TO_ONE * chassis->upper_limit.speed_vector.vx;
+        v_set.vy = rc_y * RC_TO_ONE * chassis->upper_limit.speed_vector.vy;
+        v_set.wz = rc_wz * RC_TO_ONE * chassis->upper_limit.speed_vector.wz;
         GimbalSpeedVectorToChassisSpeedVector(&v_set, chassis->dyaw);
     }
     else if (chassis->mode == CHASSIS_AUTO) // 底盘自动模式，控制量为云台坐标系下的速度，需要进行坐标转换
     {
         // TODO: add code here
     }
-    chassis->speed_vector_set.vx = v_set.vx;
-    chassis->speed_vector_set.vy = v_set.vy;
-    chassis->speed_vector_set.wz = v_set.wz;
+    chassis->expect.speed_vector.vx = v_set.vx;
+    chassis->expect.speed_vector.vy = v_set.vy;
+    chassis->expect.speed_vector.wz = v_set.wz;
+
+#if (CHASSIS_TYPE == CHASSIS_BALANCE)
+    chassis->expect.x[0] = 0;
+    chassis->expect.x[1] = 0;
+    chassis->expect.x[2] = 0;
+    chassis->expect.x[3] = chassis->expect.speed_vector.vx;
+    chassis->expect.x[4] = 0;
+    chassis->expect.x[5] = 0;
+#endif
 }
 
 /**
@@ -221,6 +215,20 @@ static void UpdateChassisData(Chassis_s *chassis)
     chassis->imu.xAccel = get_accel_data_point()[0];
     chassis->imu.yAccel = get_accel_data_point()[1];
     chassis->imu.zAccel = get_accel_data_point()[2];
+
+    double left_leg_pos[2];
+    double right_leg_pos[2];
+    LegFKine(0, 0, left_leg_pos);  // 获取五连杆等效连杆长度
+    LegFKine(0, 0, right_leg_pos); // 获取五连杆等效连杆长度
+
+    // LegPosUpdate();
+
+    chassis->status.x[0] = chassis->imu.pitch;
+    chassis->status.x[1] = chassis->imu.pitchSpd;
+    chassis->status.x[2] = 0;
+    // chassis->status->x[3] = (left_wheel.speed + right_wheel.speed) / 2 * WHEEL_RADIUS;
+    chassis->status.x[4] = (chassis->status.leg_pos[0].angle + chassis->status.leg_pos[1].angle) / 2 - M_PI_2 - chassis->imu.pitch;
+    chassis->status.x[5] = 0;
 #else
     for (i = 0; i < 4; i++)
     {
@@ -245,7 +253,7 @@ static void ChassisConsole(Chassis_s *chassis)
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
 
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
-    BalanceConsole(chassis);
+    BalanceChassisConsole(chassis);
 #endif
 }
 
