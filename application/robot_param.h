@@ -31,7 +31,7 @@
 #define __DEBUG 0                       // 调试模式
 #define CHASSIS_TYPE CHASSIS_BALANCE    // 选择底盘类型
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL // 选择控制类型
-#define GUN_NUM 2                       // 定义枪管个数（一个枪管2个摩擦轮）
+#define GUN_NUM 1                       // 定义枪管个数（一个枪管2个摩擦轮）
 #define BULLET_NUM 8                    // 定义拨弹盘容纳弹丸个数
 #define FRIC_RADIUS 0.03f               // (m)摩擦轮半径
 

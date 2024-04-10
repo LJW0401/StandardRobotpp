@@ -262,7 +262,7 @@ static uint32_t calibrate_systemTick;
   */
 void calibrate_task(void const *pvParameters)
 {
-    static uint8_t i = 0;
+//    static uint8_t i = 0;
     
     calibrate_RC = get_remote_ctrl_point_cali();
 

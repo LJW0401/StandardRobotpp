@@ -74,7 +74,7 @@ typedef struct
     float roll;
     float yaw;
     float leg_length;
-    LegPos_t leg_pos[2];//0-左腿，1-右腿
+    LegPos_t leg_pos[2]; // 0-左腿，1-右腿
     ChassisSpeedVector_t speed_vector;
 } Values_t;
 #endif
@@ -88,7 +88,7 @@ typedef struct
     const RC_ctrl_t *rc; // 底盘使用的遥控器指针
     ChassisMode_e mode;  // 底盘模式
 
-/*-------------------- Motors --------------------*/
+    /*-------------------- Motors --------------------*/
     DJI_Motor_s *yaw_motor; // yaw轴电机
 
 #if (CHASSIS_TYPE == CHASSIS_BALANCE)
@@ -108,12 +108,12 @@ typedef struct
     ChassisImuData_t imu; // 底盘使用的IMU数据
 #endif
 
-    Values_t expect;//期望值
-    Values_t status;//状态值
-    Values_t upper_limit;//上限值
-    Values_t lower_limit;//下限值
+    Values_t expect;      // 期望值
+    Values_t status;      // 状态值
+    Values_t upper_limit; // 上限值
+    Values_t lower_limit; // 下限值
 
-    float dyaw;    // (rad)当前位置与云台中值角度差（用于坐标转换）
+    float dyaw;       // (rad)当前位置与云台中值角度差（用于坐标转换）
     uint16_t yaw_mid; // (编码角)云台中值角度
 } Chassis_s;
 

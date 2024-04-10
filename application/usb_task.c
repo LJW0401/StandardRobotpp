@@ -249,21 +249,34 @@ static void usb_send_RobotStatus(void)
 static void usb_send_outputPC(void)
 {
     gimbal_INT_gyro_angle_point = get_INS_angle_point();
+    const Angle_t *angle = GetAnglePoint();
 
     OutputPCData.header = 0x6A;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.name_5, "roll");
+    char_to_uint(OutputPCData.name_1, "o_roll");
+    OutputPCData.type_1 = 1;
+    OutputPCData.data_1 = gimbal_INT_gyro_angle_point[2];
+
+    char_to_uint(OutputPCData.name_2, "o_pitch");
+    OutputPCData.type_2 = 1;
+    OutputPCData.data_2 = gimbal_INT_gyro_angle_point[1];
+
+    char_to_uint(OutputPCData.name_3, "o_yaw");
+    OutputPCData.type_3 = 1;
+    OutputPCData.data_3 = gimbal_INT_gyro_angle_point[0];
+
+    char_to_uint(OutputPCData.name_4, "n_roll");
+    OutputPCData.type_4 = 1;
+    OutputPCData.data_4 = angle->roll;
+
+    char_to_uint(OutputPCData.name_5, "n_pitch");
     OutputPCData.type_5 = 1;
-    OutputPCData.data_5 = gimbal_INT_gyro_angle_point[2];
+    OutputPCData.data_5 = angle->pitch;
 
-    char_to_uint(OutputPCData.name_6, "pitch");
+    char_to_uint(OutputPCData.name_6, "n_yaw");
     OutputPCData.type_6 = 1;
-    OutputPCData.data_6 = gimbal_INT_gyro_angle_point[1];
-
-    char_to_uint(OutputPCData.name_7, "yaw");
-    OutputPCData.type_7 = 1;
-    OutputPCData.data_7 = gimbal_INT_gyro_angle_point[0];
+    OutputPCData.data_6 = angle->yaw;
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));
