@@ -193,7 +193,7 @@ float IMU_QuaternionEKF_R[9] = {1000000, 0, 0,
                                 0, 1000000, 0,
                                 0, 0, 1000000};
 static INS_t INS;
-Angle_t angle; // 欧拉角
+Angle_t angle = {0,0,0}; // 欧拉角
 
 void IMU_QuaternionEKF_Init(float process_noise1, float process_noise2, float measure_noise, float lambda);
 void IMU_QuaternionEKF_Update(float gx, float gy, float gz, float ax, float ay, float az, float dt);
@@ -203,7 +203,7 @@ static void IMU_QuaternionEKF_xhatUpdate(KalmanFilter_t *kf);
 static void IMU_QuaternionEKF_Observe(KalmanFilter_t *kf);
 
 /*-------------------- 角速度测量部分 --------------------*/
-Velocity_t velocity; // 角速度
+Velocity_t velocity = {0,0,0}; // 角速度
 
 /*-------------------- 加速度测量部分 --------------------*/
 KalmanFilter_t gEstimateKF; // 卡尔曼滤波器结构体
@@ -225,7 +225,7 @@ float gEstimateKF_K[9];
 const float gEstimateKF_H[9] = {1, 0, 0,
                                 0, 1, 0,
                                 0, 0, 1}; // 由于不需要异步量测自适应，这里直接设置矩阵H为常量
-Accel_t accel;                            // 加速度
+Accel_t accel = {0,0,0};                            // 加速度
 
 void gEstimateKF_Init(float process_noise, float measure_noise);
 void gEstimateKF_Update(float gx, float gy, float gz, float ax, float ay, float az, float dt);
@@ -347,16 +347,16 @@ void INS_task(void const *pvParameters)
             //            ist8310_read_mag(ist8310_real_data.mag);
         }
 
+        // 更新加速度
         gEstimateKF_Update(gVec[0], gVec[1], gVec[2],
                            bmi088_real_data.accel[0], bmi088_real_data.accel[1], bmi088_real_data.accel[2],
                            timing_time);
-        IMU_QuaternionEKF_Update(bmi088_real_data.gyro[0], bmi088_real_data.gyro[1], bmi088_real_data.gyro[2],
-                                 bmi088_real_data.accel[0], bmi088_real_data.accel[1], bmi088_real_data.accel[2],
-                                 timing_time);
-        // IMU_QuaternionEKF_Update(INS_gyro[0], INS_gyro[1], INS_gyro[2],
-        //                          INS_accel[0], INS_accel[1], INS_accel[2],
-        //                          timing_time);
         AccelUpdate();
+
+        // 更新欧拉角
+        IMU_QuaternionEKF_Update(bmi088_real_data.gyro[0], bmi088_real_data.gyro[1], bmi088_real_data.gyro[2],
+                                 accel.x, accel.y, accel.z,
+                                 timing_time);
         AngleUpdate();
     }
 }

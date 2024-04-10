@@ -268,29 +268,29 @@ static void usb_send_outputPC(void)
     OutputPCData.type_3 = 1;
     OutputPCData.data_3 = gimbal_INT_gyro_angle_point[0];
 
-    char_to_uint(OutputPCData.name_4, "gx");
+    char_to_uint(OutputPCData.name_4, "n_roll");
     OutputPCData.type_4 = 1;
-    OutputPCData.data_4 = accel->x;
+    OutputPCData.data_4 = angle->roll;
 
-    char_to_uint(OutputPCData.name_5, "gy");
+    char_to_uint(OutputPCData.name_5, "n_pitch");
     OutputPCData.type_5 = 1;
-    OutputPCData.data_5 = accel->y;
+    OutputPCData.data_5 = angle->pitch;
 
-    char_to_uint(OutputPCData.name_6, "gz");
+    char_to_uint(OutputPCData.name_6, "n_yaw");
     OutputPCData.type_6 = 1;
-    OutputPCData.data_6 = accel->z;
+    OutputPCData.data_6 = angle->yaw;
 
-    char_to_uint(OutputPCData.name_7, "ax");
+    char_to_uint(OutputPCData.name_7, "gx");
     OutputPCData.type_7 = 1;
-    OutputPCData.data_7 = accel_point[0];
+    OutputPCData.data_7 = accel->x;
 
-    char_to_uint(OutputPCData.name_8, "ay");
+    char_to_uint(OutputPCData.name_8, "gy");
     OutputPCData.type_8 = 1;
-    OutputPCData.data_8 = accel_point[1];
+    OutputPCData.data_8 = accel->y;
 
-    char_to_uint(OutputPCData.name_9, "az");
+    char_to_uint(OutputPCData.name_9, "gz");
     OutputPCData.type_9 = 1;
-    OutputPCData.data_9 = accel_point[2];
+    OutputPCData.data_9 = accel->z;
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));
