@@ -49,29 +49,29 @@ void test_task(void const * argument)
 
         //find error
         //发现错误
-        for(error_num = 0; error_num < REFEREE_TOE; error_num++)
-        {
-            if(error_list_test_local[error_num].error_exist)
-            {
-                error = 1;
-                break;
-            }
-        }
+        // for(error_num = 0; error_num < REFEREE_TOE; error_num++)
+        // {
+        //     if(error_list_test_local[error_num].error_exist)
+        //     {
+        //         error = 1;
+        //         break;
+        //     }
+        // }
 
-        //no error, stop buzzer
-        //没有错误, 停止蜂鸣器
-        if(error == 0 && last_error != 0)
-        {
-            buzzer_off();
-        }
-        //have error
-        //有错误
-        if(error)
-        {
-            buzzer_warn_error(error_num+1);
-        }
+        // //no error, stop buzzer
+        // //没有错误, 停止蜂鸣器
+        // if(error == 0 && last_error != 0)
+        // {
+        //     buzzer_off();
+        // }
+        // //have error
+        // //有错误
+        // if(error)
+        // {
+        //     buzzer_warn_error(error_num+1);
+        // }
 
-        last_error = error;
+        // last_error = error;
         osDelay(10);
     }
 }

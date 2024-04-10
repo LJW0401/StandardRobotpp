@@ -271,29 +271,29 @@ void calibrate_task(void const *pvParameters)
 
         RC_cmd_to_calibrate();
 
-        for (i = 0; i < CALI_LIST_LENGHT; i++)
-        {
-            if (cali_sensor[i].cali_cmd)
-            {
-                if (cali_sensor[i].cali_hook != NULL)
-                {
+        // for (i = 0; i < CALI_LIST_LENGHT; i++)
+        // {
+        //     if (cali_sensor[i].cali_cmd)
+        //     {
+        //         if (cali_sensor[i].cali_hook != NULL)
+        //         {
 
-                    if (cali_sensor[i].cali_hook(cali_sensor_buf[i], CALI_FUNC_CMD_ON))
-                    {
-                        //done
-                        cali_sensor[i].name[0] = cali_name[i][0];
-                        cali_sensor[i].name[1] = cali_name[i][1];
-                        cali_sensor[i].name[2] = cali_name[i][2];
-                        //set 0x55
-                        cali_sensor[i].cali_done = CALIED_FLAG;
+        //             if (cali_sensor[i].cali_hook(cali_sensor_buf[i], CALI_FUNC_CMD_ON))
+        //             {
+        //                 //done
+        //                 cali_sensor[i].name[0] = cali_name[i][0];
+        //                 cali_sensor[i].name[1] = cali_name[i][1];
+        //                 cali_sensor[i].name[2] = cali_name[i][2];
+        //                 //set 0x55
+        //                 cali_sensor[i].cali_done = CALIED_FLAG;
 
-                        cali_sensor[i].cali_cmd = 0;
-                        //write
-                        cali_data_write();
-                    }
-                }
-            }
-        }
+        //                 cali_sensor[i].cali_cmd = 0;
+        //                 //write
+        //                 cali_data_write();
+        //             }
+        //         }
+        //     }
+        // }
         osDelay(CALIBRATE_CONTROL_TIME);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         calibrate_task_stack = uxTaskGetStackHighWaterMark(NULL);
