@@ -18,9 +18,9 @@
 
 #include "struct_typedef.h"
 
-#define RPM_TO_OMEGA 0.1047197551f        // (1/60*2*pi) (rpm)->(rad/s)
+#define RPM_TO_OMEGA 0.1047197551f // (1/60*2*pi) (rpm)->(rad/s)
 
-#define DJI_GM6020_ECD_TO_RAD 0.000766990394f        // (2*pi/8192) 电机编码器值转换为弧度
+#define DJI_GM6020_ECD_TO_RAD 0.000766990394f // (2*pi/8192) 电机编码器值转换为弧度
 #define DJI_GM3508_RPM_TO_OMEGA 0.0055115661f // (1/60*2*pi/19) m3508(减速比19:1) (rpm)->(rad/s)
 #define DJI_GM2006_RPM_TO_OMEGA 0.0029088821f // (1/60*2*pi/36) m2006(减速比36:1) (rpm)->(rad/s)
 

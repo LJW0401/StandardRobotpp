@@ -1,7 +1,7 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       chassis_behaviour.c/h
-  * @brief      根据遥控器的值，决定底盘行为。
+  * @file       chassis_console.c/h
+  * @brief      底盘控制器。
   * @note
   * @history
   *  Version    Date            Author          Modification
@@ -14,7 +14,7 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
 */
-#include "chassis_behaviour.h"
+#include "chassis_console.h"
 
 /*-------------------- Console --------------------*/
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)

@@ -1,7 +1,7 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       chassis_behaviour.c/h
-  * @brief      根据遥控器的值，决定底盘行为。
+  * @file       chassis_console.c/h
+  * @brief      底盘控制器。
   * @note
   * @history
   *  Version    Date            Author          Modification
@@ -15,8 +15,8 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
 */
 
-#ifndef CHASSIS_BEHAVIOUR_H
-#define CHASSIS_BEHAVIOUR_H
+#ifndef CHASSIS_CONSOLE_H
+#define CHASSIS_CONSOLE_H
 
 #include "chassis.h"
 
@@ -33,4 +33,4 @@ void BalanceChassisConsole(Chassis_s *chassis);
 
 #endif
 
-#endif
+#endif //CHASSIS_CONSOLE_H

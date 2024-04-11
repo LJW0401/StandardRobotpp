@@ -1,15 +1,13 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       can_receive.c/h
-  * @brief      there is CAN interrupt function  to receive motor data,
-  *             and CAN send function to send motor current to control motor.
-  *             这里是CAN中断接收函数，接收电机数据,CAN发送函数发送电机电流控制电机.
+  * @file       can_cmd.c/h
+  * @brief      CAN发送函数，通过CAN信号控制电机.
   * @note       支持DJI电机 GM3508 GM2006 GM6020
   *         未来支持小米电机 Cybergear
   *         未来支持达妙电机 DM8009
   * @history
   *  Version    Date            Author          Modification
-  *  V2.0.0     Mar-27-2024     Penguin         1. 添加CAN发送函数和新的电机控制函数，解码中将CAN1 CAN2分开。
+  *  V2.0.0     Mar-27-2024     Penguin         1. 完成。
   *
   @verbatim
   ==============================================================================
@@ -19,14 +17,17 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
-#ifndef CAN_RECEIVE_H
-#define CAN_RECEIVE_H
+#ifndef CAN_CMD_H
+#define CAN_CMD_H
 
 #include "stm32f4xx_hal.h"
 #include "motor.h"
 
+#ifndef CAN_N
+#define CAN_N
 #define CAN_1 hcan1
 #define CAN_2 hcan2
+#endif
 
 /*DJI电机用相关ID定义*/
 typedef enum
@@ -37,21 +38,6 @@ typedef enum
     DJI_1FE = 0x1FE, // 用于6020的电流控制(ID 1~4)
     DJI_2FE = 0x2FE, // 用于6020的电流控制(ID 5~7)
 } DJI_Std_ID;
-
-typedef enum
-{
-    DJI_M1_ID = 0x201,  // 3508/2006电机ID
-    DJI_M2_ID = 0x202,  // 3508/2006电机ID
-    DJI_M3_ID = 0x203,  // 3508/2006电机ID
-    DJI_M4_ID = 0x204,  // 3508/2006电机ID
-    DJI_M5_ID = 0x205,  // 3508/2006电机ID (/6020电机ID 不建议使用)
-    DJI_M6_ID = 0x206,  // 3508/2006电机ID (/6020电机ID 不建议使用)
-    DJI_M7_ID = 0x207,  // 3508/2006电机ID (/6020电机ID 不建议使用)
-    DJI_M8_ID = 0x208,  // 3508/2006电机ID (/6020电机ID 不建议使用)
-    DJI_M9_ID = 0x209,  // 6020电机ID
-    DJI_M10_ID = 0x20A, // 6020电机ID
-    DJI_M11_ID = 0x20B, // 6020电机ID
-} DJI_Motor_ID;
 
 typedef struct // DJI电机发送数据结构体
 {
@@ -67,12 +53,11 @@ extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x2FF;
 extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x200;
 extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x1FF;
 extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x2FF;
-void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
-const DJI_Motor_Measure_t *GetDjiMotorMeasurePoint(uint8_t can, uint8_t i);
+void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
 /*小米电机用相关参数定义*/
 
 /*达妙电机用相关参数定义*/
 
-#endif
+#endif //CAN_CMD_H

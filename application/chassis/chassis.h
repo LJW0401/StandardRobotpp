@@ -101,6 +101,7 @@ typedef struct
     DJI_Motor_s *wheel_motor[4]; // 驱动轮电机
 #else
     DJI_Motor_s *motor[4]; // 底盘电机
+    pid_type_def motor_pid[4];  // PID控制器
 #endif
 
 /*-------------------- Values --------------------*/

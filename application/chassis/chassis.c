@@ -17,6 +17,10 @@
 
 #include "chassis.h"
 
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
 Chassis_s chassis = {
     .mode = CHASSIS_ZERO_FORCE,
     .yaw_mid = 0,
@@ -66,6 +70,7 @@ Chassis_s chassis = {
     },
     .dyaw = 0.0f,
 };
+#endif
 
 /*-------------------- Init --------------------*/
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)

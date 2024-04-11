@@ -21,6 +21,7 @@
 #include "robot_param.h"
 
 #include "CAN_receive.h"
+#include "CAN_receive.h"
 #include "remote_control.h"
 #include "user_lib.h"
 #include "pid.h"

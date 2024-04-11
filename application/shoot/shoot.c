@@ -26,7 +26,7 @@
 #include "user_lib.h"
 #include "referee.h"
 
-#include "CAN_receive.h"
+#include "CAN_communication.h"
 #include "gimbal_behaviour.h"
 #include "detect_task.h"
 #include "pid.h"
