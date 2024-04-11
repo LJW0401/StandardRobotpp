@@ -122,7 +122,7 @@ typedef struct
  * @param[in]      pvParameters: NULL
  * @retval         none
  */
-extern void INS_task(void const *pvParameters);
+extern void IMU_task(void const *pvParameters);
 
 const Angle_t *GetAnglePoint(void);
 const Velocity_t *GetVelocityPoint(void);

@@ -25,7 +25,7 @@
   ****************************(C) COPYRIGHT 2019 DJI****************************
   */
 
-#include "gimbal_behaviour.h"
+#include "gimbal_console.h"
 #include "arm_math.h"
 #include "bsp_buzzer.h"
 #include "detect_task.h"

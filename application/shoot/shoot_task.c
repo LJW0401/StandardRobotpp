@@ -1,12 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       gimbal_task.c/h
-  * @brief      gimbal control task
-  *             完成云台控制任务
+  * @file       shoot_task.c/h
+  * @brief      完成射击控制任务
   * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024     Penguin          1. done
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
   *
   @verbatim
   ==============================================================================
@@ -16,8 +15,8 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
-#include "gimbal_task.h"
-#include "gimbal_console.h"
+#include "shoot_task.h"
+#include "shoot.h"
 
 #include "main.h"
 
@@ -50,20 +49,8 @@
     }
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
-uint32_t gimbal_high_water;
+uint32_t shoot_high_water;
 #endif
-
-static void InitGimbal(void);
-
-static void SetGimbalMode(void);
-
-static void SetGimbalTarget(void);
-
-static void UpdateGimbalData(void);
-
-static void GimbalConsole(void);
-
-static void SendGimbalCmd(void);
 
 /**
  * @brief          云台任务，间隔 GIMBAL_CONTROL_TIME 1ms
@@ -71,28 +58,15 @@ static void SendGimbalCmd(void);
  * @retval         none
  */
 
-void gimbal_task(void const *pvParameters)
+void shoot_task(void const *pvParameters)
 {
     // 等待陀螺仪任务更新陀螺仪数据
-    vTaskDelay(GIMBAL_TASK_INIT_TIME);
-    // 云台初始化
-    InitGimbal();
+    vTaskDelay(SHOOT_TASK_INIT_TIME);
     // 射击初始化
     InitShoot(&shoot);
 
     while (1)
     {
-        // 设置云台模式
-        SetGimbalMode();
-        // 更新云台数据（更新状态量）
-        UpdateGimbalData();
-        // 设置目标量
-        SetGimbalTarget();
-        // 云台控制（计算控制量）
-        GimbalConsole();
-        // 发送云台控制量
-        SendGimbalCmd();
-
         // 设置射击模式
         SetShootMode(&shoot);
         // 更新射击数据（更新状态量）
@@ -105,54 +79,6 @@ void gimbal_task(void const *pvParameters)
         SendShootCmd(&shoot);
 
         // 系统延时
-        vTaskDelay(GIMBAL_CONTROL_TIME);
+        vTaskDelay(SHOOT_CONTROL_TIME);
     }
-}
-
-/**
- * @brief
- * @param
- */
-static void InitGimbal(void)
-{
-}
-
-/**
- * @brief
- * @param
- */
-static void SetGimbalMode(void)
-{
-}
-
-/**
- * @brief
- * @param
- */
-static void SetGimbalTarget(void)
-{
-}
-
-/**
- * @brief
- * @param
- */
-static void UpdateGimbalData(void)
-{
-}
-
-/**
- * @brief
- * @param
- */
-static void GimbalConsole(void)
-{
-}
-
-/**
- * @brief
- * @param
- */
-static void SendGimbalCmd(void)
-{
 }

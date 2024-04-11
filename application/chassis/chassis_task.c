@@ -25,7 +25,7 @@
 #include "pid.h"
 #include "CAN_receive.h"
 #include "detect_task.h"
-#include "INS_task.h"
+#include "IMU_task.h"
 #include "chassis_power_control.h"
 
 #define rc_deadband_limit(input, output, dealine)        \

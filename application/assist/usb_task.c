@@ -30,7 +30,7 @@
 #include "usbd_conf.h"
 #include "cmsis_os.h"
 #include "bsp_buzzer.h"
-#include "INS_task.h"
+#include "IMU_task.h"
 #include "referee.h"
 #include "CRC8_CRC16.h"
 

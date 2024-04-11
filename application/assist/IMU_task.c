@@ -22,7 +22,7 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
-#include "INS_task.h"
+#include "IMU_task.h"
 
 #include "main.h"
 
@@ -248,7 +248,7 @@ static void AccelUpdate(void);
  * @retval         none
  */
 
-void INS_task(void const *pvParameters)
+void IMU_task(void const *pvParameters)
 {
     // wait a time
     osDelay(INS_TASK_INIT_TIME);
