@@ -5,7 +5,8 @@
   * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024     Penguin          1. done
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
   *
   @verbatim
   ==============================================================================
@@ -24,8 +25,8 @@
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
 
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
-static void LocomotionController();
-static void LegController();
+//static void LocomotionController(void);
+//static void LegController(void);
 /**
  * @brief 平衡底盘控制器
  * @param chassis
@@ -37,12 +38,12 @@ void BalanceChassisConsole(Chassis_s *chassis)
     case CHASSIS_ZERO_FORCE:
         break;
     case CHASSIS_FOLLOW_GIMBAL_YAW:
-        double k_res[12];
-        float k[2][6]; // LQR反馈矩阵
-        L2K(0, k_res);
-        float res[2];
-        float T = res[0];  // 沿摆杆径向的力
-        float Tp = res[1]; // 沿摆杆法向的力
+        //double k_res[12];
+        //float k[2][6]; // LQR反馈矩阵
+        //L2K(0, k_res);
+        //float res[2];
+        //float T = res[0];  // 沿摆杆径向的力
+        //float Tp = res[1]; // 沿摆杆法向的力
         break;
     case CHASSIS_STOP:
         break;
@@ -61,10 +62,10 @@ void BalanceChassisConsole(Chassis_s *chassis)
 /**
  * @brief 运动控制器
  */
-static void LocomotionController() {}
+//static void LocomotionController(void) {}
 /**
  * @brief 腿部控制器
  */
-static void LegController() {}
+//static void LegController(void) {}
 
 #endif

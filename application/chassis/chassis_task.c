@@ -1,12 +1,13 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       chassis.c/h
+  * @file       chassis_task.c/h
   * @brief      chassis control task,
   *             底盘控制任务
   * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024     Penguin          1. done
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
   *
   @verbatim
   ==============================================================================
@@ -44,9 +45,9 @@ static void InitChassis(Chassis_s *chassis);
 
 static void SetChassisMode(Chassis_s *chassis);
 
-static void SetChassisTarget(Chassis_s *chassis);
+static void ChassisObserver(Chassis_s *chassis);
 
-static void UpdateChassisData(Chassis_s *chassis);
+static void ChassisReference(Chassis_s *chassis);
 
 static void ChassisConsole(Chassis_s *chassis);
 
@@ -72,13 +73,13 @@ void chassis_task(void const *pvParameters)
     {
         // 设置底盘模式
         SetChassisMode(&chassis);
-        // 更新底盘数据（更新状态量）
-        UpdateChassisData(&chassis);
-        // 设置目标量
-        SetChassisTarget(&chassis);
-        // 底盘控制（计算控制量）
+        // 更新状态量
+        ChassisObserver(&chassis);
+        // 更新目标量
+        ChassisReference(&chassis);
+        // 计算控制量
         ChassisConsole(&chassis);
-        // 发送底盘控制量
+        // 发送控制量
         SendChassisCmd(&chassis);
         // 系统延时
         vTaskDelay(CHASSIS_CONTROL_TIME_MS);
@@ -90,7 +91,7 @@ void chassis_task(void const *pvParameters)
 }
 
 /**
- * @brief          底盘初始化
+ * @brief          初始化
  * @param[in]      chassis 底盘结构体指针
  * @retval         none
  */
@@ -115,7 +116,7 @@ static void InitChassis(Chassis_s *chassis)
 }
 
 /**
- * @brief          设置底盘模式
+ * @brief          设置模式
  * @param[in]      chassis 底盘结构体指针
  * @retval         none
  */
@@ -141,10 +142,49 @@ static void SetChassisMode(Chassis_s *chassis)
 }
 
 /**
- * @brief          设置底盘目标量
+ * @brief          更新状态量
+ * @param[in]      chassis 底盘结构体指针
+ * @retval         none
+ */
+static void ChassisObserver(Chassis_s *chassis)
+{
+    if (chassis == NULL)
+    {
+        return;
+    }
+
+    //uint8_t i;
+
+#if (CHASSIS_TYPE == CHASSIS_BALANCE) // 平衡底盘和其他底盘不太一样
+    // 更新底盘陀螺仪数据
+    double left_leg_pos[2];
+    double right_leg_pos[2];
+    LegFKine(0, 0, left_leg_pos);  // 获取五连杆等效连杆长度
+    LegFKine(0, 0, right_leg_pos); // 获取五连杆等效连杆长度
+
+    // LegPosUpdate();
+
+    chassis->feedback.x[0] = chassis->imu->angle.pitch;
+    chassis->feedback.x[1] = chassis->imu->velocity.y;
+    chassis->feedback.x[2] = 0;
+    // chassis->feedback->x[3] = (left_wheel.speed + right_wheel.speed) / 2 * WHEEL_RADIUS;
+    chassis->feedback.x[4] = (chassis->feedback.leg_pos[0].angle + chassis->feedback.leg_pos[1].angle) / 2 - M_PI_2 - chassis->imu->angle.pitch;
+    chassis->feedback.x[5] = 0;
+#else
+    for (i = 0; i < 4; i++)
+    {
+        chassis->motor[i].w = chassis->motor[i].motor_measure->speed_rpm * DJI_GM3508_RPM_TO_OMEGA;
+        chassis->motor[i].v = chassis->motor[i].w * WHEEL_RADIUS;
+    }
+#endif
+    chassis->dyaw = (chassis->yaw_motor->motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - chassis->yaw_mid);
+}
+
+/**
+ * @brief          更新目标量
  * @param[in]      chassis 底盘结构体指针
  */
-static void SetChassisTarget(Chassis_s *chassis)
+static void ChassisReference(Chassis_s *chassis)
 {
     if (chassis == NULL)
     {
@@ -174,78 +214,32 @@ static void SetChassisTarget(Chassis_s *chassis)
     {
         // TODO: add code here
     }
-    chassis->expect.speed_vector.vx = v_set.vx;
-    chassis->expect.speed_vector.vy = v_set.vy;
-    chassis->expect.speed_vector.wz = v_set.wz;
+    chassis->reference.speed_vector.vx = v_set.vx;
+    chassis->reference.speed_vector.vy = v_set.vy;
+    chassis->reference.speed_vector.wz = v_set.wz;
 
 #if (CHASSIS_TYPE == CHASSIS_BALANCE)
-    chassis->expect.x[0] = 0;
-    chassis->expect.x[1] = 0;
-    chassis->expect.x[2] = 0;
-    chassis->expect.x[3] = chassis->expect.speed_vector.vx;
-    chassis->expect.x[4] = 0;
-    chassis->expect.x[5] = 0;
+    chassis->reference.x[0] = 0;
+    chassis->reference.x[1] = 0;
+    chassis->reference.x[2] = 0;
+    chassis->reference.x[3] = chassis->reference.speed_vector.vx;
+    chassis->reference.x[4] = 0;
+    chassis->reference.x[5] = 0;
 #endif
 }
 
 /**
- * @brief          更新底盘状态量
+ * @brief          计算控制量
  * @param[in]      chassis 底盘结构体指针
  * @retval         none
  */
-static void UpdateChassisData(Chassis_s *chassis)
+static void ChassisConsole(Chassis_s *chassis)
 {
     if (chassis == NULL)
     {
         return;
     }
 
-    uint8_t i;
-
-#if (CHASSIS_TYPE == CHASSIS_BALANCE) // 平衡底盘和其他底盘不太一样
-    // 更新底盘陀螺仪数据
-    chassis->imu.yaw = get_INS_angle_point()[0];
-    chassis->imu.pitch = get_INS_angle_point()[1];
-    chassis->imu.roll = get_INS_angle_point()[2];
-
-    chassis->imu.yawSpd = get_gyro_data_point()[2];
-    chassis->imu.pitchSpd = get_gyro_data_point()[1];
-    chassis->imu.rollSpd = get_gyro_data_point()[0];
-
-    chassis->imu.xAccel = get_accel_data_point()[0];
-    chassis->imu.yAccel = get_accel_data_point()[1];
-    chassis->imu.zAccel = get_accel_data_point()[2];
-
-    double left_leg_pos[2];
-    double right_leg_pos[2];
-    LegFKine(0, 0, left_leg_pos);  // 获取五连杆等效连杆长度
-    LegFKine(0, 0, right_leg_pos); // 获取五连杆等效连杆长度
-
-    // LegPosUpdate();
-
-    chassis->status.x[0] = chassis->imu.pitch;
-    chassis->status.x[1] = chassis->imu.pitchSpd;
-    chassis->status.x[2] = 0;
-    // chassis->status->x[3] = (left_wheel.speed + right_wheel.speed) / 2 * WHEEL_RADIUS;
-    chassis->status.x[4] = (chassis->status.leg_pos[0].angle + chassis->status.leg_pos[1].angle) / 2 - M_PI_2 - chassis->imu.pitch;
-    chassis->status.x[5] = 0;
-#else
-    for (i = 0; i < 4; i++)
-    {
-        chassis->motor[i].w = chassis->motor[i].motor_measure->speed_rpm * DJI_GM3508_RPM_TO_OMEGA;
-        chassis->motor[i].v = chassis->motor[i].w * WHEEL_RADIUS;
-    }
-#endif
-    chassis->dyaw = (chassis->yaw_motor->motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - chassis->yaw_mid);
-}
-
-/**
- * @brief          底盘控制器
- * @param[in]      chassis 底盘结构体指针
- * @retval         none
- */
-static void ChassisConsole(Chassis_s *chassis)
-{
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
 
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
@@ -258,12 +252,17 @@ static void ChassisConsole(Chassis_s *chassis)
 }
 
 /**
- * @brief
+ * @brief          发送控制量
  * @param[in]      chassis 底盘结构体指针
  * @retval         none
  */
 static void SendChassisCmd(Chassis_s *chassis)
 {
+    if (chassis == NULL)
+    {
+        return;
+    }
+
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
 
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)

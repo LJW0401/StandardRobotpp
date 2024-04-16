@@ -1,18 +1,19 @@
 /**
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       shoot.c/h
   * @brief      射击功能。
   * @note
   * @history
   *  Version    Date            Author          Modification
   *  V1.0.0     Apr-1-2024      Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
   *
   @verbatim
   ==============================================================================
 
   ==============================================================================
   @endverbatim
-  ****************************(C) COPYRIGHT 2019 DJI****************************
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
 #ifndef SHOOT_H
@@ -25,9 +26,6 @@
 #include "remote_control.h"
 #include "user_lib.h"
 #include "pid.h"
-
-// 遥控器相关宏定义
-#define SHOOT_MODE_CHANNEL 1 // 射击发射开关通道数据
 
 typedef enum
 {
@@ -63,16 +61,28 @@ typedef struct
 
 extern Shoot_s shoot;
 
-void InitShoot(Shoot_s *shoot);
+/*-------------------- Init --------------------*/
+#if (SHOOT_TYPE == SHOOT_NONE)
+#elif (SHOOT_TYPE == SHOOT_FRIC)
+#elif (SHOOT_TYPE == SHOOT_PNEUMATIC)
+#endif
 
-void SetShootMode(Shoot_s *shoot);
+/*-------------------- Observe --------------------*/
+#if (SHOOT_TYPE == SHOOT_NONE)
+#elif (SHOOT_TYPE == SHOOT_FRIC)
+#elif (SHOOT_TYPE == SHOOT_PNEUMATIC)
+#endif
 
-void SetShootTarget(Shoot_s *shoot);
+/*-------------------- Reference --------------------*/
+#if (SHOOT_TYPE == SHOOT_NONE)
+#elif (SHOOT_TYPE == SHOOT_FRIC)
+#elif (SHOOT_TYPE == SHOOT_PNEUMATIC)
+#endif
 
-void UpdateShootData(Shoot_s *shoot);
-
-void ShootConsole(Shoot_s *shoot);
-
-void SendShootCmd(Shoot_s *shoot);
+/*-------------------- Cmd --------------------*/
+#if (SHOOT_TYPE == SHOOT_NONE)
+#elif (SHOOT_TYPE == SHOOT_FRIC)
+#elif (SHOOT_TYPE == SHOOT_PNEUMATIC)
+#endif
 
 #endif

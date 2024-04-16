@@ -1,12 +1,13 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       chassis.c/h
+  * @file       chassis_task.c/h
   * @brief      chassis control task,
   *             底盘控制任务
   * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024     Penguin          1. done
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
   *
   @verbatim
   ==============================================================================

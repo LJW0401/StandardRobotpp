@@ -21,7 +21,7 @@
 #include "bsp_buzzer.h"
 #include "detect_task.h"
 
-static void buzzer_warn_error(uint8_t num);
+//static void buzzer_warn_error(uint8_t num);
 
 const error_t *error_list_test_local;
 
@@ -39,13 +39,13 @@ const error_t *error_list_test_local;
   */
 void test_task(void const * argument)
 {
-    static uint8_t error, last_error;
-    static uint8_t error_num;
+    //static uint8_t error, last_error;
+    //static uint8_t error_num;
     error_list_test_local = get_error_list_point();
 
     while(1)
     {
-        error = 0;
+        //error = 0;
 
         //find error
         //发现错误
@@ -87,38 +87,38 @@ void test_task(void const * argument)
   * @param[in]      num:响声次数
   * @retval         none
   */
-static void buzzer_warn_error(uint8_t num)
-{
-    static uint8_t show_num = 0;
-    static uint8_t stop_num = 100;
-    if(show_num == 0 && stop_num == 0)
-    {
-        show_num = num;
-        stop_num = 100;
-    }
-    else if(show_num == 0)
-    {
-        stop_num--;
-        buzzer_off();
-    }
-    else
-    {
-        static uint8_t tick = 0;
-        tick++;
-        if(tick < 50)
-        {
-            buzzer_off();
-        }
-        else if(tick < 100)
-        {
-            buzzer_on(1, 30000);
-        }
-        else
-        {
-            tick = 0;
-            show_num--;
-        }
-    }
-}
+//static void buzzer_warn_error(uint8_t num)
+//{
+//    static uint8_t show_num = 0;
+//    static uint8_t stop_num = 100;
+//    if(show_num == 0 && stop_num == 0)
+//    {
+//        show_num = num;
+//        stop_num = 100;
+//    }
+//    else if(show_num == 0)
+//    {
+//        stop_num--;
+//        buzzer_off();
+//    }
+//    else
+//    {
+//        static uint8_t tick = 0;
+//        tick++;
+//        if(tick < 50)
+//        {
+//            buzzer_off();
+//        }
+//        else if(tick < 100)
+//        {
+//            buzzer_on(1, 30000);
+//        }
+//        else
+//        {
+//            tick = 0;
+//            show_num--;
+//        }
+//    }
+//}
 
 

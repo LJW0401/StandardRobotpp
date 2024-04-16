@@ -5,6 +5,7 @@
   * @history
   *  Version    Date            Author          Modification
   *  V1.0.0     Mar-31-2024     Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 添加云台和发射机构类型
   *
   @verbatim
   ==============================================================================
@@ -23,13 +24,28 @@
 #define CHASSIS_STEERING_WHEEL 2 // 舵轮底盘
 #define CHASSIS_BALANCE 3        // 平衡底盘
 
+// 可用云台类型
+#define GIMBAL_YAW 0            // yaw轴云台
+#define GIMBAL_PITCH 1          // pitch轴云台
+#define GIMBAL_YAW_PITCH 2      // yaw轴+pitch轴云台
+#define GIMBAL_YAW_YAW_PITCH 3  // 大小yaw轴+pitch轴云台
+#define GIMBAL_YAW_PITCH_ROLL 4 // 三轴云台
+
+// 可用的发射机构类型
+#define SHOOT_NONE 0      // 无发射机构
+#define SHOOT_FRIC 1      // 摩擦轮发射机构
+#define SHOOT_PNEUMATIC 2 // 气动发射机构
+
 // 控制类型（板间通信时用到）
 #define CHASSIS_ONLY 0       // 只控制底盘
 #define GIMBAL_ONLY 1        // 只控制云台
 #define CHASSIS_AND_GIMBAL 2 // 控制底盘和云台
 
 #define __DEBUG 0                       // 调试模式
+#define __TUNING 0                      // 调参模式
 #define CHASSIS_TYPE CHASSIS_BALANCE    // 选择底盘类型
+#define GIMBAL_TYPE GIMBAL_YAW_PITCH    // 选择云台类型
+#define SHOOT_TYPE SHOOT_FRIC           // 选择发射机构类型
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL // 选择控制类型
 #define GUN_NUM 1                       // 定义枪管个数（一个枪管2个摩擦轮）
 #define BULLET_NUM 8                    // 定义拨弹盘容纳弹丸个数
@@ -80,8 +96,6 @@ typedef enum
   TRIGGER = 7,
   FRIC1 = 0,
   FRIC2 = 1,
-  FRIC3 = 2,
-  FRIC4 = 3
 } MotorId_e;
 
 #else

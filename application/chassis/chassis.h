@@ -1,11 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       chassis.c/h
-  * @brief      底盘部分通用变量和函数的定义
-  * @note       将通用内容放在chassis.c中，避免chassis_task.c和chassis_behaviour.c的循环引用
+  * @brief      底盘控制任务所需要的变量和函数
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024      Penguin          1. done
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
   *
   @verbatim
   ==============================================================================
@@ -20,10 +20,13 @@
 
 #include <math.h>
 
+#include "pid.h"
+
 #include "remote_control.h"
 #include "motor.h"
 #include "struct_typedef.h"
 #include "robot_param.h"
+#include "IMU_task.h"
 
 typedef enum
 {
@@ -43,14 +46,11 @@ typedef struct // 底盘速度向量结构体
     float wz; // (rad/s) 旋转速度
 } ChassisSpeedVector_t;
 
-#if (CHASSIS_TYPE == CHASSIS_BALANCE)
-typedef struct // 底盘IMU数据
-{
-    float yaw, pitch, roll;          // rad
-    float yawSpd, pitchSpd, rollSpd; // rad/s
-    float xAccel, yAccel, zAccel;    // m/s^2
-} ChassisImuData_t;
-
+/*-------------------- Structural definition --------------------*/
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
 typedef struct
 {
     float angle, length;   // rad, m
@@ -77,6 +77,12 @@ typedef struct
     LegPos_t leg_pos[2]; // 0-左腿，1-右腿
     ChassisSpeedVector_t speed_vector;
 } Values_t;
+
+typedef struct
+{
+    pid_type_def yaw_pid_angle;
+    pid_type_def yaw_pid_velocity;
+} PID_t;
 #endif
 
 /**
@@ -90,29 +96,31 @@ typedef struct
 
     /*-------------------- Motors --------------------*/
     DJI_Motor_s *yaw_motor; // yaw轴电机
-
-#if (CHASSIS_TYPE == CHASSIS_BALANCE)
-    // 平衡底盘有2个驱动轮电机和4个关节电机
-    DJI_Motor_s *joint_motor[4]; // 关节电机
-    DJI_Motor_s *wheel_motor[2]; // 驱动轮电机
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+    DJI_Motor_s *motor[4]; // 底盘电机
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+    DJI_Motor_s *motor[4]; // 底盘电机
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
     // 舵轮底盘有4个舵轮电机和4个驱动轮电机
     DJI_Motor_s *servo_motor[4]; // 舵机电机
     DJI_Motor_s *wheel_motor[4]; // 驱动轮电机
-#else
-    DJI_Motor_s *motor[4]; // 底盘电机
-    pid_type_def motor_pid[4];  // PID控制器
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+    // 平衡底盘有2个驱动轮电机和4个关节电机
+    DJI_Motor_s *joint_motor[4]; // 关节电机
+    DJI_Motor_s *wheel_motor[2]; // 驱动轮电机
 #endif
 
-/*-------------------- Values --------------------*/
+    /*-------------------- Values --------------------*/
 #if (CHASSIS_TYPE == CHASSIS_BALANCE)
-    ChassisImuData_t imu; // 底盘使用的IMU数据
+    ImuData_t *imu; // 底盘使用的IMU数据
 #endif
 
-    Values_t expect;      // 期望值
-    Values_t status;      // 状态值
+    Values_t reference;   // 期望值
+    Values_t feedback;    // 状态值
     Values_t upper_limit; // 上限值
     Values_t lower_limit; // 下限值
+
+    PID_t pid; // PID控制器
 
     float dyaw;       // (rad)当前位置与云台中值角度差（用于坐标转换）
     uint16_t yaw_mid; // (编码角)云台中值角度
@@ -126,6 +134,20 @@ extern Chassis_s chassis;
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
 #elif (CHASSIS_TYPE == CHASSIS_BALANCE)
 void InitBalanceChassisMotor(Chassis_s *chassis);
+#endif
+
+/*-------------------- Observe --------------------*/
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+#endif
+
+/*-------------------- Reference --------------------*/
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
 #endif
 
 /*-------------------- Cmd --------------------*/

@@ -4,7 +4,7 @@
   * @brief      电机相关部分定义
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024     Penguin          1. done
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
   *
   @verbatim
   ==============================================================================

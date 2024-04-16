@@ -149,7 +149,7 @@ static void cali_data_read(void);
   * @param[in]      none
   * @retval         none
   */
-static void cali_data_write(void);
+//static void cali_data_write(void);
 
 
 /**
@@ -227,11 +227,11 @@ static imu_cali_t      gyro_cali;       //gyro cali data
 static imu_cali_t      mag_cali;        //mag cali data
 
 
-static uint8_t flash_write_buf[FLASH_WRITE_BUF_LENGHT];
+//static uint8_t flash_write_buf[FLASH_WRITE_BUF_LENGHT];
 
 cali_sensor_t cali_sensor[CALI_LIST_LENGHT]; 
 
-static const uint8_t cali_name[CALI_LIST_LENGHT][3] = {"HD", "GM", "GYR", "ACC", "MAG"};
+//static const uint8_t cali_name[CALI_LIST_LENGHT][3] = {"HD", "GM", "GYR", "ACC", "MAG"};
 
 //cali data address
 static uint32_t *cali_sensor_buf[CALI_LIST_LENGHT] = {
@@ -574,28 +574,28 @@ static void cali_data_read(void)
   * @param[in]      none
   * @retval         none
   */
-static void cali_data_write(void)
-{
-    uint8_t i = 0;
-    uint16_t offset = 0;
+//static void cali_data_write(void)
+//{
+//    uint8_t i = 0;
+//    uint16_t offset = 0;
 
 
-    for (i = 0; i < CALI_LIST_LENGHT; i++)
-    {
-        //copy the data of device calibration data
-        memcpy((void *)(flash_write_buf + offset), (void *)cali_sensor[i].flash_buf, cali_sensor[i].flash_len * 4);
-        offset += cali_sensor[i].flash_len * 4;
+//    for (i = 0; i < CALI_LIST_LENGHT; i++)
+//    {
+//        //copy the data of device calibration data
+//        memcpy((void *)(flash_write_buf + offset), (void *)cali_sensor[i].flash_buf, cali_sensor[i].flash_len * 4);
+//        offset += cali_sensor[i].flash_len * 4;
 
-        //copy the name and "CALI_FLAG" of device
-        memcpy((void *)(flash_write_buf + offset), (void *)cali_sensor[i].name, CALI_SENSOR_HEAD_LEGHT * 4);
-        offset += CALI_SENSOR_HEAD_LEGHT * 4;
-    }
+//        //copy the name and "CALI_FLAG" of device
+//        memcpy((void *)(flash_write_buf + offset), (void *)cali_sensor[i].name, CALI_SENSOR_HEAD_LEGHT * 4);
+//        offset += CALI_SENSOR_HEAD_LEGHT * 4;
+//    }
 
-    //erase the page
-    cali_flash_erase(FLASH_USER_ADDR,1);
-    //write data
-    cali_flash_write(FLASH_USER_ADDR, (uint32_t *)flash_write_buf, (FLASH_WRITE_BUF_LENGHT + 3) / 4);
-}
+//    //erase the page
+//    cali_flash_erase(FLASH_USER_ADDR,1);
+//    //write data
+//    cali_flash_write(FLASH_USER_ADDR, (uint32_t *)flash_write_buf, (FLASH_WRITE_BUF_LENGHT + 3) / 4);
+//}
 
 
 /**

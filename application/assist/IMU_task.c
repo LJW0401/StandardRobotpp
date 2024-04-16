@@ -232,10 +232,13 @@ void gEstimateKF_Init(float process_noise, float measure_noise);
 void gEstimateKF_Update(float gx, float gy, float gz, float ax, float ay, float az, float dt);
 
 /*-------------------- 数据指针获取部分 --------------------*/
+ImuData_t imu_data;// IMU数据
 
 static void AngleUpdate(void);
 static void VelocityUpdate(void);
 static void AccelUpdate(void);
+static void ImuDataUpdate(void);
+
 
 /**
  * @brief          imu task, init bmi088, ist8310, calculate the euler angle
@@ -359,6 +362,12 @@ void IMU_task(void const *pvParameters)
                                  accel.x, accel.y, accel.z,
                                  timing_time);
         AngleUpdate();
+
+        // 更新角速度
+        VelocityUpdate();
+        
+        // 更新IMU数据
+        ImuDataUpdate();
     }
 }
 
@@ -739,6 +748,17 @@ static void AccelUpdate(void)
 const Accel_t *GetAccelPoint(void)
 {
     return &accel;
+}
+
+/*-------------------- 测量数据更新部分 --------------------*/
+static void ImuDataUpdate(void){
+    imu_data.accel = accel;
+    imu_data.angle = angle;
+    imu_data.velocity = velocity;
+}
+
+const ImuData_t *GetImuDataPoint(void){
+    return &imu_data;
 }
 
 /*-------------------- 陈旧的姿态解算代码 --------------------*/

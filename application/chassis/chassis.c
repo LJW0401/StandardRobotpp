@@ -1,11 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       chassis.c/h
-  * @brief      底盘部分通用变量和函数的定义
-  * @note       将通用内容放在chassis.c中，避免chassis_task.c和chassis_behaviour.c的循环引用
+  * @brief      底盘控制任务所需要的变量和函数
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024      Penguin          1. done
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
   *
   @verbatim
   ==============================================================================
@@ -17,6 +17,7 @@
 
 #include "chassis.h"
 
+/*-------------------- Parameter definition --------------------*/
 #if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
 #elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
 #elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
@@ -46,7 +47,7 @@ Chassis_s chassis = {
         .x = {-1.0f, -2.0f, 0.0f, -10.0f, -1.0f, -2.0f},
         .leg_length = 0.15f,
     },
-    .status = {
+    .feedback = {
         .speed_vector = {
             .vx = 0.0f,
             .vy = 0.0f,
@@ -57,7 +58,7 @@ Chassis_s chassis = {
         .x = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
         .leg_length = 0.0f,
     },
-    .expect = {
+    .reference = {
         .speed_vector = {
             .vx = 0.0f,
             .vy = 0.0f,
@@ -90,6 +91,20 @@ void InitBalanceChassisMotor(Chassis_s *chassis)
     // chassis->wheel_motor[0].motor = ;
     // chassis->wheel_motor[1].motor = ;
 }
+#endif
+
+/*-------------------- Observe --------------------*/
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+#endif
+
+/*-------------------- Reference --------------------*/
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
 #endif
 
 /*-------------------- Cmd --------------------*/

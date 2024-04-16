@@ -91,6 +91,9 @@ typedef struct
     float lambda;                 // 渐消因子
 } INS_t;
 
+/**
+ * @brief 欧拉角数据(rad)
+ */
 typedef struct
 {
     float yaw;
@@ -98,6 +101,9 @@ typedef struct
     float roll;
 } Angle_t;
 
+/**
+ * @brief 3轴角速度数据(rad/s)
+ */
 typedef struct
 {
     float x;
@@ -105,12 +111,25 @@ typedef struct
     float z;
 } Velocity_t;
 
+/**
+ * @brief 3轴加速度数据(m/s^2)
+ */
 typedef struct
 {
     float x;
     float y;
     float z;
 } Accel_t;
+
+/**
+ * @brief IMU数据
+ */
+typedef struct
+{
+    Angle_t angle;
+    Velocity_t velocity;
+    Accel_t accel;
+} ImuData_t;
 
 /**
  * @brief          imu task, init bmi088, ist8310, calculate the euler angle
@@ -127,6 +146,7 @@ extern void IMU_task(void const *pvParameters);
 const Angle_t *GetAnglePoint(void);
 const Velocity_t *GetVelocityPoint(void);
 const Accel_t *GetAccelPoint(void);
+const ImuData_t *GetImuDataPoint(void);
 
 /*-------------------- 陈旧的姿态解算代码 --------------------*/
 

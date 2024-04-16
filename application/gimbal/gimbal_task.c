@@ -7,6 +7,7 @@
   * @history
   *  Version    Date            Author          Modification
   *  V1.0.0     Apr-1-2024     Penguin          1. done
+  *  V1.0.1     Apr-16-2024    Penguin          1. 完成基本框架
   *
   @verbatim
   ==============================================================================
@@ -18,6 +19,7 @@
 
 #include "gimbal_task.h"
 #include "gimbal_console.h"
+#include "gimbal.h"
 
 #include "main.h"
 
@@ -53,20 +55,20 @@
 uint32_t gimbal_high_water;
 #endif
 
-static void InitGimbal(void);
+static void InitGimbal(Gimbal_t *gimbal);
 
-static void SetGimbalMode(void);
+static void SetGimbalMode(Gimbal_t *gimbal);
 
-static void SetGimbalTarget(void);
+static void GimbalObserver(Gimbal_t *gimbal);
 
-static void UpdateGimbalData(void);
+static void GimbalReference(Gimbal_t *gimbal);
 
-static void GimbalConsole(void);
+static void GimbalConsole(Gimbal_t *gimbal);
 
-static void SendGimbalCmd(void);
+static void SendGimbalCmd(Gimbal_t *gimbal);
 
 /**
- * @brief          云台任务，间隔 GIMBAL_CONTROL_TIME 1ms
+ * @brief          云台任务，间隔 GIMBAL_CONTROL_TIME
  * @param[in]      pvParameters: 空
  * @retval         none
  */
@@ -76,83 +78,75 @@ void gimbal_task(void const *pvParameters)
     // 等待陀螺仪任务更新陀螺仪数据
     vTaskDelay(GIMBAL_TASK_INIT_TIME);
     // 云台初始化
-    InitGimbal();
-    // 射击初始化
-    InitShoot(&shoot);
+    InitGimbal(&gimbal);
 
     while (1)
     {
         // 设置云台模式
-        SetGimbalMode();
-        // 更新云台数据（更新状态量）
-        UpdateGimbalData();
-        // 设置目标量
-        SetGimbalTarget();
-        // 云台控制（计算控制量）
-        GimbalConsole();
-        // 发送云台控制量
-        SendGimbalCmd();
-
-        // 设置射击模式
-        SetShootMode(&shoot);
-        // 更新射击数据（更新状态量）
-        UpdateShootData(&shoot);
-        // 设置射击目标量
-        SetShootTarget(&shoot);
-        // 射击控制（计算控制量）
-        ShootConsole(&shoot);
-        // 发送射击控制量
-        SendShootCmd(&shoot);
-
+        SetGimbalMode(&gimbal);
+        // 更新状态量
+        GimbalObserver(&gimbal);
+        // 更新目标量
+        GimbalReference(&gimbal);
+        // 计算控制量
+        GimbalConsole(&gimbal);
+        // 发送控制量
+        SendGimbalCmd(&gimbal);
         // 系统延时
         vTaskDelay(GIMBAL_CONTROL_TIME);
     }
 }
 
 /**
- * @brief
- * @param
+ * @brief          初始化
+ * @param[in]      gimbal 云台结构体指针
+ * @retval         none
  */
-static void InitGimbal(void)
+static void InitGimbal(Gimbal_t *gimbal)
 {
 }
 
 /**
- * @brief
- * @param
+ * @brief          设置模式
+ * @param[in]      gimbal 云台结构体指针
+ * @retval         none
  */
-static void SetGimbalMode(void)
+static void SetGimbalMode(Gimbal_t *gimbal)
 {
 }
 
 /**
- * @brief
- * @param
+ * @brief          更新状态量
+ * @param[in]      gimbal 云台结构体指针
+ * @retval         none
  */
-static void SetGimbalTarget(void)
+static void GimbalObserver(Gimbal_t *gimbal)
 {
 }
 
 /**
- * @brief
- * @param
+ * @brief          更新目标量
+ * @param[in]      gimbal 云台结构体指针
+ * @retval         none
  */
-static void UpdateGimbalData(void)
+static void GimbalReference(Gimbal_t *gimbal)
 {
 }
 
 /**
- * @brief
- * @param
+ * @brief          计算控制量
+ * @param[in]      gimbal 云台结构体指针
+ * @retval         none
  */
-static void GimbalConsole(void)
+static void GimbalConsole(Gimbal_t *gimbal)
 {
 }
 
 /**
- * @brief
- * @param
+ * @brief          发送控制量
+ * @param[in]      gimbal 云台结构体指针
+ * @retval         none
  */
-static void SendGimbalCmd(void)
+static void SendGimbalCmd(Gimbal_t *gimbal)
 {
 }
