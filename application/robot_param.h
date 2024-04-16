@@ -31,6 +31,10 @@
 #define GIMBAL_YAW_YAW_PITCH 3  // 大小yaw轴+pitch轴云台
 #define GIMBAL_YAW_PITCH_ROLL 4 // 三轴云台
 
+// 控制链路类型
+#define DBUS_LINK 0               // DBUS控制链路
+#define IMAGE_TRANSMISSION_LINK 1 // 图传控制链路
+
 // 可用的发射机构类型
 #define SHOOT_NONE 0      // 无发射机构
 #define SHOOT_FRIC 1      // 摩擦轮发射机构
@@ -43,6 +47,7 @@
 
 #define __DEBUG 0                       // 调试模式
 #define __TUNING 0                      // 调参模式
+#define __CONTROL_LINK DBUS_LINK        // 控制链路
 #define CHASSIS_TYPE CHASSIS_BALANCE    // 选择底盘类型
 #define GIMBAL_TYPE GIMBAL_YAW_PITCH    // 选择云台类型
 #define SHOOT_TYPE SHOOT_FRIC           // 选择发射机构类型

@@ -1,62 +1,62 @@
 # StandardRobot++
 
 ## 简介
-本项目的计划是基于 DJI StandardRobot 的基础上改造成一个更适合北极熊uu们的通用型机器人代码框架
+> 也许不是最好的？但一定是最适合上手的电控开源！
 
-主要内容框架如下：
-![main framework](./doc/pic/mainframework.svg)
+本项目的计划是基于 DJI StandardRobot 的基础上改造成一个更适合北极熊uu们的通用型机器人代码框架。
 
-## 开发进度
-- 校准
-  - [ ] 云台校准
-  - [ ] 陀螺仪校准
-  - [ ] 底盘校准
-- 底盘类型
+本框架致力于实现不同类型的机器人的代码通用化，只需要选择底盘云台的类型，修改一下对应物理参数即可实现对机器人的适配。
+
+## 架构
+### 主要部分
+- **Chassis**\
+  支持以下底盘类型：
   - [ ] 麦轮底盘
   - [ ] 全向轮底盘
   - [ ] 舵轮底盘
-  - [x] 平衡底盘
-- 底盘模式
-  - [ ] 云台跟随
-  - [ ] 独立于云台运动
-  - [ ] 小陀螺
-- 云台模式
-  - [ ] 陀螺仪绝对角度控制
-  - [ ] 电机编码角相对角度控制
-- 射击模式
-  - [ ] 单发
-  - [ ] 连发
+  - [ ] 平衡底盘
+  
+  详细信息请参考 [CHASSIS_README](./application/chassis/CHASSIS_README.md)
 
-## 如何使用本框架
+- **Gimbal**\
+  支持以下云台类型：
+  - [ ] yaw 云台
+  - [ ] yaw-pitch 云台
+  - [ ] 大yaw-小yaw-pitch 云台
+  
+  详细信息请参考 [GIMBAL_README](./application/gimbal/GIMBAL_README.md)
 
-在 [robot_param.h](./application/robot_param.h) 中填写机器人参数
+- **Shoot**\
+  支持以下发射机构类型：
+  - [ ] 摩擦轮发射
+  - [ ] 气动发射
 
-**通用参数：**
-```C
-// 可用底盘类型
-#define CHASSIS_MECANUM_WHEEL 0  // 麦克纳姆轮底盘
-#define CHASSIS_OMNI_WHEEL 1     // 全向轮底盘
-#define CHASSIS_STEERING_WHEEL 2 // 舵轮底盘
-#define CHASSIS_BALANCE 3        // 平衡底盘
+  详细信息请参考 [SHOOT_README](./application/shoot/SHOOT_README.md)
 
-// 控制类型（板间通信时用到）
-#define CHASSIS_ONLY 0       // 只控制底盘
-#define GIMBAL_ONLY 1        // 只控制云台
-#define CHASSIS_AND_GIMBAL 2 // 控制底盘和云台
+<!-- - **Mechanical arm**\
+  支持以下机械臂类型：
+  
+  详细信息请参考 [ARM_README](./application/arm/ARM_README.md) -->
 
-#define __DEBUG 0                       // 调试模式
-#define CHASSIS_TYPE CHASSIS_BALANCE    // 选择底盘类型
-#define CONTROL_TYPE CHASSIS_AND_GIMBAL // 选择控制类型
-#define GUN_NUM 1                       // 定义枪管个数（一个枪管2个摩擦轮）
-#define BULLET_NUM 8                    // 定义拨弹盘容纳弹丸个数
-#define FRIC_RADIUS 0.03f               // (m)摩擦轮半径
-```
-## 遥控器的使用
-1. 左拨杆控制开火
-2. 右拨杆控制底盘模式
-3. 左摇杆控制云台
-4. 右摇杆控制底盘（运动方向以云台方向为前方）
-5. 左上滑片控制旋转速度
+## 开发工具
+使用VSCode作为IDE，Keil5作为编译器。
+> 虽然keil5老，但其对stm系列芯片的适配是非常友好的，但千万不要用keil5来编辑代码。
 
-## 文档链接
-- [应用层](./application/README.md)
+> VSCode作为现代化 IDE ，通过各种插件即可实现各种提高效率的开发方式，**尤其是Github Copilot**
+
+## 欢迎贡献
+如果你发现了本项目中的问题和可优化的点，可用创建issue进行讨论。
+
+并且fork本项目后提交pr来贡献你的代码。
+
+我们的管理员审核后会将你的代码合并进来。
+
+## 后续计划
+具体要做的事情在[TODO](./doc/TODO.md)中
+- 先完成当前框架，实现对现有机器人的适配。
+- 添加上下位机联调方便调参。
+
+## 致谢
+感谢各大战队的代码开源
+- 跃鹿 [basic_framework-dev](https://gitee.com/hnuyuelurm/basic_framework)
+
