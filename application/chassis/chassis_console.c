@@ -1,0 +1,71 @@
+/**
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
+  * @file       chassis_console.c/h
+  * @brief      底盘控制器。
+  * @note
+  * @history
+  *  Version    Date            Author          Modification
+  *  V1.0.0     Apr-1-2024      Penguin         1. done
+  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
+  *
+  @verbatim
+  ==============================================================================
+
+  ==============================================================================
+  @endverbatim
+  ****************************(C) COPYRIGHT 2024 Polarbear****************************
+*/
+#include "chassis_console.h"
+
+/*-------------------- Console --------------------*/
+#if (CHASSIS_TYPE == CHASSIS_MECANUM_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_OMNI_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_STEERING_WHEEL)
+
+#elif (CHASSIS_TYPE == CHASSIS_BALANCE)
+//static void LocomotionController(void);
+//static void LegController(void);
+/**
+ * @brief 平衡底盘控制器
+ * @param chassis
+ */
+void BalanceChassisConsole(Chassis_s *chassis)
+{
+    switch (chassis->mode)
+    {
+    case CHASSIS_ZERO_FORCE:
+        break;
+    case CHASSIS_FOLLOW_GIMBAL_YAW:
+        //double k_res[12];
+        //float k[2][6]; // LQR反馈矩阵
+        //L2K(0, k_res);
+        //float res[2];
+        //float T = res[0];  // 沿摆杆径向的力
+        //float Tp = res[1]; // 沿摆杆法向的力
+        break;
+    case CHASSIS_STOP:
+        break;
+    case CHASSIS_FREE:
+        break;
+    case CHASSIS_SPIN:
+        break;
+    case CHASSIS_AUTO:
+        break;
+    case CHASSIS_OPEN:
+        break;
+    default:
+        break;
+    }
+}
+/**
+ * @brief 运动控制器
+ */
+//static void LocomotionController(void) {}
+/**
+ * @brief 腿部控制器
+ */
+//static void LegController(void) {}
+
+#endif

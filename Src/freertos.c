@@ -31,7 +31,7 @@
 #include "chassis_task.h"
 #include "detect_task.h"
 #include "gimbal_task.h"
-#include "INS_task.h"
+#include "IMU_task.h"
 #include "led_flow_task.h"
 #include "oled_task.h"
 #include "referee_usart_task.h"
@@ -161,7 +161,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
     gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
-    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
+    osThreadDef(imuTask, IMU_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
     osThreadDef(led, led_RGB_flow_task, osPriorityNormal, 0, 256);

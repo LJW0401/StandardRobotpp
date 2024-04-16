@@ -1,0 +1,25 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+	// Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+	// List of extensions which should be recommended for users of this workspace.
+	"recommendations": [
+	// 语言插件
+	"MS-CEINTL.vscode-language-pack-zh-hans",
+	// git extensions
+	"mhutchie.git-graph",
+	"eamodio.gitlens",
+	"redjue.git-commit-plugin",
+	// markdown extensions
+	"yzhang.markdown-all-in-one",
+	"bierner.markdown-mermaid",
+	// C/C++代码插件
+	"xaver.clang-format",
+	"formulahendry.code-runner",
+	// Copilot
+	"GitHub.copilot",
+	// 流程图类
+	"hediet.vscode-drawio",
+	],
+	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+	"unwantedRecommendations": []
+}
