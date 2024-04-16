@@ -1,6 +1,3 @@
-# VSCode files
-*.vscode/
-
 # Duplicate files
 *(*)*
 
@@ -33,7 +30,6 @@
 *JLinkLog.txt
 *.dbgconf
 .vscode/tags
-.vscode/
 *.hex
 *.lnk
 
