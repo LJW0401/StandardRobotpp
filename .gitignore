@@ -30,7 +30,6 @@
 *JLinkLog.txt
 *.dbgconf
 .vscode/tags
-.vscode/
 *.hex
 *.lnk
 

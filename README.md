@@ -44,6 +44,8 @@
 
 > VSCode作为现代化 IDE ，通过各种插件即可实现各种提高效率的开发方式，**尤其是Github Copilot**
 
+`.vscode` 文件夹已经提供了很多非常好用的插件，在`扩展`页面输入 `@recommended` 即可获取这些插件，点击安装即可。
+
 ## 欢迎贡献
 如果你发现了本项目中的问题和可优化的点，可用创建issue进行讨论。
 
@@ -51,12 +53,14 @@
 
 我们的管理员审核后会将你的代码合并进来。
 
+> ***贡献代码时请参照 [注意事项](./doc/注意事项.md/#贡献代码) 中的贡献代码部分。*** 
+
 ## 后续计划
 具体要做的事情在[TODO](./doc/TODO.md)中
 - 先完成当前框架，实现对现有机器人的适配。
 - 添加上下位机联调方便调参。
 
 ## 致谢
-感谢各大战队的代码开源
+感谢各个战队的代码开源
 - 跃鹿 [basic_framework-dev](https://gitee.com/hnuyuelurm/basic_framework)
-
+- 未来战队 [XRobot仓库](https://github.com/xrobot-org/XRobot) , [XRobot文档](https://xrobot-org.github.io/)
