@@ -19,7 +19,7 @@
 #if (CHASSIS_TYPE == CHASSIS_BALANCE)
 #include "leg_model.h"
 
-Chassis_s chassis = {
+static Chassis_s CHASSIS = {
   .mode = CHASSIS_ZERO_FORCE,
   .yaw_mid = 0,
   .upper_limit =
@@ -78,26 +78,44 @@ Chassis_s chassis = {
 };
 
 /*-------------------- Init --------------------*/
+
+/**
+ * @brief          初始化
+ * @param[in]      none
+ * @retval         none
+ */
 void InitChassis(void)
 {
-    chassis.rc = get_remote_control_point();  // 获取遥控器指针
+    CHASSIS.rc = get_remote_control_point();  // 获取遥控器指针
     /*-------------------- 初始化底盘电机 --------------------*/
     //TODO:add code here
 }
 
 /*-------------------- Set mode --------------------*/
+
+/**
+ * @brief          设置模式
+ * @param[in]      none
+ * @retval         none
+ */
 void SetChassisMode(void)
 {
-    if (switch_is_up(chassis.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        chassis.mode = CHASSIS_AUTO;
-    } else if (switch_is_mid(chassis.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        chassis.mode = CHASSIS_FOLLOW_GIMBAL_YAW;
-    } else if (switch_is_down(chassis.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        chassis.mode = CHASSIS_FREE;
+    if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
+        CHASSIS.mode = CHASSIS_AUTO;
+    } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
+        CHASSIS.mode = CHASSIS_FOLLOW_GIMBAL_YAW;
+    } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
+        CHASSIS.mode = CHASSIS_FREE;
     }
 }
 
 /*-------------------- Observe --------------------*/
+
+/**
+ * @brief          更新状态量
+ * @param[in]      none
+ * @retval         none
+ */
 void ChassisObserver(void)
 {
     // 更新底盘陀螺仪数据
@@ -108,64 +126,76 @@ void ChassisObserver(void)
 
     // LegPosUpdate();
 
-    chassis.feedback.x[0] = chassis.imu->angle.pitch;
-    chassis.feedback.x[1] = chassis.imu->velocity.y;
-    chassis.feedback.x[2] = 0;
+    CHASSIS.feedback.x[0] = CHASSIS.imu->angle.pitch;
+    CHASSIS.feedback.x[1] = CHASSIS.imu->velocity.y;
+    CHASSIS.feedback.x[2] = 0;
     // chassis.feedback->x[3] = (left_wheel.speed + right_wheel.speed) / 2 * WHEEL_RADIUS;
-    chassis.feedback.x[4] =
-      (chassis.feedback.leg_pos[0].angle + chassis.feedback.leg_pos[1].angle) / 2 - M_PI_2 -
-      chassis.imu->angle.pitch;
-    chassis.feedback.x[5] = 0;
+    CHASSIS.feedback.x[4] =
+      (CHASSIS.feedback.leg_pos[0].angle + CHASSIS.feedback.leg_pos[1].angle) / 2 - M_PI_2 -
+      CHASSIS.imu->angle.pitch;
+    CHASSIS.feedback.x[5] = 0;
 
-    chassis.dyaw =
-      (chassis.yaw_motor->motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - chassis.yaw_mid);
+    CHASSIS.dyaw =
+      (CHASSIS.yaw_motor->motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
 }
 
 /*-------------------- Reference --------------------*/
+
+/**
+ * @brief          更新目标量
+ * @param[in]      none
+ * @retval         none
+ */
 void ChassisReference(void)
 {
     int16_t rc_x = 0, rc_y = 0, rc_wz = 0;
-    rc_deadband_limit(chassis.rc->rc.ch[CHASSIS_X_CHANNEL], rc_x, CHASSIS_RC_DEADLINE);
-    rc_deadband_limit(chassis.rc->rc.ch[CHASSIS_Y_CHANNEL], rc_y, CHASSIS_RC_DEADLINE);
-    rc_deadband_limit(chassis.rc->rc.ch[CHASSIS_WZ_CHANNEL], rc_wz, CHASSIS_RC_DEADLINE);
+    rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_X_CHANNEL], rc_x, CHASSIS_RC_DEADLINE);
+    rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_Y_CHANNEL], rc_y, CHASSIS_RC_DEADLINE);
+    rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_WZ_CHANNEL], rc_wz, CHASSIS_RC_DEADLINE);
 
     ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
-    if (chassis.mode == CHASSIS_FREE)  // 底盘自由模式下，控制量为底盘坐标系下的速度
+    if (CHASSIS.mode == CHASSIS_FREE)  // 底盘自由模式下，控制量为底盘坐标系下的速度
     {
-        v_set.vx = rc_x * RC_TO_ONE * chassis.upper_limit.speed_vector.vx;
-        v_set.vy = rc_y * RC_TO_ONE * chassis.upper_limit.speed_vector.vy;
-        v_set.wz = rc_wz * RC_TO_ONE * chassis.upper_limit.speed_vector.wz;
+        v_set.vx = rc_x * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vx;
+        v_set.vy = rc_y * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vy;
+        v_set.wz = rc_wz * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.wz;
     } else if (
-      chassis.mode ==
+      CHASSIS.mode ==
       CHASSIS_FOLLOW_GIMBAL_YAW)  // 云台跟随模式下，控制量为云台坐标系下的速度，需要进行坐标转换
     {
-        v_set.vx = rc_x * RC_TO_ONE * chassis.upper_limit.speed_vector.vx;
-        v_set.vy = rc_y * RC_TO_ONE * chassis.upper_limit.speed_vector.vy;
-        v_set.wz = rc_wz * RC_TO_ONE * chassis.upper_limit.speed_vector.wz;
-        GimbalSpeedVectorToChassisSpeedVector(&v_set, chassis.dyaw);
+        v_set.vx = rc_x * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vx;
+        v_set.vy = rc_y * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vy;
+        v_set.wz = rc_wz * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.wz;
+        GimbalSpeedVectorToChassisSpeedVector(&v_set, CHASSIS.dyaw);
     } else if (
-      chassis.mode == CHASSIS_AUTO)  // 底盘自动模式，控制量为云台坐标系下的速度，需要进行坐标转换
+      CHASSIS.mode == CHASSIS_AUTO)  // 底盘自动模式，控制量为云台坐标系下的速度，需要进行坐标转换
     {
         // TODO: add code here
     }
-    chassis.reference.speed_vector.vx = v_set.vx;
-    chassis.reference.speed_vector.vy = v_set.vy;
-    chassis.reference.speed_vector.wz = v_set.wz;
+    CHASSIS.reference.speed_vector.vx = v_set.vx;
+    CHASSIS.reference.speed_vector.vy = v_set.vy;
+    CHASSIS.reference.speed_vector.wz = v_set.wz;
 
-    chassis.reference.x[0] = 0;
-    chassis.reference.x[1] = 0;
-    chassis.reference.x[2] = 0;
-    chassis.reference.x[3] = chassis.reference.speed_vector.vx;
-    chassis.reference.x[4] = 0;
-    chassis.reference.x[5] = 0;
+    CHASSIS.reference.x[0] = 0;
+    CHASSIS.reference.x[1] = 0;
+    CHASSIS.reference.x[2] = 0;
+    CHASSIS.reference.x[3] = CHASSIS.reference.speed_vector.vx;
+    CHASSIS.reference.x[4] = 0;
+    CHASSIS.reference.x[5] = 0;
 }
 
 /*-------------------- Console --------------------*/
 //static void LocomotionController(void);
 //static void LegController(void);
+
+/**
+ * @brief          计算控制量
+ * @param[in]      none
+ * @retval         none
+ */
 void ChassisConsole(void)
 {
-    switch (chassis.mode) {
+    switch (CHASSIS.mode) {
         case CHASSIS_ZERO_FORCE:
             break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
@@ -204,8 +234,9 @@ static void SendJointMotorCmd(void);
 static void SendWheelMotorCmd(void);
 
 /**
- * @brief 发送平衡底盘控制指令
- * @param chassis
+ * @brief          发送控制量
+ * @param[in]      none
+ * @retval         none
  */
 void SendChassisCmd(void)
 {

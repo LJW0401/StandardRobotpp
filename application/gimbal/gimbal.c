@@ -16,5 +16,3 @@
   */
 
 #include "gimbal.h"
-
-Gimbal_t gimbal;

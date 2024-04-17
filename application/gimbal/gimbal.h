@@ -18,99 +18,32 @@
 #ifndef GIMBAL_H
 #define GIMBAL_H
 
-#include "pid.h"
+// 电机编码值规整 0—8191
+#define ecd_format(ecd)         \
+    {                           \
+        if ((ecd) > ECD_RANGE)  \
+            (ecd) -= ECD_RANGE; \
+        else if ((ecd) < 0)     \
+            (ecd) += ECD_RANGE; \
+    }
 
-#include "remote_control.h"
-#include "motor.h"
-#include "struct_typedef.h"
-#include "robot_param.h"
-#include "IMU_task.h"
+// 云台任务相关宏定义
+#define GIMBAL_TASK_INIT_TIME 201  // 任务初始化 空闲一段时间
+#define GIMBAL_CONTROL_TIME 1      // 云台任务控制间隔 1ms
+
+// 云台的遥控器相关宏定义
+#define GIMBAL_YAW_CHANNEL 2    // yaw控制通道
+#define GIMBAL_PITCH_CHANNEL 3  // pitch控制通道
+#define GIMBAL_MODE_CHANNEL 0   // 状态开关通道
+#define GIMBAL_RC_DEADBAND 10   // 摇杆死区
 
 /**
  * @brief 云台模式
  */
-typedef enum
-{
-    GIMBAL_ZERO_FORCE, // 云台无力，所有控制量置0
-    GIMBAL_GYRO,       // 云台陀螺仪控制
-    GIMBAL_OPEN,       // 遥控器的值乘以比例成电流值开环控制
+typedef enum {
+    GIMBAL_ZERO_FORCE,  // 云台无力，所有控制量置0
+    GIMBAL_GYRO,        // 云台陀螺仪控制
+    GIMBAL_OPEN,        // 遥控器的值乘以比例成电流值开环控制
 } GimbalMode_e;
 
-/*-------------------- Structural definition --------------------*/
-#if (GIMBAL_TYPE == GIMBAL_YAW)
-#elif (GIMBAL_TYPE == GIMBAL_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
-/**
- * @brief 状态、期望和限制值
- */
-typedef struct
-{
-    float pitch;
-    float yaw;
-} Values_t;
-
-typedef struct
-{
-    pid_type_def yaw_pid_angle;
-    pid_type_def yaw_pid_velocity;
-
-    pid_type_def pitch_pid_angle;
-    pid_type_def pitch_pid_velocity;
-} PID_t;
-#elif (GIMBAL_TYPE == GIMBAL_YAW_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH_ROLL)
-#endif
-
-typedef struct
-{
-    const RC_ctrl_t *rc; // 遥控器指针
-    GimbalMode_e mode;   // 模式
-
-    /*-------------------- Motors --------------------*/
-
-    /*-------------------- Values --------------------*/
-    ImuData_t *imu; // IMU数据
-
-    Values_t reference;   // 期望值
-    Values_t feedback;    // 状态值
-    Values_t upper_limit; // 上限值
-    Values_t lower_limit; // 下限值
-
-    PID_t pid; // PID控制器
-} Gimbal_t;
-
-extern Gimbal_t gimbal;
-
-/*-------------------- Init --------------------*/
-#if (GIMBAL_TYPE == GIMBAL_YAW)
-#elif (GIMBAL_TYPE == GIMBAL_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH_ROLL)
-#endif
-
-/*-------------------- Observe --------------------*/
-#if (GIMBAL_TYPE == GIMBAL_YAW)
-#elif (GIMBAL_TYPE == GIMBAL_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH_ROLL)
-#endif
-
-/*-------------------- Reference --------------------*/
-#if (GIMBAL_TYPE == GIMBAL_YAW)
-#elif (GIMBAL_TYPE == GIMBAL_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH_ROLL)
-#endif
-
-/*-------------------- Cmd --------------------*/
-#if (GIMBAL_TYPE == GIMBAL_YAW)
-#elif (GIMBAL_TYPE == GIMBAL_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_YAW_PITCH)
-#elif (GIMBAL_TYPE == GIMBAL_YAW_PITCH_ROLL)
-#endif
-
-#endif // GIMBAL_H
+#endif  // GIMBAL_H

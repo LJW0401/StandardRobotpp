@@ -28,7 +28,6 @@
 #include "referee.h"
 
 #include "CAN_communication.h"
-#include "gimbal_console.h"
 #include "detect_task.h"
 #include "pid.h"
 

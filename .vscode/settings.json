@@ -35,11 +35,13 @@
         "shoot_task.h": "c",
         "chassis_power_control.h": "c",
         "chassis_balance.h": "c",
-        "chassis_mecanum.h": "c"
+        "chassis_mecanum.h": "c",
+        "gimbal_yaw_pitch.h": "c",
+        "gimbal.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
-        "editor.defaultFormatter": "xaver.clang-format",
+        "editor.defaultFormatter": "ms-vscode.cpptools",
         "editor.formatOnSave": true
     },
     "C_Cpp.formatting": "default",
