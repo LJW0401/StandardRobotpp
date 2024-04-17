@@ -34,10 +34,13 @@
         "gimbal_console.h": "c",
         "shoot_task.h": "c",
         "chassis_power_control.h": "c",
+        "chassis_balance.h": "c",
+        "chassis_mecanum.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
         "editor.defaultFormatter": "xaver.clang-format",
         "editor.formatOnSave": true
     },
+    "C_Cpp.formatting": "default",
 }

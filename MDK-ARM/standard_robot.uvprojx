@@ -945,16 +945,6 @@
               <FilePath>..\application\chassis\chassis.c</FilePath>
             </File>
             <File>
-              <FileName>chassis_calculate.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\application\chassis\chassis_calculate.c</FilePath>
-            </File>
-            <File>
-              <FileName>chassis_console.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\application\chassis\chassis_console.c</FilePath>
-            </File>
-            <File>
               <FileName>chassis_power_control.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\application\chassis\chassis_power_control.c</FilePath>
@@ -963,6 +953,26 @@
               <FileName>chassis_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\application\chassis\chassis_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_balance.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\chassis\chassis_balance.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_mecanum.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\chassis\chassis_mecanum.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_omni.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\chassis\chassis_omni.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_steering.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\chassis\chassis_steering.c</FilePath>
             </File>
           </Files>
         </Group>
