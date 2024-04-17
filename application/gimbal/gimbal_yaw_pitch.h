@@ -61,7 +61,7 @@ typedef struct
     Values_t lower_limit;  // 下限值
 
     PID_t pid;  // PID控制器
-} Gimbal_t;
+} Gimbal_s;
 
 extern void InitGimbal(void);
 

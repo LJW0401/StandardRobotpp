@@ -37,7 +37,8 @@
         "chassis_balance.h": "c",
         "chassis_mecanum.h": "c",
         "gimbal_yaw_pitch.h": "c",
-        "gimbal.h": "c"
+        "gimbal.h": "c",
+        "shoot_fric.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

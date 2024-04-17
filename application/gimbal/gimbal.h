@@ -18,15 +18,6 @@
 #ifndef GIMBAL_H
 #define GIMBAL_H
 
-// 电机编码值规整 0—8191
-#define ecd_format(ecd)         \
-    {                           \
-        if ((ecd) > ECD_RANGE)  \
-            (ecd) -= ECD_RANGE; \
-        else if ((ecd) < 0)     \
-            (ecd) += ECD_RANGE; \
-    }
-
 // 云台任务相关宏定义
 #define GIMBAL_TASK_INIT_TIME 201  // 任务初始化 空闲一段时间
 #define GIMBAL_CONTROL_TIME 1      // 云台任务控制间隔 1ms

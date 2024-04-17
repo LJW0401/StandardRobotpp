@@ -1069,6 +1069,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\shoot\shoot_task.c</FilePath>
             </File>
+            <File>
+              <FileName>shoot_fric.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\shoot\shoot_fric.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

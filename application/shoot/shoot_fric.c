@@ -1,7 +1,7 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       gimbal_yaw_pitch.c/h
-  * @brief      yaw_pitch云台控制器。
+  * @file       shoot_fric.c/h
+  * @brief      使用摩擦轮的发射机构控制器。
   * @note       包括初始化，目标量更新、状态量更新、控制量计算与直接控制量的发送
   * @history
   *  Version    Date            Author          Modification
@@ -16,11 +16,11 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
 */
 
-#include "gimbal_yaw_pitch.h"
-#if (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
-static Gimbal_s GIMBAL = {
-  .mode = GIMBAL_ZERO_FORCE,
+#include "shoot_fric.h"
+#if (SHOOT_TYPE == SHOOT_FRIC)
 
+static Shoot_s SHOOT = {
+  .mode = LOAD_STOP,
 };
 
 /*-------------------- Init --------------------*/
@@ -30,7 +30,7 @@ static Gimbal_s GIMBAL = {
  * @param[in]      none
  * @retval         none
  */
-void InitGimbal(void) { GIMBAL.rc = get_remote_control_point(); }
+void InitShoot(void) { SHOOT.rc = get_remote_control_point(); }
 
 /*-------------------- Set mode --------------------*/
 
@@ -39,14 +39,14 @@ void InitGimbal(void) { GIMBAL.rc = get_remote_control_point(); }
  * @param[in]      none
  * @retval         none
  */
-void SetGimbalMode(void)
+void SetShootMode(void)
 {
-    if (switch_is_up(GIMBAL.rc->rc.s[GIMBAL_MODE_CHANNEL])) {
-        GIMBAL.mode = GIMBAL_ZERO_FORCE;
-    } else if (switch_is_mid(GIMBAL.rc->rc.s[GIMBAL_MODE_CHANNEL])) {
-        GIMBAL.mode = GIMBAL_GYRO;
-    } else if (switch_is_down(GIMBAL.rc->rc.s[GIMBAL_MODE_CHANNEL])) {
-        GIMBAL.mode = GIMBAL_OPEN;
+    if (switch_is_up(SHOOT.rc->rc.s[SHOOT_MODE_CHANNEL])) {
+        SHOOT.mode = LOAD_STOP;
+    } else if (switch_is_mid(SHOOT.rc->rc.s[SHOOT_MODE_CHANNEL])) {
+        SHOOT.mode = LOAD_STOP;
+    } else if (switch_is_down(SHOOT.rc->rc.s[SHOOT_MODE_CHANNEL])) {
+        SHOOT.mode = LOAD_STOP;
     }
 }
 
@@ -57,7 +57,7 @@ void SetGimbalMode(void)
  * @param[in]      none
  * @retval         none
  */
-void GimbalObserver(void) {}
+void ShootObserver(void) {}
 
 /*-------------------- Reference --------------------*/
 
@@ -66,7 +66,7 @@ void GimbalObserver(void) {}
  * @param[in]      none
  * @retval         none
  */
-void GimbalReference(void) {}
+void ShootReference(void) {}
 
 /*-------------------- Console --------------------*/
 
@@ -75,7 +75,7 @@ void GimbalReference(void) {}
  * @param[in]      none
  * @retval         none
  */
-void GimbalConsole(void) {}
+void ShootConsole(void) {}
 
 /*-------------------- Cmd --------------------*/
 
@@ -84,6 +84,6 @@ void GimbalConsole(void) {}
  * @param[in]      none
  * @retval         none
  */
-void SendGimbalCmd(void) {}
+void SendShootCmd(void) {}
 
-#endif  // GIMBAL_YAW_PITCH
+#endif  // SHOOT_TYPE == SHOOT_FRIC
