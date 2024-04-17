@@ -38,7 +38,9 @@
         "chassis_mecanum.h": "c",
         "gimbal_yaw_pitch.h": "c",
         "gimbal.h": "c",
-        "shoot_fric.h": "c"
+        "shoot_fric.h": "c",
+        "robot_typedef.h": "c",
+        "robot_param_balanced_infantry.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

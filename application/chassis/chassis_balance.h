@@ -24,11 +24,11 @@
 #include <math.h>
 
 #include "IMU_task.h"
+#include "chassis.h"
 #include "motor.h"
 #include "pid.h"
 #include "remote_control.h"
 #include "struct_typedef.h"
-#include "chassis.h"
 
 /*-------------------- Structural definition --------------------*/
 typedef struct
@@ -62,6 +62,12 @@ typedef struct
 {
     pid_type_def yaw_pid_angle;
     pid_type_def yaw_pid_velocity;
+
+    pid_type_def roll_pid_angle;
+    pid_type_def roll_pid_velocity;
+
+    pid_type_def leg_length_pid_length;
+    pid_type_def leg_length_pid_speed;
 } PID_t;
 
 /**
@@ -79,7 +85,7 @@ typedef struct
     DJI_Motor_s * joint_motor[4];  // 关节电机
     DJI_Motor_s * wheel_motor[2];  // 驱动轮电机
     /*-------------------- Values --------------------*/
-    ImuData_t * imu;  // 底盘使用的IMU数据
+    ImuData_t * imu;  // (feedback)底盘使用的IMU数据
 
     Values_t reference;    // 期望值
     Values_t feedback;     // 状态值
@@ -88,8 +94,8 @@ typedef struct
 
     PID_t pid;  // PID控制器
 
-    float dyaw;        // (rad)当前位置与云台中值角度差（用于坐标转换）
-    uint16_t yaw_mid;  // (编码角)云台中值角度
+    float dyaw;  // (rad)(feedback)当前位置与云台中值角度差（用于坐标转换）
+    uint16_t yaw_mid;  // (ecd)(preset)云台中值角度
 } Chassis_s;
 
 extern void InitChassis(void);

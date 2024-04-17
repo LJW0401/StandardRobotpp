@@ -19,37 +19,17 @@
 #define ROBOT_PARAM_H
 
 #include "robot_typedef.h"
+#include "struct_typedef.h"
+
+//导入具体的机器人参数配置文件
+#include "robot_param_balanced_infantry.h"
 
 // 选择机器人的各种类型
-#define __DEBUG 0                        // 调试模式
-#define __TUNING 0                       // 调参模式
-#define __CONTROL_LINK DBUS_LINK         // 控制链路
-#define CHASSIS_TYPE CHASSIS_BALANCE     // 选择底盘类型
-#define GIMBAL_TYPE GIMBAL_YAW_PITCH     // 选择云台类型
-#define SHOOT_TYPE SHOOT_FRIC            // 选择发射机构类型
-#define CONTROL_TYPE CHASSIS_AND_GIMBAL  // 选择控制类型
+#define __DEBUG 0                 // 调试模式
+#define __TUNING 0                // 调参模式
+#define __CONTROL_LINK DBUS_LINK  // 控制链路
 
-// 机器人物理参数
-#define GUN_NUM 1     // 定义枪管个数（一个枪管2个摩擦轮）
-#define BULLET_NUM 8  // 定义拨弹盘容纳弹丸个数
-#define FRIC_RADIUS 0.03f    // (m)摩擦轮半径
-#define WHEEL_RADIUS 0.106f  //(m)轮子半径
-typedef enum {
-    // 底盘CAN1
-    WHEEL1 = 0,
-    WHEEL2 = 1,
-    JOINT1 = 1,
-    JOINT2 = 2,
-    JOINT3 = 3,
-    JOINT4 = 4,
-    // 云台CAN2
-    YAW = 1,
-    PITCH = 2,
-    TRIGGER = 7,
-    FRIC1 = 0,
-    FRIC2 = 1,
-} MotorId_e;
-
+/*-------------------- 检测选择是否合法 --------------------*/
 #if (                                         \
   (CHASSIS_TYPE != CHASSIS_MECANUM_WHEEL) &&  \
   (CHASSIS_TYPE != CHASSIS_OMNI_WHEEL) &&     \

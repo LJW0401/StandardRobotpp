@@ -1,3 +1,6 @@
+#ifndef ROBOT_TYPEDEF_H
+#define ROBOT_TYPEDEF_H
+
 // 可用底盘类型
 #define CHASSIS_MECANUM_WHEEL 0   // 麦克纳姆轮底盘
 #define CHASSIS_OMNI_WHEEL 1      // 全向轮底盘
@@ -31,3 +34,5 @@
 #define BoardC2 2  //C2板
 #define BoardC3 3  //C3板
 #define BoardC4 4  //C4板
+
+#endif /* ROBOT_TYPEDEF_H */
