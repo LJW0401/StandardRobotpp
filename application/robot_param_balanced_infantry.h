@@ -5,6 +5,7 @@
 
 #ifndef INCLUDED_ROBOT_PARAM_H
 #define INCLUDED_ROBOT_PARAM_H
+#include "robot_typedef.h"
 
 #define CHASSIS_TYPE CHASSIS_BALANCE     // 选择底盘类型
 #define GIMBAL_TYPE GIMBAL_YAW_PITCH     // 选择云台类型

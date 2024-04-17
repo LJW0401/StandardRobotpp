@@ -22,12 +22,14 @@
 #include "struct_typedef.h"
 
 //导入具体的机器人参数配置文件
-#include "robot_param_balanced_infantry.h"
+// #include "robot_param_balanced_infantry.h"
+#include "robot_param_omni_infantry.h"
 
 // 选择机器人的各种类型
-#define __DEBUG 0                 // 调试模式
-#define __TUNING 0                // 调参模式
-#define __CONTROL_LINK DBUS_LINK  // 控制链路
+#define __DEBUG 0                  // 调试模式
+#define __TUNING 0                 // 调参模式
+#define __TUNING_MODE TUNING_NONE  // 调参模式
+#define __CONTROL_LINK DBUS_LINK   // 控制链路
 
 /*-------------------- 检测选择是否合法 --------------------*/
 #if (                                         \

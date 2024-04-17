@@ -30,7 +30,7 @@
 #define RC_CH_VALUE_OFFSET      ((uint16_t)1024)
 #define RC_CH_VALUE_MAX         ((uint16_t)1684)
 
-#define RC_TO_ONE 0.0015151515151515f  // 遥控器通道值归一化系数
+#define RC_TO_ONE 0.0015151515151515f  // (1/660)遥控器通道值归一化系数
 
 /* ----------------------- RC Switch Definition----------------------------- */
 #define RC_SW_UP                ((uint16_t)1)

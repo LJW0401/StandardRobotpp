@@ -79,10 +79,10 @@ static void CAN_SendTxMessage(CAN_HandleTypeDef *can_handle, CAN_TxHeaderTypeDef
 /**
  * @brief          通过CAN控制DJI电机(支持GM3508 GM2006 GM6020)
  * @param[in]      DJI_Motor_Send_Data 电机发送数据结构体
- * @param[in]      curr_1 电机控制电流
- * @param[in]      curr_2 电机控制电流
- * @param[in]      curr_3 电机控制电流
- * @param[in]      curr_4 电机控制电流
+ * @param[in]      curr_1 电机控制电流(id=1/5)
+ * @param[in]      curr_2 电机控制电流(id=2/6)
+ * @param[in]      curr_3 电机控制电流(id=3/7)
+ * @param[in]      curr_4 电机控制电流(id=4/8)
  * @return         none
  */
 void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)

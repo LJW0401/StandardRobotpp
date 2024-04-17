@@ -35,4 +35,11 @@
 #define BoardC3 3  //C3板
 #define BoardC4 4  //C4板
 
+// 可用调参模式
+#define TUNING_NONE 0
+#define TUNING_CHASSIS 0
+#define TUNING_GIMBAL 1
+#define TUNING_SHOOT 2
+
+
 #endif /* ROBOT_TYPEDEF_H */
