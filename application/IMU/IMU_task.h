@@ -77,9 +77,9 @@ typedef struct
     float q[4];        // 四元数估计值
     float GyroBias[3]; // 陀螺仪零偏估计值
 
-    float Roll;  //(度)
-    float Pitch; //(度)
-    float Yaw;   //(度)
+    float Roll;  //(rad)
+    float Pitch; //(rad)
+    float Yaw;   //(rad)
 
     float Q1; // 四元数更新过程噪声
     float Q2; // 陀螺仪零偏过程噪声
@@ -96,9 +96,9 @@ typedef struct
  */
 typedef struct
 {
-    float yaw;
-    float pitch;
-    float roll;
+    float yaw;  //范围: -PI ~ PI
+    float pitch;//范围: -PI ~ PI
+    float roll; //范围: -PI ~ PI
 } Angle_t;
 
 /**

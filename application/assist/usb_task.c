@@ -224,7 +224,7 @@ static void usb_receive(void)
 
     if (receive_ok)
     {
-        detect_hook(USB_TOE);
+        //detect_hook(USB_TOE);
     }
 }
 
@@ -362,7 +362,7 @@ static void usb_send_RobotStatus(uint8_t t)
     {
         SendPacketRobotStatus.team_color = self_color;
     }
-    SendPacketRobotStatus.is_attacked = get_is_attack();
+    SendPacketRobotStatus.is_attacked = 0;
 
     append_CRC16_check_sum((uint8_t *)&SendPacketRobotStatus, sizeof(SendPacketRobotStatus_s));
     memcpy(usb_tx_buf, &SendPacketRobotStatus, sizeof(SendPacketRobotStatus_s));
