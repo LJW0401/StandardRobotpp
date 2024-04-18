@@ -32,16 +32,6 @@
 
 /**
   * @brief          pid struct data init
-  * @param[out]     pid: PID struct data point
-  * @param[in]      mode: PID_POSITION: normal pid
-  *                 PID_DELTA: delta pid
-  * @param[in]      PID: 0: kp, 1: ki, 2:kd
-  * @param[in]      max_out: pid max out
-  * @param[in]      max_iout: pid max iout
-  * @retval         none
-  */
-/**
-  * @brief          pid struct data init
   * @param[out]     pid: PID结构数据指针
   * @param[in]      mode: PID_POSITION:普通PID
   *                 PID_DELTA: 差分PID
@@ -66,13 +56,6 @@ void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, 
     pid->error[0] = pid->error[1] = pid->error[2] = pid->Pout = pid->Iout = pid->Dout = pid->out = 0.0f;
 }
 
-/**
-  * @brief          pid calculate 
-  * @param[out]     pid: PID struct data point
-  * @param[in]      ref: feedback data 
-  * @param[in]      set: set point
-  * @retval         pid out
-  */
 /**
   * @brief          pid计算
   * @param[out]     pid: PID结构数据指针
