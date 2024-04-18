@@ -81,6 +81,9 @@ typedef struct
     float Pitch; //(rad)
     float Yaw;   //(rad)
 
+    float lastYaw;        // 上一次的Yaw
+    float yaw_correction; // Yaw修正量
+
     float Q1; // 四元数更新过程噪声
     float Q2; // 陀螺仪零偏过程噪声
     float R;  // 加速度计量测噪声

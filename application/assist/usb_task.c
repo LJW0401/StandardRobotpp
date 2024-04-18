@@ -388,6 +388,7 @@ static void usb_send_outputPC(uint8_t t)
 
     const Angle_t *angle = GetAnglePoint();
     const Accel_t *accel = GetAccelPoint();
+    const Velocity_t *velocity = GetVelocityPoint();
 
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
@@ -416,11 +417,17 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.type_6 = 1;
     OutputPCData.data_6 = angle->roll;
 
-    char_to_uint(OutputPCData.name_7, "r3");
+    char_to_uint(OutputPCData.name_7, "wx");
     OutputPCData.type_7 = 1;
+    OutputPCData.data_7 = velocity->x;
 
-    char_to_uint(OutputPCData.name_8, "r4");
+    char_to_uint(OutputPCData.name_8, "wy");
     OutputPCData.type_8 = 1;
+    OutputPCData.data_8 = velocity->y;
+
+    char_to_uint(OutputPCData.name_9, "wz");
+    OutputPCData.type_9 = 1;
+    OutputPCData.data_9 = velocity->z;
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));

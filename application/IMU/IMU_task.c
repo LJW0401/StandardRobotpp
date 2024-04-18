@@ -35,6 +35,7 @@
 #include "pid.h"
 #include "ahrs.h"
 #include "user_lib.h"
+#include "math.h"
 
 #include "calibrate_task.h"
 #include "detect_task.h"
@@ -202,6 +203,7 @@ static void IMU_QuaternionEKF_User_Func1(KalmanFilter_t *kf);
 static void IMU_QuaternionEKF_SetH(KalmanFilter_t *kf);
 static void IMU_QuaternionEKF_xhatUpdate(KalmanFilter_t *kf);
 static void IMU_QuaternionEKF_Observe(KalmanFilter_t *kf);
+static void YawCorrection(void);
 
 /*-------------------- 角速度测量部分 --------------------*/
 Velocity_t velocity = {0,0,0}; // 角速度
@@ -289,9 +291,15 @@ void IMU_task(void const *pvParameters)
     SPI1_DMA_init((uint32_t)gyro_dma_tx_buf, (uint32_t)gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
 
     imu_start_dma_flag = 1;
-
+    
+    //新的姿态解算
     gEstimateKF_Init(1, 2000);
     IMU_QuaternionEKF_Init(10, 0.001, 1000000, 0.9996);
+    INS.yaw_correction = 0.0f;
+    INS.lastYaw = 0.0f;
+    INS.Yaw = 0.0f;
+    INS.Pitch = 0.0f;
+    INS.Roll = 0.0f;
 
     while (1)
     {
@@ -351,6 +359,9 @@ void IMU_task(void const *pvParameters)
             //            ist8310_read_mag(ist8310_real_data.mag);
         }
 
+        // 更新角速度
+        VelocityUpdate();
+        
         // 更新加速度
         gEstimateKF_Update(gVec[0], gVec[1], gVec[2],
                            bmi088_real_data.accel[0], bmi088_real_data.accel[1], bmi088_real_data.accel[2],
@@ -358,13 +369,12 @@ void IMU_task(void const *pvParameters)
         AccelUpdate();
 
         // 更新欧拉角
+        INS.lastYaw = INS.Yaw;
         IMU_QuaternionEKF_Update(bmi088_real_data.gyro[0], bmi088_real_data.gyro[1], bmi088_real_data.gyro[2],
                                  accel.x, accel.y, accel.z,
                                  timing_time);
         AngleUpdate();
-
-        // 更新角速度
-        VelocityUpdate();
+        YawCorrection();
         
         // 更新IMU数据
         ImuDataUpdate();
@@ -638,9 +648,25 @@ static void IMU_QuaternionEKF_xhatUpdate(KalmanFilter_t *kf)
 static void IMU_QuaternionEKF_Observe(KalmanFilter_t *kf)
 {
     memcpy(IMU_QuaternionEKF_P, kf->P_data, sizeof(IMU_QuaternionEKF_P));
-    memcpy(IMU_QuaternionEKF_K, kf->K_data, sizeof(IMU_QuaternionEKF_K)); // 不知道这个是什么的定义，屏蔽了能用，但yaw 0飘很严重
+    memcpy(IMU_QuaternionEKF_K, kf->K_data, sizeof(IMU_QuaternionEKF_K));
     memcpy(IMU_QuaternionEKF_H, kf->H_data, sizeof(IMU_QuaternionEKF_H));
 }
+
+/**
+ * @brief  yaw角修正，这里采用了十分暴力的方法（后期建议修改），当陀螺仪输出的角速度小于0.01rad/s时，认为陀螺仪处于静止状态，此时对yaw角进行修正
+ * @param  none
+ */
+static void YawCorrection(void)
+{
+    if (fabs(velocity.z) < 0.01f)
+    {
+        float dyaw = INS.Yaw - INS.lastYaw;
+        INS.yaw_correction -= dyaw;
+    }
+    angle.yaw += INS.yaw_correction;
+    angle.yaw = theta_format(angle.yaw);
+}
+
 
 static void AngleUpdate(void)
 {
