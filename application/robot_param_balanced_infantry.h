@@ -39,6 +39,8 @@ typedef enum {
 #define MAX_ROLL 1.0f
 #define MAX_YAW M_PI
 #define MAX_LEG_LENGTH 0.35f
+#define MAX_LEG_ANGLE M_PI_2 + 0.1f
+#define MAX_SPEED_INTEGRAL 0.5f
 
 #define MAX_X_0 1.0f
 #define MAX_X_1 2.0f
@@ -54,6 +56,8 @@ typedef enum {
 #define MIN_ROLL -MAX_ROLL
 #define MIN_YAW -MAX_YAW
 #define MIN_LEG_LENGTH 0.11f
+#define MIN_LEG_ANGLE M_PI_2 - 0.1f
+#define MIN_SPEED_INTEGRAL -MAX_SPEED_INTEGRAL
 
 #define MIN_X_0 -MAX_X_0
 #define MIN_X_1 -MAX_X_1
@@ -104,6 +108,16 @@ typedef enum {
 #define KD_CHASSIS_LEG_LENGTH_SPEED 0.0f
 #define MAX_IOUT_CHASSIS_LEG_LENGTH_SPEED 0.0f
 #define MAX_OUT_CHASSIS_LEG_LENGTH_SPEED 0.0f
+
+// 腿角控制角度环PID参数
+#define KP_CHASSIS_LEG_ANGLE_ANGLE 0.0f
+#define KI_CHASSIS_LEG_ANGLE_ANGLE 0.0f
+#define KD_CHASSIS_LEG_ANGLE_ANGLE 0.0f
+#define MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE 0.0f
+#define MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE 0.0f
+
+//other parameters ---------------------
+#define LEG_DDLENGTH_LPF_RATIO 0.5f  // 低通滤波系数
 
 /*-------------------- Gimbal --------------------*/
 //physical parameters ---------------------

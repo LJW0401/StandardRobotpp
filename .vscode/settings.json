@@ -42,7 +42,8 @@
         "robot_typedef.h": "c",
         "robot_param_balanced_infantry.h": "c",
         "chassis_omni.h": "c",
-        "robot_param_omni_infantry.h": "c"
+        "robot_param_omni_infantry.h": "c",
+        "pid.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

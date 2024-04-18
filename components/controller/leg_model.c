@@ -19,7 +19,10 @@
 #include <math.h>
 
 /**
- * @brief 腿部五连杆正运动学解算
+ * @brief      腿部五连杆正运动学解算
+ * @param[in]  phi1 后关节角度
+ * @param[in]  phi4 前关节角度
+ * @param[out] leg_pos 关节姿态 0-长度，1-角度
  */
 void LegFKine(double phi1, double phi4, double leg_pos[2])
 {

@@ -38,8 +38,8 @@ typedef struct
 
 typedef struct
 {
-    pid_type_def yaw_pid_angle;
-    pid_type_def yaw_pid_velocity;
+    pid_type_def yaw_angle;
+    pid_type_def yaw_velocity;
 
     pid_type_def pitch_pid_angle;
     pid_type_def pitch_pid_velocity;

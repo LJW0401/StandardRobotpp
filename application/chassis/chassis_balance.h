@@ -33,9 +33,13 @@
 /*-------------------- Structural definition --------------------*/
 typedef struct
 {
-    float angle, length;    // rad, m
-    float dAngle, dLength;  // rad/s, m/s
-    float ddLength;         // m/s^2
+    float angle;     // rad
+    float length;    // m
+    float dAngle;    // rad/s
+    float dLength;   // m/s
+    float ddLength;  // m/s^2
+
+    float last_dLength;  // m/s
 } LegPos_t;
 
 typedef struct
@@ -44,6 +48,18 @@ typedef struct
     float yaw_velocity, pitch_velocity, roll_velocity;  // rad/s
     float xAccel, yAccel, zAccel;                       // m/s^2
 } Imu_t;
+
+/**
+ * @brief      比例系数结构体
+ * @note       比例系数，用于手动优化控制效果
+ */
+typedef struct
+{
+    float k[2][6];
+    float Tp;
+    float T;
+    float length;
+} Ratio_t;
 
 /**
  * @brief 状态、期望和限制值
@@ -58,23 +74,31 @@ typedef struct
     * 4-phi
     * 5-phi_dot*/
     float x[6];
+    float speed_integral;
     float roll;
+    float roll_velocity;
     float yaw;
-    float leg_length;
-    LegPos_t leg_pos[2];  // 0-左腿，1-右腿
+    float yaw_velocity;
+    LegPos_t leg_pos_left;
+    LegPos_t leg_pos_right;
     ChassisSpeedVector_t speed_vector;
 } Values_t;
 
 typedef struct
 {
-    pid_type_def yaw_pid_angle;
-    pid_type_def yaw_pid_velocity;
+    pid_type_def yaw_angle;
+    pid_type_def yaw_velocity;
 
-    pid_type_def roll_pid_angle;
-    pid_type_def roll_pid_velocity;
+    pid_type_def roll_angle;
+    pid_type_def roll_velocity;
 
-    pid_type_def leg_length_pid_length;
-    pid_type_def leg_length_pid_speed;
+    pid_type_def leg_length_left_length;
+    pid_type_def leg_length_left_speed;
+
+    pid_type_def leg_length_right_length;
+    pid_type_def leg_length_right_speed;
+
+    pid_type_def leg_angle_angle;
 } PID_t;
 
 /**
@@ -87,10 +111,11 @@ typedef struct
     ChassisMode_e mode;    // 底盘模式
 
     /*-------------------- Motors --------------------*/
-    DJI_Motor_s * yaw_motor;  // yaw轴电机
+    DJI_Motor_s yaw_motor;  // yaw轴电机
     // 平衡底盘有2个驱动轮电机和4个关节电机
-    DJI_Motor_s * joint_motor[4];  // 关节电机
-    DJI_Motor_s * wheel_motor[2];  // 驱动轮电机
+    DM_Motor_s left_joint_motor[2];   // 关节电机 0-前关节，1-后关节
+    DM_Motor_s right_joint_motor[2];  // 关节电机 0-前关节，1-后关节
+    MF_Motor_s wheel_motor[2];        // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
     Imu_t imu;  // (feedback)底盘使用的IMU数据
 
@@ -100,6 +125,8 @@ typedef struct
     Values_t lower_limit;  // 下限值
 
     PID_t pid;  // PID控制器
+
+    Ratio_t ratio;  // 比例系数
 
     float dyaw;  // (rad)(feedback)当前位置与云台中值角度差（用于坐标转换）
     uint16_t yaw_mid;  // (ecd)(preset)云台中值角度

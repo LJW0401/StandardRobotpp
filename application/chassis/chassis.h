@@ -42,7 +42,7 @@
 typedef enum {
     CHASSIS_ZERO_FORCE,  // 底盘无力，所有控制量置0
     CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
-    CHASSIS_STOP,  // 底盘停止运动
+    CHASSIS_STOP,  // 底盘停止运动(速度为0)
     CHASSIS_FREE,  // 底盘不跟随云台
     CHASSIS_SPIN,  // 底盘小陀螺模式
     CHASSIS_AUTO,  // 底盘自动模式
