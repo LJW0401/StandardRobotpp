@@ -1,5 +1,5 @@
 /**
-  ****************************(C) COPYRIGHT 2023 Polarbear*************************
+  ****************************(C) COPYRIGHT 2024 Polarbear*************************
   * @file       usb_task.c/h
   * @brief      usb outputs the IMU and gimbal data to the miniPC
   * @note
@@ -14,12 +14,68 @@
   *  v2.1.1     Mar-24-2024     LihanChen       1. 简化Append_CRC16_Check_Sum()函数，移除usb_printf()函数
   *  v2.1.2     Mar-25-2024     Penguin         1. 优化了数据接收逻辑，添加了数据指针获取函数
   *                                             2. 通过CRC8_CRC16.c/h文件中的函数实现CRC8校验和CRC16校验
+  *  v2.2.0     Apr-4-2024      Penguin         1. 添加了USB数据发送失败重发功能，保障了发送频率稳定
+  *  v2.3.0     Apr-6-2024      Penguin         1. 添加了不同数据包的USB发送周期控制
   @verbatim
   =================================================================================
+如果要添加一个新的接收数据包
+    1.在usb_task.h中添加新的数据包结构体，如：
+    typedef struct{
+    ...; // 数据包内容
+    }__attribute__((packed)) ReceivedPacketxxx_s;
 
+    2.在usb_task.c中定义接收数据包的header，如：
+    #define EXPECTED_INPUT_xxx_HEDER 0xxxx
+
+    3.在usb_task.c中添加新的数据包接收函数，如：
+    static void usb_receive_xxx(void)
+    {
+        uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketxxx_s));
+        if (crc_ok)
+        {
+            memcpy(&ReceivedPacketxxx, usb_rx_buf, sizeof(ReceivedPacketxxx_s));
+        }
+    }
+
+    4.在usb_receive()函数中添加新的header case和对应的接收函数
+
+如果要添加一个新的发送数据包
+    1.在usb_task.h中添加新的数据包结构体，如：
+    typedef struct{
+    ...; // 数据包内容
+    }__attribute__((packed)) SendPacketxxx_s;
+
+    2.在usb_task.c中定义发送数据包的header，如：
+    #define SET_OUTPUT_xxx_HEDER 0xxxx
+
+    3.在usb_task.h中的usb_send_duration_t添加新的数据包发送周期，如：
+    typedef struct {
+        ...; // 数据包发送周期
+        uint8_t xxx;
+    }usb_send_duration_t;
+
+
+    4.在usb_task.c中添加新的数据包发送函数，如：
+    static void usb_send_xxx(uint8_t t)
+    {
+        if (usb_send_duration.xxx < t)
+        {
+            usb_send_duration.xxx++;
+            return;
+        }
+        usb_send_duration.xxx = 0;
+
+        SendPacketxxx.header = SET_OUTPUT_xxx_HEDER; // 别放入 crc_ok
+        ...; // 数据包内容
+        append_CRC16_check_sum((uint8_t *)&SendPacketxxx, sizeof(SendPacketxxx));
+        memcpy(usb_tx_buf, &SendPacketxxx, sizeof(SendPacketxxx_s));
+        usb_send_data(sizeof(SendPacketxxx_s));
+    }
+
+    5.在usb_task()函数中添加新的header case和对应的发送函数
   =================================================================================
   @endverbatim
-  ****************************(C) COPYRIGHT 2023 Polarbear*************************
+  ****************************(C) COPYRIGHT 2024 Polarbear*************************
 */
 
 #include "usb_task.h"
@@ -33,14 +89,18 @@
 #include "IMU_task.h"
 #include "referee.h"
 #include "CRC8_CRC16.h"
+#include "remote_control.h"
+#include "detect_task.h"
 
 // Constants
-#define OUTPUT_VISION_STATE 0
-#define OUTPUT_PC_STATE 1
+#define OUTPUT_VISION_MODE 0
+#define OUTPUT_PC_MODE 1
 
+#define EXPECTED_INPUT_SCANSTATUS_HEDER 0xA3
 #define EXPECTED_INPUT_NAVIGATION_HEDER 0xA4
 #define EXPECTED_INPUT_VISION_HEDER 0xA5
 #define EXPECTED_INPUT_PC_HEDER 0xA6
+#define SET_OUTPUT_PC_HEDER 0x6A
 #define SET_OUTPUT_VISION_HEDER 0x5A
 #define SET_OUTPUT_AllRobotHP_HEDER 0x5B
 #define SET_OUTPUT_GameStatus_HEDER 0x5C
@@ -58,6 +118,9 @@ static uint8_t usb_rx_buf[APP_RX_DATA_SIZE];
 
 static ReceivedPacketVision_s ReceivedPacketVision;
 static ReceivedPacketTwist_s ReceivedPacketTwist;
+static ReceivedPacketScanStatus_s ReceivedScanStatus = {
+    .stop_gimbal_scan = 0,
+    .chassis_spin_vel = 0};
 static InputPCData_s InputPCData;
 
 static SendPacketVision_s SendPacketVision;
@@ -66,19 +129,22 @@ static SendPacketGameStatus_s SendPacketGameStatus;
 static SendPacketRobotStatus_s SendPacketRobotStatus;
 OutputPCData_s OutputPCData;
 
-static uint8_t USB_SEND_STATE;
+static uint8_t USB_SEND_MODE;
 static const fp32 *gimbal_INT_gyro_angle_point;
+static usb_send_duration_t usb_send_duration;
 
 // Function Prototypes
-static void usb_send_vision(void);
-static void usb_send_AllRobotHP(void);
-static void usb_send_GameStatus(void);
-static void usb_send_RobotStatus(void);
-static void usb_send_outputPC(void);
-static void usb_receive_navigation(void);
-static void usb_receive_vision(void);
-static void usb_receive_PC(void);
+static void usb_send_vision(uint8_t t);
+static void usb_send_AllRobotHP(uint8_t t);
+static void usb_send_GameStatus(uint8_t t);
+static void usb_send_RobotStatus(uint8_t t);
+static void usb_send_outputPC(uint8_t t);
+static uint8_t usb_receive_navigation(void);
+static uint8_t usb_receive_vision(void);
+static uint8_t usb_receive_scan_status(void);
+static uint8_t usb_receive_PC(void);
 static void usb_receive(void);
+static void usb_send_data(uint16_t len);
 static void char_to_uint(uint8_t *word, const char *str);
 
 /**
@@ -89,28 +155,31 @@ static void char_to_uint(uint8_t *word, const char *str);
 void usb_task(void const *argument)
 {
     MX_USB_DEVICE_Init();
+    memset(&usb_send_duration, 0, sizeof(usb_send_duration_t));
+    USB_SEND_MODE = OUTPUT_VISION_MODE;
+
     while (1)
     {
         usb_receive();
 
-        switch (USB_SEND_STATE)
+        switch (USB_SEND_MODE)
         {
-        case OUTPUT_VISION_STATE:
-            usb_send_vision();
+        case OUTPUT_VISION_MODE:
+            usb_send_vision(6);
 
-            usb_send_AllRobotHP();
-            usb_send_GameStatus();
-            usb_send_RobotStatus();
+            usb_send_AllRobotHP(100);
+            usb_send_GameStatus(100);
+            usb_send_RobotStatus(100);
             break;
 
-        case OUTPUT_PC_STATE:
-            usb_send_outputPC();
+        case OUTPUT_PC_MODE:
+            usb_send_outputPC(1);
             break;
 
         case USB_STATE_INVALID:
             break;
         }
-        osDelay(7); // 为了减少上位机处理数据的负担，降低发送频率。 Delay for 6.67 milliseconds (150Hz)
+        osDelay(1); // 运行周期1ms
     }
 }
 
@@ -123,63 +192,100 @@ static void usb_receive(void)
 {
     uint32_t len = USB_RECEIVE_LEN;
     CDC_Receive_FS(usb_rx_buf, &len); // Read data into the buffer
+    uint8_t receive_ok = 0;
 
     switch (usb_rx_buf[0])
     {
+    case EXPECTED_INPUT_SCANSTATUS_HEDER:
+        /* 云台是否扫描模式 */
+        receive_ok = usb_receive_scan_status();
+        break;
+
     case EXPECTED_INPUT_NAVIGATION_HEDER:
         /* 导航 */
-        usb_receive_navigation();
+        receive_ok = usb_receive_navigation();
         break;
 
     case EXPECTED_INPUT_VISION_HEDER:
         /* 自瞄 */
-        USB_SEND_STATE = OUTPUT_VISION_STATE;
-        usb_receive_vision();
+        USB_SEND_MODE = OUTPUT_VISION_MODE;
+        receive_ok = usb_receive_vision();
         break;
 
     case EXPECTED_INPUT_PC_HEDER:
         /* LJW串口助手 https://gitee.com/SMBU-POLARBEAR/Serial_Port_Assistant */
-        USB_SEND_STATE = OUTPUT_PC_STATE;
-        usb_receive_PC();
+        USB_SEND_MODE = OUTPUT_PC_MODE;
+        receive_ok = usb_receive_PC();
         break;
 
     default:
         break;
     }
+
+    if (receive_ok)
+    {
+        detect_hook(USB_TOE);
+    }
 }
 
 /**
- * @brief      为视觉部分发送数据
- * @param      None
+ * @brief      用USB发送数据
+ * @param[in]  len 发送数据的长度
+ */
+static void usb_send_data(uint16_t len)
+{
+    uint8_t usb_send_state = USBD_FAIL;
+    while (usb_send_state != USBD_OK)
+    {
+        usb_send_state = CDC_Transmit_FS(usb_tx_buf, len);
+    }
+}
+
+/**
+ * @brief      为视觉 部分发送数据
+ * @param      t 数据发送周期
  * @retval     None
  */
-static void usb_send_vision(void)
+static void usb_send_vision(uint8_t t)
 {
-    SendPacketVision.header = SET_OUTPUT_VISION_HEDER; // 别放入 crc_ok
+    if (usb_send_duration.vision < t)
+    {
+        usb_send_duration.vision++;
+        return;
+    }
+    usb_send_duration.vision = 0;
 
-    gimbal_INT_gyro_angle_point = get_INS_angle_point(); // 获取云台IMU欧拉角：0:yaw, 1:pitch, 2:roll（弧度）
+    SendPacketVision.header = SET_OUTPUT_VISION_HEDER;
 
-    SendPacketVision.detect_color = !get_team_color(); // TODO: 由裁判系统赋值，0-Red, 1-Blue
-    SendPacketVision.reset_tracker = 0;                // TODO: 由自瞄模式赋值，是否重置追踪器
-    // SendPacketVision.roll = gimbal_INT_gyro_angle_point[2];
-    // SendPacketVision.pitch = gimbal_INT_gyro_angle_point[1];
-    // SendPacketVision.yaw = gimbal_INT_gyro_angle_point[0];
-    // SendPacketVision.aim_x = 0; // TODO: SendPacketVision.aim_x 由自瞄模式赋值，主要用于上位机可视化与自瞄调试，不影响实际功能
-    // SendPacketVision.aim_y = 0; // TODO: SendPacketVision.aim_y 同上
-    // SendPacketVision.aim_z = 0; // TODO: SendPacketVision.aim_y 同上
+    uint8_t self_color = get_team_color(); // 获取自身颜色
+    if (self_color == 2)                   // 处理裁判系统队伍判断异常的情况
+    {
+        SendPacketVision.detect_color = !PRESET_SELF_COLOR;
+    }
+    else
+    {
+        SendPacketVision.detect_color = !self_color;
+    }
 
     append_CRC16_check_sum((uint8_t *)&SendPacketVision, sizeof(SendPacketVision));
     memcpy(usb_tx_buf, &SendPacketVision, sizeof(SendPacketVision_s));
-    CDC_Transmit_FS(usb_tx_buf, sizeof(SendPacketVision_s));
+    usb_send_data(sizeof(SendPacketVision_s));
 }
 
 /**
  * @brief      转发裁判系统，为上位机发送敌我双方全体机器人血量信息
- * @param      None
+ * @param      t 数据发送周期
  * @retval     None
  */
-static void usb_send_AllRobotHP(void)
+static void usb_send_AllRobotHP(uint8_t t)
 {
+    if (usb_send_duration.all_robot_hp < t)
+    {
+        usb_send_duration.all_robot_hp++;
+        return;
+    }
+    usb_send_duration.all_robot_hp = 0;
+
     SendPacketAllRobotHP.header = SET_OUTPUT_AllRobotHP_HEDER;
 
     SendPacketAllRobotHP.red_1_robot_hp = game_robot_HP.red_1_robot_HP;
@@ -201,16 +307,23 @@ static void usb_send_AllRobotHP(void)
 
     append_CRC16_check_sum((uint8_t *)&SendPacketAllRobotHP, sizeof(SendPacketAllRobotHP_s));
     memcpy(usb_tx_buf, &SendPacketAllRobotHP, sizeof(SendPacketAllRobotHP_s));
-    CDC_Transmit_FS(usb_tx_buf, sizeof(SendPacketAllRobotHP_s));
+    usb_send_data(sizeof(SendPacketAllRobotHP_s));
 }
 
 /**
  * @brief      转发裁判系统，为上位机发送比赛状态信息
- * @param      None
+ * @param      t 数据发送周期
  * @retval     None
  */
-static void usb_send_GameStatus(void)
+static void usb_send_GameStatus(uint8_t t)
 {
+    if (usb_send_duration.game_status < t)
+    {
+        usb_send_duration.game_status++;
+        return;
+    }
+    usb_send_duration.game_status = 0;
+
     SendPacketGameStatus.header = SET_OUTPUT_GameStatus_HEDER;
 
     SendPacketGameStatus.game_progress = game_status.game_progress;
@@ -218,105 +331,138 @@ static void usb_send_GameStatus(void)
 
     append_CRC16_check_sum((uint8_t *)&SendPacketGameStatus, sizeof(SendPacketGameStatus_s));
     memcpy(usb_tx_buf, &SendPacketGameStatus, sizeof(SendPacketGameStatus_s));
-    CDC_Transmit_FS(usb_tx_buf, sizeof(SendPacketGameStatus_s));
+    usb_send_data(sizeof(SendPacketGameStatus_s));
 }
 
 /**
  * @brief      转发裁判系统，为上位机发送机器人状态信息
- * @param      None
+ * @param      t 数据发送周期
  * @retval     None
  */
-static void usb_send_RobotStatus(void)
+static void usb_send_RobotStatus(uint8_t t)
 {
+    if (usb_send_duration.robot_status < t)
+    {
+        usb_send_duration.robot_status++;
+        return;
+    }
+    usb_send_duration.robot_status = 0;
+
     SendPacketRobotStatus.header = SET_OUTPUT_RobotStatus_HEDER;
 
     SendPacketRobotStatus.robot_id = robot_status.robot_id;
     SendPacketRobotStatus.current_hp = robot_status.current_HP;
     SendPacketRobotStatus.shooter_heat = get_shoot_heat();
-    SendPacketRobotStatus.team_color = get_team_color();
-    SendPacketRobotStatus.is_attacked = 0; // TODO: 由裁判系统赋值
+    uint8_t self_color = get_team_color(); // 获取自身颜色
+    if (self_color == 2)                   // 处理裁判系统队伍判断异常的情况
+    {
+        SendPacketRobotStatus.team_color = PRESET_SELF_COLOR;
+    }
+    else
+    {
+        SendPacketRobotStatus.team_color = self_color;
+    }
+    SendPacketRobotStatus.is_attacked = get_is_attack();
 
     append_CRC16_check_sum((uint8_t *)&SendPacketRobotStatus, sizeof(SendPacketRobotStatus_s));
     memcpy(usb_tx_buf, &SendPacketRobotStatus, sizeof(SendPacketRobotStatus_s));
-    CDC_Transmit_FS(usb_tx_buf, sizeof(SendPacketRobotStatus_s));
+    usb_send_data(sizeof(SendPacketRobotStatus_s));
 }
 
 /**
  * @brief      发送数据到LJW的串口调试助手
- * @param      None
+ * @param      t 数据发送周期
  * @retval     None
  */
-static void usb_send_outputPC(void)
+static void usb_send_outputPC(uint8_t t)
 {
+    if (usb_send_duration.outputPC_data < t)
+    {
+        usb_send_duration.outputPC_data++;
+        return;
+    }
+    usb_send_duration.outputPC_data = 0;
+
     gimbal_INT_gyro_angle_point = get_INS_angle_point();
-    const fp32 * accel_point = get_accel_data_point();
+    const RC_ctrl_t *rc_ctrl = get_remote_control_point();
+
     const Angle_t *angle = GetAnglePoint();
     const Accel_t *accel = GetAccelPoint();
 
-    OutputPCData.header = 0x6A;
+    OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.name_1, "o_roll");
+    char_to_uint(OutputPCData.name_1, "yaw");
     OutputPCData.type_1 = 1;
-    OutputPCData.data_1 = gimbal_INT_gyro_angle_point[2];
+    OutputPCData.data_1 = gimbal_INT_gyro_angle_point[0];
 
-    char_to_uint(OutputPCData.name_2, "o_pitch");
+    char_to_uint(OutputPCData.name_2, "pitch");
     OutputPCData.type_2 = 1;
     OutputPCData.data_2 = gimbal_INT_gyro_angle_point[1];
 
-    char_to_uint(OutputPCData.name_3, "o_yaw");
+    char_to_uint(OutputPCData.name_3, "roll");
     OutputPCData.type_3 = 1;
-    OutputPCData.data_3 = gimbal_INT_gyro_angle_point[0];
+    OutputPCData.data_3 = gimbal_INT_gyro_angle_point[2];
 
-    char_to_uint(OutputPCData.name_4, "n_roll");
+    char_to_uint(OutputPCData.name_4, "yaw_n");
     OutputPCData.type_4 = 1;
-    OutputPCData.data_4 = angle->roll;
+    OutputPCData.data_4 = angle->yaw;
 
-    char_to_uint(OutputPCData.name_5, "n_pitch");
+    char_to_uint(OutputPCData.name_5, "pitch_n");
     OutputPCData.type_5 = 1;
     OutputPCData.data_5 = angle->pitch;
 
-    char_to_uint(OutputPCData.name_6, "n_yaw");
+    char_to_uint(OutputPCData.name_6, "roll_n");
     OutputPCData.type_6 = 1;
-    OutputPCData.data_6 = angle->yaw;
+    OutputPCData.data_6 = angle->roll;
 
-    char_to_uint(OutputPCData.name_7, "gx");
+    char_to_uint(OutputPCData.name_7, "r3");
     OutputPCData.type_7 = 1;
-    OutputPCData.data_7 = accel->x;
 
-    char_to_uint(OutputPCData.name_8, "gy");
+    char_to_uint(OutputPCData.name_8, "r4");
     OutputPCData.type_8 = 1;
-    OutputPCData.data_8 = accel->y;
-
-    char_to_uint(OutputPCData.name_9, "gz");
-    OutputPCData.type_9 = 1;
-    OutputPCData.data_9 = accel->z;
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));
-    CDC_Transmit_FS(usb_tx_buf, sizeof(OutputPCData_s));
+    usb_send_data(sizeof(OutputPCData_s));
+}
+
+/**
+ * @brief      接收云台是否进入扫描模式的数据
+ * @param[in]  none
+ * @retval     crc_ok
+ */
+static uint8_t usb_receive_scan_status(void)
+{
+    uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketScanStatus_s));
+    if (crc_ok)
+    {
+        memcpy(&ReceivedScanStatus, usb_rx_buf, sizeof(ReceivedPacketScanStatus_s));
+    }
+    return crc_ok;
 }
 
 /**
  * @brief      接收导航数据
  * @param[in]  none
- * @retval     None
+ * @retval     crc_ok
  */
-static void usb_receive_navigation(void)
+static uint8_t usb_receive_navigation(void)
 {
     uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketTwist_s));
     if (crc_ok)
     {
         memcpy(&ReceivedPacketTwist, usb_rx_buf, sizeof(ReceivedPacketTwist_s));
     }
+    return crc_ok;
 }
 
 /**
  * @brief      接收视觉数据
  * @param[in]  none
- * @retval     None
+ * @retval     crc_ok
  */
-static void usb_receive_vision(void)
+static uint8_t usb_receive_vision(void)
 {
     uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketVision_s));
     if (crc_ok)
@@ -324,14 +470,15 @@ static void usb_receive_vision(void)
         memcpy(&ReceivedPacketVision, usb_rx_buf, sizeof(ReceivedPacketVision_s));
         // buzzer_on(500, 30000);
     }
+    return crc_ok;
 }
 
 /**
  * @brief      接收LJW的串口调试助手的数据
  * @param[in]  none
- * @retval     None
+ * @retval     crc_ok
  */
-static void usb_receive_PC(void)
+static uint8_t usb_receive_PC(void)
 {
     uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(InputPCData_s));
     if (crc_ok)
@@ -339,6 +486,7 @@ static void usb_receive_PC(void)
         memcpy(&InputPCData, usb_rx_buf, sizeof(InputPCData_s));
         // buzzer_on(500, 30000);
     }
+    return crc_ok;
 }
 
 /**
@@ -386,4 +534,14 @@ SendPacketVision_s *GetSendPacketVisionPoint(void)
 const ReceivedPacketTwist_s *GetReceivedPacketTwistPoint(void)
 {
     return &ReceivedPacketTwist;
+}
+
+/**
+ * @brief          获取由上位机发送的云台是否进入扫描模式
+ * @param[in]      none
+ * @return         视觉接收数据指针
+ */
+const ReceivedPacketScanStatus_s *GetReceivedPacketScanStatus(void)
+{
+    return &ReceivedScanStatus;
 }
