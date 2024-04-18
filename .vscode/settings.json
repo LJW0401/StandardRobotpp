@@ -41,7 +41,8 @@
         "shoot_fric.h": "c",
         "robot_typedef.h": "c",
         "robot_param_balanced_infantry.h": "c",
-        "chassis_omni.h": "c"
+        "chassis_omni.h": "c",
+        "robot_param_omni_infantry.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

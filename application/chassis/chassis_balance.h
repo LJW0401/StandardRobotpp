@@ -38,6 +38,13 @@ typedef struct
     float ddLength;         // m/s^2
 } LegPos_t;
 
+typedef struct
+{
+    float yaw, pitch, roll;                             // rad
+    float yaw_velocity, pitch_velocity, roll_velocity;  // rad/s
+    float xAccel, yAccel, zAccel;                       // m/s^2
+} Imu_t;
+
 /**
  * @brief 状态、期望和限制值
  */
@@ -85,7 +92,7 @@ typedef struct
     DJI_Motor_s * joint_motor[4];  // 关节电机
     DJI_Motor_s * wheel_motor[2];  // 驱动轮电机
     /*-------------------- Values --------------------*/
-    ImuData_t * imu;  // (feedback)底盘使用的IMU数据
+    Imu_t imu;  // (feedback)底盘使用的IMU数据
 
     Values_t reference;    // 期望值
     Values_t feedback;     // 状态值

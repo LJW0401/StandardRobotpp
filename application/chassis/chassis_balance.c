@@ -74,6 +74,18 @@ static Chassis_s CHASSIS = {
       .x = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
       .leg_length = 0.0f,
     },
+  .imu =
+    {
+      .yaw = 0.0f,
+      .pitch = 0.0f,
+      .roll = 0.0f,
+      .pitch_velocity = 0.0f,
+      .roll_velocity = 0.0f,
+      .yaw_velocity = 0.0f,
+      .xAccel = 0.0f,
+      .yAccel = 0.0f,
+      .zAccel = 0.0f,
+    },
   .pid =
     {
       .yaw_pid_angle =
@@ -169,22 +181,34 @@ void SetChassisMode(void)
  */
 void ChassisObserver(void)
 {
-    // 更新底盘陀螺仪数据
     double left_leg_pos[2];
     double right_leg_pos[2];
     LegFKine(0, 0, left_leg_pos);   // 获取五连杆等效连杆长度
     LegFKine(0, 0, right_leg_pos);  // 获取五连杆等效连杆长度
 
-    // LegPosUpdate();
+    // 更新底盘IMU数据
+    CHASSIS.imu.yaw = get_INS_angle_point()[0];
+    CHASSIS.imu.pitch = get_INS_angle_point()[1];
+    CHASSIS.imu.roll = get_INS_angle_point()[2];
 
-    CHASSIS.feedback.x[0] = CHASSIS.imu->angle.pitch;
-    CHASSIS.feedback.x[1] = CHASSIS.imu->velocity.y;
+    CHASSIS.imu.roll_velocity = get_gyro_data_point()[0];
+    CHASSIS.imu.pitch_velocity = get_gyro_data_point()[1];
+    CHASSIS.imu.yaw_velocity = get_gyro_data_point()[2];
+
+    CHASSIS.imu.xAccel = get_accel_data_point()[0];
+    CHASSIS.imu.yAccel = get_accel_data_point()[1];
+    CHASSIS.imu.zAccel = get_accel_data_point()[2];
+
+    // 更新LQR状态向量
+    CHASSIS.feedback.x[0] = CHASSIS.imu.pitch;
+    CHASSIS.feedback.x[1] = CHASSIS.imu.pitch_velocity;
     CHASSIS.feedback.x[2] = 0;
-    // chassis.feedback->x[3] = (left_wheel.speed + right_wheel.speed) / 2 * WHEEL_RADIUS;
+    CHASSIS.feedback.x[3] =
+      WHEEL_RADIUS;  //(left_wheel.speed + right_wheel.speed) / 2 * WHEEL_RADIUS;
     CHASSIS.feedback.x[4] =
       (CHASSIS.feedback.leg_pos[0].angle + CHASSIS.feedback.leg_pos[1].angle) /
         2 -
-      M_PI_2 - CHASSIS.imu->angle.pitch;
+      M_PI_2 - CHASSIS.imu.pitch;
     CHASSIS.feedback.x[5] = 0;
 
     CHASSIS.dyaw =
@@ -257,26 +281,14 @@ void ChassisConsole(void)
     switch (CHASSIS.mode) {
         case CHASSIS_ZERO_FORCE:
             break;
-        case CHASSIS_FOLLOW_GIMBAL_YAW:
-            //double k_res[12];
-            //float k[2][6]; // LQR反馈矩阵
-            //L2K(0, k_res);
-            //float res[2];
-            //float T = res[0];  // 沿摆杆径向的力
-            //float Tp = res[1]; // 沿摆杆法向的力
+        default: {
+            float x[6];
+            uint8_t i;
+            for (i = 0; i < 6; i++) {
+                x[i] = CHASSIS.feedback.x[i] - CHASSIS.reference.x[i];
+            }
             break;
-        case CHASSIS_STOP:
-            break;
-        case CHASSIS_FREE:
-            break;
-        case CHASSIS_SPIN:
-            break;
-        case CHASSIS_AUTO:
-            break;
-        case CHASSIS_OPEN:
-            break;
-        default:
-            break;
+        }
     }
 }
 /**
