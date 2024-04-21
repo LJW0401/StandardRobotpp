@@ -49,7 +49,11 @@
         "stm32f4xx_hal_can.h": "c",
         "can_cmd_dji.h": "c",
         "cybergear_typedef.h": "c",
-        "can_cmd_cybergear.h": "c"
+        "can_cmd_cybergear.h": "c",
+        "mechanical_arm.h": "c",
+        "robot_param_engineering.h": "c",
+        "mechanical_arm_5_axis.h": "c",
+        "mechanical_arm_task.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

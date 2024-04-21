@@ -1,12 +1,11 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       shoot_task.c/h
-  * @brief      完成射击控制任务
+  * @file       mechanical_arm.c/h
+  * @brief      机械臂功能。
   * @note
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     Apr-1-2024      Penguin         1. done
-  *  V1.0.1     Apr-16-2024     Penguin         1. 完成基本框架
+  *  V1.0.1     Apr-21-2024     Penguin         1. done
   *
   @verbatim
   ==============================================================================
@@ -16,9 +15,6 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
-#ifndef SHOOT_TASK_H
-#define SHOOT_TASK_H
+#include "mechanical_arm.h"
 
-extern void shoot_task(void const *pvParameters);
 
-#endif

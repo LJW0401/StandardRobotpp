@@ -38,6 +38,8 @@
 #include "usb_task.h"
 #include "voltage_task.h"
 #include "servo_task.h"
+#include "shoot_task.h"
+#include "mechanical_arm_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +49,8 @@ osThreadId calibrate_tast_handle;
 osThreadId chassisTaskHandle;
 osThreadId detect_handle;
 osThreadId gimbalTaskHandle;
+osThreadId shootTaskHandle;
+osThreadId mechanical_armTaskHandle;
 osThreadId imuTaskHandle;
 osThreadId led_RGB_flow_handle;
 osThreadId oled_handle;
@@ -160,6 +164,12 @@ void MX_FREERTOS_Init(void) {
 
     osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
     gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
+
+    osThreadDef(shootTask, shoot_task, osPriorityHigh, 0, 512);
+    shootTaskHandle = osThreadCreate(osThread(shootTask), NULL);
+
+    osThreadDef(mechanical_armTask, mechanical_arm_task, osPriorityHigh, 0, 512);
+    mechanical_armTaskHandle = osThreadCreate(osThread(mechanical_armTask), NULL);
 
     osThreadDef(imuTask, IMU_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
