@@ -20,6 +20,7 @@
 #include "gimbal_task.h"
 
 #include "cmsis_os.h"
+#include "gimbal.h"
 #include "gimbal_yaw_pitch.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark

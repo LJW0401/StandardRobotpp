@@ -1,6 +1,6 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       can_cmd.c/h
+  * @file       can_cmd_dji.c/h
   * @brief      CAN发送函数，通过CAN信号控制电机.
   * @note       支持DJI电机 GM3508 GM2006 GM6020
   *         未来支持小米电机 Cybergear
@@ -17,11 +17,11 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
-#ifndef CAN_CMD_H
-#define CAN_CMD_H
+#ifndef CAN_CMD_DJI_H
+#define CAN_CMD_DJI_H
 
 #include "stm32f4xx_hal.h"
-#include "motor.h"
+#include "struct_typedef.h"
 
 #ifndef CAN_N
 #define CAN_N
@@ -60,4 +60,4 @@ void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1,
 
 /*达妙电机用相关参数定义*/
 
-#endif //CAN_CMD_H
+#endif //CAN_CMD_DJI_H

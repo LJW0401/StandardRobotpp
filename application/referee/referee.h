@@ -228,6 +228,11 @@ typedef __packed struct //0x0301
     uint8_t user_data[113];
 } robot_interaction_data_t;
 
+typedef __packed struct //0x0302
+{
+    uint8_t data[30];
+}custom_robot_data_t;
+
 typedef __packed struct
 {
     float data1;
