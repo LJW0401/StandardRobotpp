@@ -43,7 +43,13 @@
         "robot_param_balanced_infantry.h": "c",
         "chassis_omni.h": "c",
         "robot_param_omni_infantry.h": "c",
-        "pid.h": "c"
+        "pid.h": "c",
+        "bsp_can.h": "c",
+        "stm32f4xx_hal_conf.h": "c",
+        "stm32f4xx_hal_can.h": "c",
+        "can_cmd_dji.h": "c",
+        "cybergear_typedef.h": "c",
+        "can_cmd_cybergear.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

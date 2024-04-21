@@ -1059,6 +1059,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\robot_cmd\CAN_cmd_dji.c</FilePath>
             </File>
+            <File>
+              <FileName>CAN_cmd_cybergear.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\robot_cmd\CAN_cmd_cybergear.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
