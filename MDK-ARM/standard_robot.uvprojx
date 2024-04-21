@@ -1050,14 +1050,14 @@
           <GroupName>robot_cmd</GroupName>
           <Files>
             <File>
-              <FileName>CAN_cmd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\application\robot_cmd\CAN_cmd.c</FilePath>
-            </File>
-            <File>
               <FileName>CAN_receive.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\application\robot_cmd\CAN_receive.c</FilePath>
+            </File>
+            <File>
+              <FileName>CAN_cmd_dji.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\robot_cmd\CAN_cmd_dji.c</FilePath>
             </File>
           </Files>
         </Group>
