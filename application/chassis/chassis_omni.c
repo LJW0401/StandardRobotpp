@@ -96,43 +96,6 @@ static Chassis_s CHASSIS = {
           .max_out = MAX_OUT_CHASSIS_GIMBAL_FOLLOW_ANGLE,
         },
     },
-
-  .wheel_motor[0] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
-  .wheel_motor[1] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
-  .wheel_motor[2] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
-  .wheel_motor[3] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
 };
 
 /*-------------------- Init --------------------*/
@@ -148,8 +111,7 @@ void InitChassis(void)
     /*-------------------- 初始化底盘电机 --------------------*/
     uint8_t i;
     for (i = 0; i < 4; i++) {
-        CHASSIS.wheel_motor[i].motor_measure =
-          GetDjiMotorMeasurePoint(1, WHEEL1 + i);  // 获取底盘电机
+      MotorInit(&CHASSIS.wheel_motor[i], i, 1, DJI_M3508);
     }
 }
 

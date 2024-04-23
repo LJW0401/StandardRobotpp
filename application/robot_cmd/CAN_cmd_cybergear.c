@@ -139,13 +139,14 @@ typedef struct  // cybergear电机发送数据结构体
     EXT_ID_t EXT_ID;
     CAN_TxHeaderTypeDef tx_message;
     uint8_t txdata[8];
-} Cybergrear_Send_Data_s;
+} Cybergear_Send_Data_s;
 
 /*-------------------- 变量定义 --------------------*/
 static uint8_t MASTER_ID = 0x01;  //主控ID
 
 #define CYBERGEAR_NUM 8
-static Cybergrear_Send_Data_s CybergearSendData[CYBERGEAR_NUM];  //发送区与电机id对应
+static CyberGear_s Cybergear[CYBERGEAR_NUM];                     //与电机id对应
+static Cybergear_Send_Data_s CybergearSendData[CYBERGEAR_NUM];  //发送区与电机id对应
 
 /**
   * @brief          float转int，数据打包用
@@ -291,7 +292,7 @@ void CybergearSetMechPositionToZero(CyberGear_s * hmotor)
     CybergearSendData[hmotor->id].EXT_ID.motor_id = hmotor->id;
     CybergearSendData[hmotor->id].EXT_ID.data = MASTER_ID;
     CybergearSendData[hmotor->id].EXT_ID.res = 0;
-    
+
     CybergearSendData[hmotor->id].txdata[0] = 1;
     for (uint8_t i = 1; i < 8; i++) {
         CybergearSendData[hmotor->id].txdata[i] = 0;
@@ -304,11 +305,11 @@ void CybergearSetMechPositionToZero(CyberGear_s * hmotor)
 
 /**
   * @brief          小米电机力矩控制模式控制指令
-  * @param[in]      hmotor 电机结构体
+  * @param[in]      p_motor 电机结构体
   * @param[in]      torque 目标力矩
   * @retval         none
   */
-void CybergearTorqueControl(CyberGear_s* hmotor, float torque)
+void CybergearTorqueControl(CyberGear_s * hmotor, float torque)
 {
     CybergearControl(hmotor, torque, 0, 0, 0, 0);
 }
@@ -321,7 +322,7 @@ void CybergearTorqueControl(CyberGear_s* hmotor, float torque)
   * @param[in]      kd 电机阻尼，过小会震荡，过大电机会震动明显。一般取0.5左右
   * @retval         none
   */
-void CybergearPositionControl(CyberGear_s* hmotor, float position, float kp, float kd)
+void CybergearPositionControl(CyberGear_s * hmotor, float position, float kp, float kd)
 {
     CybergearControl(hmotor, 0, position, 0, kp, kd);
 }
@@ -333,7 +334,7 @@ void CybergearPositionControl(CyberGear_s* hmotor, float position, float kp, flo
   * @param[in]      kd 响应速度，一般取0.1-1
   * @retval         none
   */
-void CybergearVelocityControl(CyberGear_s* hmotor, float velocity, float kd)
+void CybergearVelocityControl(CyberGear_s * hmotor, float velocity, float kd)
 {
     CybergearControl(hmotor, 0, 0, velocity, 0, kd);
 }

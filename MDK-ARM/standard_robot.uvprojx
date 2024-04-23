@@ -1084,6 +1084,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\robot_cmd\CAN_cmd_cybergear.c</FilePath>
             </File>
+            <File>
+              <FileName>motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\robot_cmd\motor.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

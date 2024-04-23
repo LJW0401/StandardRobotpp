@@ -1,6 +1,6 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       motor.h
+  * @file       motor.c/h
   * @brief      电机相关部分定义
   * @history
   *  Version    Date            Author          Modification
@@ -149,12 +149,12 @@ typedef struct Motor
     uint8_t can;       // 电机所用CAN口
 
     /*状态量*/
-    float a;        //(rad/s^2)电机加速度
-    float w;        //(rad/s)电机转速
-    float T;        //(N*m)电机力矩
-    float pos;      //(rad)电机位置
-    float temp;     //(℃)电机温度
-    float current;  //(A)电机电流
+    float a;        // (rad/s^2)电机加速度
+    float w;        // (rad/s)电机输出轴转速
+    float T;        // (N*m)电机力矩
+    float pos;      // (rad)电机位置
+    float temp;     // (℃)电机温度
+    float current;  // (A)电机电流
 
     /*控制量*/
     float current_set;   // 电机电流设定值
@@ -162,5 +162,9 @@ typedef struct Motor
     float velocity_set;  // 电机转速设定值
     int8_t direction;    // 电机旋转方向（1或-1）
 } Motor_s;
+
+/*-------------------- Motor function --------------------*/
+
+extern void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type);
 
 #endif  // MOTOR_H

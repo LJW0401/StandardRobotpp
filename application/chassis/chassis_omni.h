@@ -58,8 +58,7 @@ typedef struct
     ChassisMode_e mode;    // 底盘模式
 
     /*-------------------- Motors --------------------*/
-    DJI_Motor_s yaw_motor;  // yaw轴电机
-    DJI_Motor_s wheel_motor[4];  // 驱动轮电机
+    Motor_s wheel_motor[4];  // 驱动轮电机
     /*-------------------- Values --------------------*/
     ImuData_t * imu;  // (feedback)底盘使用的IMU数据
 
