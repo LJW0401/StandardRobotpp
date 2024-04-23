@@ -52,7 +52,7 @@ typedef struct
 {
     /*电机信息*/
     const DJI_Motor_Measure_t * motor_measure;  // 电机测量数据指针
-    
+
     /*状态量*/
     float accel;     //(rad/s^2)电机加速度
     float w;         //(rad/s)电机转速
@@ -82,7 +82,7 @@ typedef struct
 {
     /*电机信息*/
     uint8_t id;  // 电机ID
-    
+
     /*状态量*/
     float accel;     //(rad/s^2)电机加速度
     float w;         //(rad/s)电机转速
@@ -133,5 +133,29 @@ typedef struct
     int16_t current_set;  // 电机发送电流
     int8_t direction;     // 电机旋转方向（1或-1）
 } MF_Motor_s;
+
+/*-------------------- Motor struct --------------------*/
+
+/**
+ * @brief  通用电机结构体
+ * @note   包括电机的信息、状态量和控制量
+ */
+typedef struct Motor
+{
+    /*电机信息*/
+    uint8_t id;    // 电机ID
+    uint8_t type;  // 电机类型
+
+    /*状态量*/
+    float a;     //(rad/s^2)电机加速度
+    float w;         //(rad/s)电机转速
+    float position;  //(rad)电机位置
+
+    /*控制量*/
+    float current_set;   // 电机电流设定值
+    float torque_set;    // 电机力矩设定值
+    float velocity_set;  // 电机转速设定值
+    int8_t direction;    // 电机旋转方向（1或-1）
+} Motor_s;
 
 #endif  // MOTOR_H
