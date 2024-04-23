@@ -57,6 +57,8 @@ void MechanicalArmObserver(void)
     GetMotorMeasure(&MECHANICAL_ARM.cybergear[0]);
     OutputPCData.data_1 = MECHANICAL_ARM.cybergear[0].w;
     OutputPCData.data_2 = GetCybergearModeState(&MECHANICAL_ARM.cybergear[0]);
+    OutputPCData.data_3 = MECHANICAL_ARM.cybergear[0].pos;
+    OutputPCData.data_4 = MECHANICAL_ARM.cybergear[0].T;
 }
 
 /*-------------------- Reference --------------------*/

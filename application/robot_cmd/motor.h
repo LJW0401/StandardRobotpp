@@ -88,15 +88,6 @@ typedef struct
 
 typedef struct
 {
-    uint32_t motor_id : 8;
-    uint32_t master_can_id : 16;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-    uint16_t index;
-} __attribute__((packed)) RxCanInfoType_17_s;  // 通信类型17解码内容
-
-typedef struct
-{
     RxCanInfo_s ext_id;
     uint8_t rx_data[8];
 } CybergearMeasure_s;

@@ -19,10 +19,10 @@
 
 #include "CAN_receive.h"
 
+#include <string.h>
+
 #include "cmsis_os.h"
 #include "detect_task.h"
-
-#include <string.h>
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
@@ -53,7 +53,8 @@ static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM];
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-void DecodeStdIdData(CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
+static void DecodeStdIdData(
+    CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
     switch (rx_header->StdId) {
         case DJI_M1_ID:
@@ -114,16 +115,22 @@ static void CybergearRxDecode(Motor_s * p_motor, uint8_t rx_data[8])
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-void DecodeExtIdData(CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
+static void DecodeExtIdData(
+    CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
+    uint8_t motor_id = 0; 
+    if(((RxCanInfo_s *)(&rx_header->ExtId))->communication_type == 2){//通信类型2
+        motor_id = ((RxCanInfoType_2_s *)(&rx_header->ExtId))->motor_id;
+    }
+
     if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
     {
-        memcpy(&CAN1_CYBERGEAR_MEASURE->ext_id, &rx_header->ExtId, 4);
-        memcpy(CAN1_CYBERGEAR_MEASURE->rx_data, rx_data, 8);
+        memcpy(&CAN1_CYBERGEAR_MEASURE[motor_id].ext_id, &rx_header->ExtId, 4);
+        memcpy(CAN1_CYBERGEAR_MEASURE[motor_id].rx_data, rx_data, 8);
     } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
     {
-        memcpy(&CAN2_CYBERGEAR_MEASURE->ext_id, &rx_header->ExtId, 4);
-        memcpy(CAN2_CYBERGEAR_MEASURE->rx_data, rx_data, 8);
+        memcpy(&CAN2_CYBERGEAR_MEASURE[motor_id].ext_id, &rx_header->ExtId, 4);
+        memcpy(CAN2_CYBERGEAR_MEASURE[motor_id].rx_data, rx_data, 8);
     }
 }
 
@@ -176,9 +183,13 @@ CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
     if (p_motor->type != CYBERGEAR_MOTOR) return UNDEFINED_MODE;
 
     if (p_motor->can == 1) {
-        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN1_CYBERGEAR_MEASURE[p_motor->id].ext_id))->mode_state);
+        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN1_CYBERGEAR_MEASURE[p_motor->id]
+                                                                  .ext_id))
+                                          ->mode_state);
     } else {
-        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN2_CYBERGEAR_MEASURE[p_motor->id].ext_id))->mode_state);
+        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN2_CYBERGEAR_MEASURE[p_motor->id]
+                                                                  .ext_id))
+                                          ->mode_state);
     }
 }
 
