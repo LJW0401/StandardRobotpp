@@ -18,6 +18,9 @@
 #include "mechanical_arm_5_axis.h"
 
 #if (MECHANICAL_ARM_TYPE == MECHANICAL_ARM_5_AXIS)
+#include "CAN_communication.h"
+#include "usb_task.h"
+
 MechanicalArm_s MECHANICAL_ARM;
 
 /*-------------------- Init --------------------*/
@@ -27,8 +30,10 @@ MechanicalArm_s MECHANICAL_ARM;
  * @param[in]      none
  * @retval         none
  */
-void InitMechanicalArm(void) {
-  MotorInit(&MECHANICAL_ARM.cybergear[0],1,1,CYBERGEAR_MOTOR);
+void InitMechanicalArm(void)
+{
+    MotorInit(&MECHANICAL_ARM.cybergear[0], 1, 1, CYBERGEAR_MOTOR);
+    CybergearEnable(&MECHANICAL_ARM.cybergear[0]);
 }
 
 /*-------------------- Set mode --------------------*/
@@ -47,7 +52,12 @@ void SetMechanicalArmMode(void) {}
  * @param[in]      none
  * @retval         none
  */
-void MechanicalArmObserver(void) {}
+void MechanicalArmObserver(void)
+{
+    GetMotorMeasure(&MECHANICAL_ARM.cybergear[0]);
+    OutputPCData.data_1 = MECHANICAL_ARM.cybergear[0].w;
+    OutputPCData.data_2 = GetCybergearModeState(&MECHANICAL_ARM.cybergear[0]);
+}
 
 /*-------------------- Reference --------------------*/
 
@@ -74,8 +84,6 @@ void MechanicalArmConsole(void) {}
  * @param[in]      none
  * @retval         none
  */
-void SendMechanicalArmCmd(void) {
-  
-}
+void SendMechanicalArmCmd(void) { CybergearVelocityControl(&MECHANICAL_ARM.cybergear[0], 1, 0.5); }
 
 #endif /* MECHANICAL_ARM_5_AXIS */

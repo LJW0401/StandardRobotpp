@@ -188,7 +188,6 @@ void CybergearControl(
 /**
   * @brief          小米电机使能（通信类型 3）
   * @param[in]      p_motor 电机结构体
-  * @param[in]      id 电机id
   * @retval         none
   */
 void CybergearEnable(Motor_s * p_motor)

@@ -393,13 +393,11 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.name_1, "yaw");
+    char_to_uint(OutputPCData.name_1, "w");
     OutputPCData.type_1 = 1;
-    OutputPCData.data_1 = gimbal_INT_gyro_angle_point[0];
 
-    char_to_uint(OutputPCData.name_2, "pitch");
+    char_to_uint(OutputPCData.name_2, "mode");
     OutputPCData.type_2 = 1;
-    OutputPCData.data_2 = gimbal_INT_gyro_angle_point[1];
 
     char_to_uint(OutputPCData.name_3, "roll");
     OutputPCData.type_3 = 1;
