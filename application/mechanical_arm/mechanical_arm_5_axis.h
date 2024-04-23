@@ -47,8 +47,8 @@ typedef struct
     MechanicalArmMode_e mode;  // 模式
 
     /*-------------------- Motors --------------------*/
-    DJI_Motor_s dji_motor[2];
-    CyberGear_s cybergear[3];
+    Motor_s dji_motor[2];
+    Motor_s cybergear[3];
     /*-------------------- Values --------------------*/
 
     Values_t reference;    // 期望值

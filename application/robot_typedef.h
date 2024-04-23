@@ -46,7 +46,7 @@
 #define MECHANICAL_ARM_7_AXIS 7  // 7轴机械臂
 
 // 可用电机类型
-typedef enum MotorType {
+typedef enum __MotorType {
     DJI_M2006 = 0,
     DJI_M3508,
     DJI_M6020,
