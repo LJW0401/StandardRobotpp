@@ -44,7 +44,7 @@ typedef enum {
     DJI_M11_ID = 0x20B,  // 6020电机ID
 } DJI_Motor_ID;
 
-const DJI_Motor_Measure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i);
+const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i);
 
 extern void GetMotorMeasure(Motor_s * p_motor);
 

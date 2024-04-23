@@ -27,7 +27,9 @@ MechanicalArm_s MECHANICAL_ARM;
  * @param[in]      none
  * @retval         none
  */
-void InitMechanicalArm(void) {}
+void InitMechanicalArm(void) {
+  MotorInit(&MECHANICAL_ARM.cybergear[0],1,1,CYBERGEAR_MOTOR);
+}
 
 /*-------------------- Set mode --------------------*/
 
@@ -72,6 +74,8 @@ void MechanicalArmConsole(void) {}
  * @param[in]      none
  * @retval         none
  */
-void SendMechanicalArmCmd(void) {}
+void SendMechanicalArmCmd(void) {
+  
+}
 
 #endif /* MECHANICAL_ARM_5_AXIS */

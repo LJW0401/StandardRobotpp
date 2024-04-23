@@ -36,24 +36,70 @@
 #define DJI_GM3508_RPM_TO_OMEGA 0.0055115661f  // (1/60*2*pi/19) m3508(减速比19:1) (rpm)->(rad/s)
 #define DJI_GM2006_RPM_TO_OMEGA 0.0029088821f  // (1/60*2*pi/36) m2006(减速比36:1) (rpm)->(rad/s)
 
-typedef struct
+typedef struct _DjiMotorMeasure
 {
     uint16_t ecd;
     int16_t speed_rpm;
     int16_t given_current;
     uint8_t temperate;
     int16_t last_ecd;
-} DJI_Motor_Measure_t;
+} DjiMotorMeasure_t;
 
 /*-------------------- CyberGear --------------------*/
+#define CYBERGEAR_NUM 8
+
+typedef enum _CybergearModeState {
+    UNDEFINED_MODE = -1,  //未定义模式
+    RESET_MODE = 0,       //Reset模式[复位]
+    CALI_MODE = 1,        //Cali 模式[标定]
+    RUN_MODE = 2          //Motor模式[运行]
+} CybergearModeState_e;   //电机模式状态
 
 typedef struct
 {
-    float angle;        //(rad)
-    float speed;        //(rad/s)
-    float torque;       //(N*m)
-    float temperature;  //(℃)
-} CyberGear_Measure_t;
+    uint32_t info : 24;
+    uint32_t communication_type : 5;
+    uint32_t res : 3;
+} __attribute__((packed)) RxCanInfo_s;  // 解码内容缓存
+
+typedef struct
+{
+    uint32_t FE : 8;
+    uint32_t motor_id : 16;
+    uint32_t communication_type : 5;
+    uint32_t res : 3;
+    uint32_t MCU_id;
+} __attribute__((packed)) RxCanInfoType_0_s;  // 通信类型0解码内容
+
+typedef struct
+{
+    uint32_t master_can_id : 8;
+    uint32_t motor_id : 8;
+    uint32_t under_voltage_fault : 1;
+    uint32_t over_current_fault : 1;
+    uint32_t over_temperature_fault : 1;
+    uint32_t magnetic_encoding_fault : 1;
+    uint32_t HALL_encoding_failure : 1;
+    uint32_t unmarked : 1;
+    uint32_t mode_state : 2;
+    uint32_t communication_type : 5;
+    uint32_t res : 3;
+} __attribute__((packed)) RxCanInfoType_2_s;  // 通信类型2解码内容
+
+typedef struct
+{
+    uint32_t motor_id : 8;
+    uint32_t master_can_id : 16;
+    uint32_t communication_type : 5;
+    uint32_t res : 3;
+    uint16_t index;
+} __attribute__((packed)) RxCanInfoType_17_s;  // 通信类型17解码内容
+
+typedef struct
+{
+    RxCanInfo_s ext_id;
+    uint8_t rx_data[8];
+} CybergearMeasure_s;
 
 /*-------------------- DM Motor --------------------*/
 
@@ -73,12 +119,12 @@ typedef struct __Motor
     uint8_t can;       // 电机所用CAN口
 
     /*状态量*/
-    float a;        // (rad/s^2)电机加速度
-    float w;        // (rad/s)电机输出轴转速
-    float T;        // (N*m)电机力矩
-    float pos;      // (rad)电机位置
-    float temp;     // (℃)电机温度
-    float current;  // (A)电机电流
+    float a;            // (rad/s^2)电机加速度
+    float w;            // (rad/s)电机输出轴转速
+    float T;            // (N*m)电机力矩
+    float pos;          // (rad)电机位置
+    float temperature;  // (℃)电机温度
+    float current;      // (A)电机电流
 
     /*控制量*/
     float current_set;   // 电机电流设定值

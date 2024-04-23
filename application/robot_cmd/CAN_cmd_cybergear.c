@@ -78,12 +78,6 @@ typedef enum {
     LIMIT_CUR = 0X7018       //速度位置模式电流设置
 } Cybergear_Index_e;         //电机功能码
 
-typedef enum {
-    RESET_MODE = 0,        //Reset模式[复位]
-    CALI_MODE = 1,         //Cali 模式[标定]
-    RUN_MODE = 2           //Motor模式[运行]
-} Cybergear_Mode_State_e;  //电机模式状态
-
 typedef struct
 {
     uint32_t motor_id : 8;  // 只占8位
@@ -91,46 +85,6 @@ typedef struct
     uint32_t mode : 5;
     uint32_t res : 3;
 } __attribute__((packed)) EXT_ID_t;  // 32位扩展ID解析结构体
-
-typedef struct
-{
-    uint32_t info : 24;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-} __attribute__((packed)) RxCAN_Info_s;  // 解码内容缓存
-
-typedef struct
-{
-    uint32_t FE : 8;
-    uint32_t motor_id : 16;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-    uint32_t MCU_id;
-} __attribute__((packed)) RxCAN_Info_Type_0_s;  // 通信类型0解码内容
-
-typedef struct
-{
-    uint32_t master_can_id : 8;
-    uint32_t motor_id : 8;
-    uint32_t under_voltage_fault : 1;
-    uint32_t over_current_fault : 1;
-    uint32_t over_temperature_fault : 1;
-    uint32_t magnetic_encoding_fault : 1;
-    uint32_t HALL_encoding_failure : 1;
-    uint32_t unmarked : 1;
-    uint32_t mode_state : 2;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-} __attribute__((packed)) RxCAN_Info_Type_2_s;  // 通信类型2解码内容
-
-typedef struct
-{
-    uint32_t motor_id : 8;
-    uint32_t master_can_id : 16;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-    uint16_t index;
-} __attribute__((packed)) RxCAN_Info_Type_17_s;  // 通信类型17解码内容
 
 typedef struct  // cybergear电机发送数据结构体
 {
@@ -144,7 +98,6 @@ typedef struct  // cybergear电机发送数据结构体
 /*-------------------- 变量定义 --------------------*/
 static uint8_t MASTER_ID = 0x01;  //主控ID
 
-#define CYBERGEAR_NUM 8
 static Cybergear_Send_Data_s CybergearSendData[CYBERGEAR_NUM];  //发送区索引与电机id对应(0位不动)
 
 /**
