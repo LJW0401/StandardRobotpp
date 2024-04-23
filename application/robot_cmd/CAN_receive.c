@@ -20,7 +20,6 @@
 #include "CAN_receive.h"
 
 #include "cmsis_os.h"
-
 #include "detect_task.h"
 
 extern CAN_HandleTypeDef hcan1;
@@ -46,38 +45,34 @@ static DJI_Motor_Measure_t CAN2_DJI_motor[11];
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-void DecodeStdIdData(CAN_HandleTypeDef *CAN, CAN_RxHeaderTypeDef *rx_header, uint8_t rx_data[8])
+void DecodeStdIdData(CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
-    switch (rx_header->StdId)
-    {
-    case DJI_M1_ID:
-    case DJI_M2_ID:
-    case DJI_M3_ID:
-    case DJI_M4_ID:
-    case DJI_M5_ID:
-    case DJI_M6_ID:
-    case DJI_M7_ID:
-    case DJI_M8_ID:
-    case DJI_M9_ID:
-    case DJI_M10_ID:
-    case DJI_M11_ID:
-    { // 以上ID为DJI电机标识符
-        static uint8_t i = 0;
-        i = rx_header->StdId - DJI_M1_ID;
-        if (CAN == &hcan1) // 接收到的数据是通过 CAN1 接收的
-        {
-            get_motor_measure(&CAN1_DJI_motor[i], rx_data);
+    switch (rx_header->StdId) {
+        case DJI_M1_ID:
+        case DJI_M2_ID:
+        case DJI_M3_ID:
+        case DJI_M4_ID:
+        case DJI_M5_ID:
+        case DJI_M6_ID:
+        case DJI_M7_ID:
+        case DJI_M8_ID:
+        case DJI_M9_ID:
+        case DJI_M10_ID:
+        case DJI_M11_ID: {  // 以上ID为DJI电机标识符
+            static uint8_t i = 0;
+            i = rx_header->StdId - DJI_M1_ID;
+            if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
+            {
+                get_motor_measure(&CAN1_DJI_motor[i], rx_data);
+            } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
+            {
+                get_motor_measure(&CAN2_DJI_motor[i], rx_data);
+            }
+            break;
         }
-        else if (CAN == &hcan2) // 接收到的数据是通过 CAN2 接收的
-        {
-            get_motor_measure(&CAN2_DJI_motor[i], rx_data);
+        default: {
+            break;
         }
-        break;
-    }
-    default:
-    {
-        break;
-    }
     }
 }
 
@@ -88,7 +83,7 @@ void DecodeStdIdData(CAN_HandleTypeDef *CAN, CAN_RxHeaderTypeDef *rx_header, uin
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-void DecodeExtIdData(CAN_HandleTypeDef *CAN, CAN_RxHeaderTypeDef *rx_header, uint8_t rx_data[8])
+void DecodeExtIdData(CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
     /*
     完成解码内容
@@ -100,18 +95,17 @@ void DecodeExtIdData(CAN_HandleTypeDef *CAN, CAN_RxHeaderTypeDef *rx_header, uin
  * @param[in]      hcan:CAN句柄指针
  * @retval         none
  */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
 {
     CAN_RxHeaderTypeDef rx_header;
     uint8_t rx_data[8];
 
     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
 
-    if (rx_header.IDE == CAN_ID_STD) // 接收到的数据标识符为StdId
+    if (rx_header.IDE == CAN_ID_STD)  // 接收到的数据标识符为StdId
     {
         DecodeStdIdData(hcan, &rx_header, rx_data);
-    }
-    else if (rx_header.IDE == CAN_ID_EXT) // 接收到的数据标识符为ExtId
+    } else if (rx_header.IDE == CAN_ID_EXT)  // 接收到的数据标识符为ExtId
     {
         DecodeExtIdData(hcan, &rx_header, rx_data);
     }
@@ -120,22 +114,54 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 /**
  * @brief          获取DJI电机接收数据指针
  * @param[in]      can can口 (1 or 2)
- * @param[in]      i 电机编号,范围[0,11]
+ * @param[in]      i 电机接收数据索引,范围[0,11]
  * @return         DJI_Motor_Measure_Data
  * @note           如果输入值超出范围则返回CAN1_DJI_motor[1]
  */
-const DJI_Motor_Measure_t *GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
+const DJI_Motor_Measure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
 {
-    if (i < 12)
-    {
-        if (can == 1)
-        {
+    if (i < 12) {
+        if (can == 1) {
             return &CAN1_DJI_motor[i];
-        }
-        else if (can == 2)
-        {
+        } else if (can == 2) {
             return &CAN2_DJI_motor[i];
         }
     }
     return &CAN1_DJI_motor[1];
+}
+
+/**
+ * @brief          获取接收数据
+ * @param[out]     p_motor 电机结构体
+ * @return         none
+ */
+void GetMotorMeasure(Motor_s * p_motor)
+{
+    switch (p_motor->type) {
+        case DJI_M2006:
+        case DJI_M3508: {
+            const DJI_Motor_Measure_t * p_dji_motor_measure =
+                GetDjiMotorMeasurePoint(p_motor->can, p_motor->id - 1);
+            p_motor->w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA;
+            p_motor->pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192;
+            p_motor->temp = p_dji_motor_measure->temperate;
+            p_motor->current = p_dji_motor_measure->given_current;
+        } break;
+        case DJI_M6020: {
+            const DJI_Motor_Measure_t * p_dji_motor_measure =
+                GetDjiMotorMeasurePoint(p_motor->can, p_motor->id + 3);
+            p_motor->w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA;
+            p_motor->pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192;
+            p_motor->temp = p_dji_motor_measure->temperate;
+            p_motor->current = p_dji_motor_measure->given_current;
+        } break;
+        case CYBERGEAR_MOTOR: {
+        } break;
+        case DM_MOTOR: {
+        } break;
+        case MF_MOTOR: {
+        } break;
+        default:
+            break;
+    }
 }

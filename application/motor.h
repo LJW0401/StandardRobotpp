@@ -16,6 +16,7 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
+#include "robot_typedef.h"
 #include "struct_typedef.h"
 
 #define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
@@ -143,13 +144,17 @@ typedef struct
 typedef struct Motor
 {
     /*电机信息*/
-    uint8_t id;    // 电机ID
-    uint8_t type;  // 电机类型
+    uint8_t id;        // 电机ID
+    MotorType_e type;  // 电机类型
+    uint8_t can;       // 电机所用CAN口
 
     /*状态量*/
-    float a;     //(rad/s^2)电机加速度
-    float w;         //(rad/s)电机转速
-    float position;  //(rad)电机位置
+    float a;        //(rad/s^2)电机加速度
+    float w;        //(rad/s)电机转速
+    float T;        //(N*m)电机力矩
+    float pos;      //(rad)电机位置
+    float temp;     //(℃)电机温度
+    float current;  //(A)电机电流
 
     /*控制量*/
     float current_set;   // 电机电流设定值

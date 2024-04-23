@@ -46,11 +46,13 @@
 #define MECHANICAL_ARM_7_AXIS 7  // 7轴机械臂
 
 // 可用电机类型
-typedef enum{
-    DJI_MOTOR = 0,
+typedef enum MotorType {
+    DJI_M2006 = 0,
+    DJI_M3508,
+    DJI_M6020,
     CYBERGEAR_MOTOR,
     DM_MOTOR,
     MF_MOTOR,
-}MotorType_e;
+} MotorType_e;
 
 #endif /* ROBOT_TYPEDEF_H */
