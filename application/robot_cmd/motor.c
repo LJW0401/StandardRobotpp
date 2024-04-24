@@ -22,10 +22,12 @@
  * @param[in]   id 电机id
  * @param[in]   can 电机使用的can口
  * @param[in]   motor_type 电机种类
+ * @param[in]   direction 电机旋转方向
  */
-void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type)
+void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction)
 {
     p_motor->id = id;
     p_motor->can = can;
     p_motor->type = motor_type;
+    p_motor->direction = direction;
 }

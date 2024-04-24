@@ -32,10 +32,10 @@ extern void CybergearSetMechPositionToZero(Motor_s * p_motor);
 
 /*-------------------- 封装的一些控制函数 --------------------*/
 
-extern void CybergearTorqueControl(Motor_s * p_motor, float torque);
+extern void CybergearTorqueControl(Motor_s * p_motor);
 
-extern void CybergearPositionControl(Motor_s * p_motor, float position, float kp, float kd);
+extern void CybergearPositionControl(Motor_s * p_motor, float kp, float kd);
 
-extern void CybergearVelocityControl(Motor_s * p_motor, float velocity, float kd);
+extern void CybergearVelocityControl(Motor_s * p_motor, float kd);
 
 #endif  //CAN_CMD_CYBERGEAR_H

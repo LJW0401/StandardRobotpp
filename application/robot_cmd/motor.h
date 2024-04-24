@@ -121,11 +121,12 @@ typedef struct __Motor
     float current_set;   // 电机电流设定值
     float torque_set;    // 电机力矩设定值
     float velocity_set;  // 电机转速设定值
+    float position_set;  // 电机位置设定值
     int8_t direction;    // 电机旋转方向（1或-1）
 } Motor_s;
 
 /*-------------------- Motor function --------------------*/
 
-extern void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type);
+extern void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction);
 
 #endif  // MOTOR_H

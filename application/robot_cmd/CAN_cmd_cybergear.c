@@ -272,43 +272,40 @@ void CybergearSetMechPositionToZero(Motor_s * p_motor)
 /**
   * @brief          小米电机力矩控制模式控制指令
   * @param[in]      p_motor 电机结构体
-  * @param[in]      torque 目标力矩
   * @retval         none
   */
-void CybergearTorqueControl(Motor_s * p_motor, float torque)
+void CybergearTorqueControl(Motor_s * p_motor)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return;
 
-    CybergearControl(p_motor, torque, 0, 0, 0, 0);
+    CybergearControl(p_motor, p_motor->torque_set, 0, 0, 0, 0);
 }
 
 /**
   * @brief          小米电机位置模式控制指令
   * @param[in]      p_motor 电机结构体
-  * @param[in]      position 控制位置 (rad)
   * @param[in]      kp 响应速度(到达位置快慢)，一般取1-10
   * @param[in]      kd 电机阻尼，过小会震荡，过大电机会震动明显。一般取0.5左右
   * @retval         none
   */
-void CybergearPositionControl(Motor_s * p_motor, float position, float kp, float kd)
+void CybergearPositionControl(Motor_s * p_motor, float kp, float kd)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return;
 
-    CybergearControl(p_motor, 0, position, 0, kp, kd);
+    CybergearControl(p_motor, 0, p_motor->position_set, 0, kp, kd);
 }
 
 /**
   * @brief          小米电机速度模式控制指令
   * @param[in]      p_motor 电机结构体
-  * @param[in]      velocity 控制速度
   * @param[in]      kd 响应速度，一般取0.1-1
   * @retval         none
   */
-void CybergearVelocityControl(Motor_s * p_motor, float velocity, float kd)
+void CybergearVelocityControl(Motor_s * p_motor, float kd)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return;
 
-    CybergearControl(p_motor, 0, 0, velocity, 0, kd);
+    CybergearControl(p_motor, 0, 0, p_motor->velocity_set, 0, kd);
 }
 
 /************************ (C) COPYRIGHT 2024 Polarbear *****END OF FILE****/

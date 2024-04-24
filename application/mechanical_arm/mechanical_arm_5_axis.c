@@ -24,6 +24,7 @@
 #include "detect_task.h"
 #include "pid.h"
 #include "usb_task.h"
+#include "user_lib.h"
 
 static MechanicalArm_s MECHANICAL_ARM = {
     .mode = MECHANICAL_ARM_ZERO_FORCE,
@@ -59,11 +60,21 @@ static MechanicalArm_s MECHANICAL_ARM = {
 void InitMechanicalArm(void)
 {
     // #Motor init ---------------------
-    MotorInit(&MECHANICAL_ARM.joint_motor[0], JOINT_MOTOR_0_ID, JOINT_MOTOR_0_CAN, CYBERGEAR_MOTOR);
-    MotorInit(&MECHANICAL_ARM.joint_motor[1], JOINT_MOTOR_1_ID, JOINT_MOTOR_1_CAN, CYBERGEAR_MOTOR);
-    MotorInit(&MECHANICAL_ARM.joint_motor[2], JOINT_MOTOR_2_ID, JOINT_MOTOR_2_CAN, CYBERGEAR_MOTOR);
-    MotorInit(&MECHANICAL_ARM.joint_motor[3], JOINT_MOTOR_3_ID, JOINT_MOTOR_3_CAN, DJI_M6020);
-    MotorInit(&MECHANICAL_ARM.joint_motor[4], JOINT_MOTOR_4_ID, JOINT_MOTOR_4_CAN, DJI_M3508);
+    MotorInit(
+        &MECHANICAL_ARM.joint_motor[0], JOINT_MOTOR_0_ID, JOINT_MOTOR_0_CAN, JOINT_MOTOR_0_TYPE,
+        JOINT_MOTOR_0_DIRECTION);
+    MotorInit(
+        &MECHANICAL_ARM.joint_motor[1], JOINT_MOTOR_1_ID, JOINT_MOTOR_1_CAN, JOINT_MOTOR_1_TYPE,
+        JOINT_MOTOR_1_DIRECTION);
+    MotorInit(
+        &MECHANICAL_ARM.joint_motor[2], JOINT_MOTOR_2_ID, JOINT_MOTOR_2_CAN, JOINT_MOTOR_2_TYPE,
+        JOINT_MOTOR_2_DIRECTION);
+    MotorInit(
+        &MECHANICAL_ARM.joint_motor[3], JOINT_MOTOR_3_ID, JOINT_MOTOR_3_CAN, JOINT_MOTOR_3_TYPE,
+        JOINT_MOTOR_3_DIRECTION);
+    MotorInit(
+        &MECHANICAL_ARM.joint_motor[4], JOINT_MOTOR_4_ID, JOINT_MOTOR_4_CAN, JOINT_MOTOR_4_TYPE,
+        JOINT_MOTOR_4_DIRECTION);
     // #PID init ---------------------
     float pid_joint_3_angle[3] = {KP_JOINT_3_ANGLE, KI_JOINT_3_ANGLE, KD_JOINT_3_ANGLE};
     float pid_joint_3_speed[3] = {KP_JOINT_3_SPEED, KI_JOINT_3_SPEED, KD_JOINT_3_SPEED};
@@ -84,7 +95,8 @@ void InitMechanicalArm(void)
 }
 
 /*-------------------- Set mode --------------------*/
-bool CheckInitCompleted();
+
+bool CheckInitCompleted(void);
 
 /**
  * @brief          设置模式
@@ -106,7 +118,7 @@ void SetMechanicalArmMode(void)
     }
 }
 
-bool CheckInitCompleted()
+bool CheckInitCompleted(void)
 {
     return false;
     // TODO: add init completed condition
@@ -125,6 +137,12 @@ void MechanicalArmObserver(void)
         GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
         MECHANICAL_ARM.feedback.position[i] = MECHANICAL_ARM.joint_motor[i].pos;
     }
+    MECHANICAL_ARM.feedback.position[0] = theta_transfrom(MECHANICAL_ARM.joint_motor[0].pos, 0, 1);
+    MECHANICAL_ARM.feedback.position[1] = theta_transfrom(MECHANICAL_ARM.joint_motor[1].pos, 0, 1);
+    MECHANICAL_ARM.feedback.position[2] = theta_transfrom(MECHANICAL_ARM.joint_motor[2].pos, 0, 1);
+    MECHANICAL_ARM.feedback.position[3] = theta_transfrom(MECHANICAL_ARM.joint_motor[3].pos, 0, 1);
+    MECHANICAL_ARM.feedback.position[4] = theta_transfrom(MECHANICAL_ARM.joint_motor[4].pos, 0, 1);
+
     OutputPCData.data_1 = MECHANICAL_ARM.joint_motor[3].w;
     OutputPCData.data_2 = MECHANICAL_ARM.joint_motor[3].temperature;
     OutputPCData.data_3 = MECHANICAL_ARM.joint_motor[3].pos;
@@ -138,7 +156,8 @@ void MechanicalArmObserver(void)
  * @param[in]      none
  * @retval         none
  */
-void MechanicalArmReference(void) {
+void MechanicalArmReference(void)
+{
     MECHANICAL_ARM.reference.position[0] = 0.0f;
     MECHANICAL_ARM.reference.position[1] = M_PI_2;
     MECHANICAL_ARM.reference.position[2] = 0.0f;
@@ -155,8 +174,16 @@ void MechanicalArmReference(void) {
  */
 void MechanicalArmConsole(void)
 {
-    MECHANICAL_ARM.joint_motor[3].current_set = 0;
-    MECHANICAL_ARM.joint_motor[4].current_set = 0;
+    MECHANICAL_ARM.joint_motor[0].velocity_set = 0.0f;
+    MECHANICAL_ARM.joint_motor[1].velocity_set = 0.0f;
+    MECHANICAL_ARM.joint_motor[2].velocity_set = 0.0f;
+
+    MECHANICAL_ARM.joint_motor[0].torque_set = 0.0f;
+    MECHANICAL_ARM.joint_motor[1].torque_set = 0.0f;
+    MECHANICAL_ARM.joint_motor[2].torque_set = 0.0f;
+
+    MECHANICAL_ARM.joint_motor[3].current_set = 0.0f;
+    MECHANICAL_ARM.joint_motor[4].current_set = 0.0f;
 }
 
 /*-------------------- Cmd --------------------*/
@@ -168,9 +195,30 @@ void MechanicalArmConsole(void)
  */
 void SendMechanicalArmCmd(void)
 {
-    // CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 1, 0.5);
-    CanCmdDjiMotor(2, DJI_2FF, MECHANICAL_ARM.joint_motor[3].current_set, 0, 0, 0);
-    CanCmdDjiMotor(2, DJI_200, 0, MECHANICAL_ARM.joint_motor[4].current_set, 0, 0);
+    switch (MECHANICAL_ARM.mode) {
+        case MECHANICAL_ARM_INIT: {
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 0.5);
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 0.5);
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 0.5);
+            CanCmdDjiMotor(2, DJI_2FF, MECHANICAL_ARM.joint_motor[3].current_set, 0, 0, 0);
+            CanCmdDjiMotor(2, DJI_200, 0, MECHANICAL_ARM.joint_motor[4].current_set, 0, 0);
+        } break;
+        case MECHANICAL_ARM_FOLLOW: {
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 0.5);
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 0.5);
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 0.5);
+            CanCmdDjiMotor(2, DJI_2FF, MECHANICAL_ARM.joint_motor[3].current_set, 0, 0, 0);
+            CanCmdDjiMotor(2, DJI_200, 0, MECHANICAL_ARM.joint_motor[4].current_set, 0, 0);
+        } break;
+        case MECHANICAL_ARM_ZERO_FORCE:
+        default: {
+            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
+            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
+            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
+            CanCmdDjiMotor(2, DJI_2FF, 0, 0, 0, 0);
+            CanCmdDjiMotor(2, DJI_200, 0, 0, 0, 0);
+        }
+    }
 }
 
 #endif /* MECHANICAL_ARM_5_AXIS */
