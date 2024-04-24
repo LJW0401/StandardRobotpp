@@ -29,6 +29,8 @@ typedef enum {
 } DJIMotorIndex_e;  //DJI电机在接收数据数组中的索引
 
 /*-------------------- Chassis --------------------*/
+//motor type
+#define WHEEL_MOTOR_TYPE DJI_M3508 //底盘驱动轮电机类型
 //physical parameters ---------------------
 #define WHEEL_RADIUS 0.106f  //(m)轮子半径
 #define WHEEL_DIRECTION 1    //轮子方向
@@ -68,5 +70,13 @@ typedef enum {
 #define GUN_NUM 1          // 定义枪管个数（一个枪管2个摩擦轮）
 
 //PID parameters ---------------------
+
+/*-------------------- Mechanical arm --------------------*/
+//motor type
+#define JOINT_MOTOR_0_TYPE CYBERGEAR_MOTOR
+#define JOINT_MOTOR_1_TYPE CYBERGEAR_MOTOR
+#define JOINT_MOTOR_2_TYPE CYBERGEAR_MOTOR
+#define JOINT_MOTOR_3_TYPE DJI_M6020
+#define JOINT_MOTOR_4_TYPE DJI_M3508
 
 #endif /* INCLUDED_ROBOT_PARAM_H */

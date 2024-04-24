@@ -49,6 +49,7 @@ typedef struct
     /*-------------------- Motors --------------------*/
     Motor_s dji_motor[2];
     Motor_s cybergear[3];
+    Motor_s joint_motor[5];
     /*-------------------- Values --------------------*/
 
     Values_t reference;    // 期望值

@@ -111,7 +111,7 @@ void InitChassis(void)
     /*-------------------- 初始化底盘电机 --------------------*/
     uint8_t i;
     for (i = 0; i < 4; i++) {
-        MotorInit(&CHASSIS.wheel_motor[i], i, 1, DJI_M3508);
+        MotorInit(&CHASSIS.wheel_motor[i], i, 1, WHEEL_MOTOR_TYPE);
     }
 }
 
