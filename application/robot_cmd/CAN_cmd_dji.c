@@ -59,13 +59,13 @@ DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x2FF = {
  * @param[in]      tx_data    发送数据
  * @return         none
  */
-static void CAN_SendTxMessage(CAN_HandleTypeDef *can_handle, CAN_TxHeaderTypeDef *tx_header, uint8_t *tx_data)
+static void CAN_SendTxMessage(
+    CAN_HandleTypeDef * can_handle, CAN_TxHeaderTypeDef * tx_header, uint8_t * tx_data)
 {
     uint32_t send_mail_box;
 
-    uint32_t free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle); // 检测是否有空闲邮箱
-    while (free_TxMailbox < 3)
-    { // 等待空闲邮箱数达到3
+    uint32_t free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);  // 检测是否有空闲邮箱
+    while (free_TxMailbox < 3) {  // 等待空闲邮箱数达到3
         free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);
     }
     HAL_CAN_AddTxMessage(can_handle, tx_header, tx_data, &send_mail_box);
@@ -73,26 +73,74 @@ static void CAN_SendTxMessage(CAN_HandleTypeDef *can_handle, CAN_TxHeaderTypeDef
 
 /**
  * @brief          通过CAN控制DJI电机(支持GM3508 GM2006 GM6020)
- * @param[in]      DJI_Motor_Send_Data 电机发送数据结构体
+ * @param[in]      can 发送数据使用的can口(1/2)
+ * @param[in]      std_id 发送数据使用的std_id
  * @param[in]      curr_1 电机控制电流(id=1/5)
  * @param[in]      curr_2 电机控制电流(id=2/6)
  * @param[in]      curr_3 电机控制电流(id=3/7)
  * @param[in]      curr_4 电机控制电流(id=4/8)
  * @return         none
  */
-void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
+void CAN_CmdDJIMotor(
+    uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
 {
-    DJI_Motor_Send_Data->tx_message.StdId = DJI_Motor_Send_Data->std_id;
-    DJI_Motor_Send_Data->tx_message.IDE = CAN_ID_STD;
-    DJI_Motor_Send_Data->tx_message.RTR = CAN_RTR_DATA;
-    DJI_Motor_Send_Data->tx_message.DLC = 0x08;
-    DJI_Motor_Send_Data->can_send_data[0] = (curr_1 >> 8);
-    DJI_Motor_Send_Data->can_send_data[1] = curr_1;
-    DJI_Motor_Send_Data->can_send_data[2] = (curr_2 >> 8);
-    DJI_Motor_Send_Data->can_send_data[3] = curr_2;
-    DJI_Motor_Send_Data->can_send_data[4] = (curr_3 >> 8);
-    DJI_Motor_Send_Data->can_send_data[5] = curr_3;
-    DJI_Motor_Send_Data->can_send_data[6] = (curr_4 >> 8);
-    DJI_Motor_Send_Data->can_send_data[7] = curr_4;
-    CAN_SendTxMessage(DJI_Motor_Send_Data->CAN, &DJI_Motor_Send_Data->tx_message, DJI_Motor_Send_Data->can_send_data);
+    DJI_Motor_Send_Data_s * dji_motor_send_data = NULL;
+
+    if (can == 1) {
+        switch (std_id) {
+            case DJI_200: {
+                dji_motor_send_data = &DJI_Motor_Send_Data_CAN1_0x200;
+            } break;
+            case DJI_1FF: {
+                dji_motor_send_data = &DJI_Motor_Send_Data_CAN1_0x1FF;
+            } break;
+            case DJI_2FF: {
+                dji_motor_send_data = &DJI_Motor_Send_Data_CAN1_0x2FF;
+            } break;
+            case DJI_1FE: {
+            } break;
+            case DJI_2FE: {
+            } break;
+            default: {
+            } break;
+        }
+    } else if (can == 2) {
+        switch (std_id) {
+            case DJI_200: {
+                dji_motor_send_data = &DJI_Motor_Send_Data_CAN2_0x200;
+            } break;
+            case DJI_1FF: {
+                dji_motor_send_data = &DJI_Motor_Send_Data_CAN2_0x1FF;
+            } break;
+            case DJI_2FF: {
+                dji_motor_send_data = &DJI_Motor_Send_Data_CAN2_0x2FF;
+            } break;
+            case DJI_1FE: {
+            } break;
+            case DJI_2FE: {
+            } break;
+            default: {
+            } break;
+        }
+    }
+
+    if (dji_motor_send_data == NULL) return;
+
+    dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
+    dji_motor_send_data->tx_message.IDE = CAN_ID_STD;
+    dji_motor_send_data->tx_message.RTR = CAN_RTR_DATA;
+    dji_motor_send_data->tx_message.DLC = 0x08;
+
+    dji_motor_send_data->can_send_data[0] = (curr_1 >> 8);
+    dji_motor_send_data->can_send_data[1] = curr_1;
+    dji_motor_send_data->can_send_data[2] = (curr_2 >> 8);
+    dji_motor_send_data->can_send_data[3] = curr_2;
+    dji_motor_send_data->can_send_data[4] = (curr_3 >> 8);
+    dji_motor_send_data->can_send_data[5] = curr_3;
+    dji_motor_send_data->can_send_data[6] = (curr_4 >> 8);
+    dji_motor_send_data->can_send_data[7] = curr_4;
+
+    CAN_SendTxMessage(
+        dji_motor_send_data->CAN, &dji_motor_send_data->tx_message,
+        dji_motor_send_data->can_send_data);
 }

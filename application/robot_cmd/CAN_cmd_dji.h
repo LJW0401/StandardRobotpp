@@ -30,34 +30,23 @@
 #endif
 
 /*DJI电机用相关ID定义*/
-typedef enum
-{
-    DJI_200 = 0x200, // 用于3508,2006的电流控制(ID 1~4)
-    DJI_1FF = 0x1FF, // 用于3508,2006的电流控制(ID 5~8);6020的电压控制(ID 1~4)
-    DJI_2FF = 0x2FF, // 用于6020的电压控制(ID 5~7)
-    DJI_1FE = 0x1FE, // 用于6020的电流控制(ID 1~4)
-    DJI_2FE = 0x2FE, // 用于6020的电流控制(ID 5~7)
+typedef enum {
+    DJI_200 = 0x200,  // 用于3508,2006的电流控制(ID 1~4)
+    DJI_1FF = 0x1FF,  // 用于3508,2006的电流控制(ID 5~8);6020的电压控制(ID 1~4)
+    DJI_2FF = 0x2FF,  // 用于6020的电压控制(ID 5~7)
+    DJI_1FE = 0x1FE,  // 用于6020的电流控制(ID 1~4)
+    DJI_2FE = 0x2FE,  // 用于6020的电流控制(ID 5~7)
 } DJI_Std_ID;
 
-typedef struct // DJI电机发送数据结构体
+typedef struct  // DJI电机发送数据结构体
 {
-    CAN_HandleTypeDef *CAN;
+    CAN_HandleTypeDef * CAN;
     DJI_Std_ID std_id;
     CAN_TxHeaderTypeDef tx_message;
     uint8_t can_send_data[8];
 } DJI_Motor_Send_Data_s;
 
-extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x200;
-extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x1FF;
-extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x2FF;
-extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x200;
-extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x1FF;
-extern DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x2FF;
+void CAN_CmdDJIMotor(
+    uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
-void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
-
-/*小米电机用相关参数定义*/
-
-/*达妙电机用相关参数定义*/
-
-#endif //CAN_CMD_DJI_H
+#endif  //CAN_CMD_DJI_H
