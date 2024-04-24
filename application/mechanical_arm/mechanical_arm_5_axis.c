@@ -32,8 +32,12 @@ MechanicalArm_s MECHANICAL_ARM;
  */
 void InitMechanicalArm(void)
 {
-    MotorInit(&MECHANICAL_ARM.cybergear[0], 1, 1, CYBERGEAR_MOTOR);
-    CybergearEnable(&MECHANICAL_ARM.cybergear[0]);
+    MotorInit(&MECHANICAL_ARM.joint_motor[0], 1, 1, CYBERGEAR_MOTOR);
+    MotorInit(&MECHANICAL_ARM.joint_motor[1], 2, 1, CYBERGEAR_MOTOR);
+    MotorInit(&MECHANICAL_ARM.joint_motor[2], 3, 1, CYBERGEAR_MOTOR);
+    MotorInit(&MECHANICAL_ARM.joint_motor[3], 5, 2, DJI_M6020);
+    MotorInit(&MECHANICAL_ARM.joint_motor[4], 2, 2, DJI_M3508);
+    // CybergearEnable(&MECHANICAL_ARM.joint_motor[0]);
 }
 
 /*-------------------- Set mode --------------------*/
@@ -54,11 +58,13 @@ void SetMechanicalArmMode(void) {}
  */
 void MechanicalArmObserver(void)
 {
-    GetMotorMeasure(&MECHANICAL_ARM.cybergear[0]);
-    OutputPCData.data_1 = MECHANICAL_ARM.cybergear[0].w;
-    OutputPCData.data_2 = GetCybergearModeState(&MECHANICAL_ARM.cybergear[0]);
-    OutputPCData.data_3 = MECHANICAL_ARM.cybergear[0].pos;
-    OutputPCData.data_4 = MECHANICAL_ARM.cybergear[0].T;
+    for (uint8_t i = 1; i < 5; i++) {
+        GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
+    }
+    OutputPCData.data_1 = MECHANICAL_ARM.joint_motor[3].w;
+    OutputPCData.data_2 = MECHANICAL_ARM.joint_motor[3].temperature;
+    OutputPCData.data_3 = MECHANICAL_ARM.joint_motor[3].pos;
+    OutputPCData.data_4 = MECHANICAL_ARM.joint_motor[3].current;
 }
 
 /*-------------------- Reference --------------------*/
@@ -77,7 +83,11 @@ void MechanicalArmReference(void) {}
  * @param[in]      none
  * @retval         none
  */
-void MechanicalArmConsole(void) {}
+void MechanicalArmConsole(void)
+{
+    MECHANICAL_ARM.joint_motor[3].current_set = 1500;
+    MECHANICAL_ARM.joint_motor[4].current_set = 1000;
+}
 
 /*-------------------- Cmd --------------------*/
 
@@ -86,6 +96,11 @@ void MechanicalArmConsole(void) {}
  * @param[in]      none
  * @retval         none
  */
-void SendMechanicalArmCmd(void) { CybergearVelocityControl(&MECHANICAL_ARM.cybergear[0], 1, 0.5); }
+void SendMechanicalArmCmd(void)
+{
+    // CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 1, 0.5);
+    CanCmdDjiMotor(2, DJI_2FF, MECHANICAL_ARM.joint_motor[3].current_set, 0, 0, 0);
+    CanCmdDjiMotor(2, DJI_200, 0, MECHANICAL_ARM.joint_motor[4].current_set, 0, 0);
+}
 
 #endif /* MECHANICAL_ARM_5_AXIS */

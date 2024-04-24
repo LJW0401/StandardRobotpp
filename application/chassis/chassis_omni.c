@@ -201,7 +201,7 @@ void ChassisConsole(void)
  */
 void SendChassisCmd(void)
 {
-    CAN_CmdDJIMotor(
+    CanCmdDjiMotor(
         1, DJI_200,  //底盘电机控制电流通过CAN1发送，使用的标识符为0x200
         CHASSIS.wheel_motor[0].current_set, CHASSIS.wheel_motor[1].current_set,
         CHASSIS.wheel_motor[2].current_set, CHASSIS.wheel_motor[3].current_set);

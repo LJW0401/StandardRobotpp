@@ -395,13 +395,13 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.name_1, "w");
     OutputPCData.type_1 = 1;
 
-    char_to_uint(OutputPCData.name_2, "mode");
+    char_to_uint(OutputPCData.name_2, "temperate");
     OutputPCData.type_2 = 1;
 
     char_to_uint(OutputPCData.name_3, "pos");
     OutputPCData.type_3 = 1;
 
-    char_to_uint(OutputPCData.name_4, "T");
+    char_to_uint(OutputPCData.name_4, "current");
     OutputPCData.type_4 = 1;
 
     char_to_uint(OutputPCData.name_5, "pitch_n");

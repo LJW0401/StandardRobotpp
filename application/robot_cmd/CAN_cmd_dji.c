@@ -81,7 +81,7 @@ static void CAN_SendTxMessage(
  * @param[in]      curr_4 电机控制电流(id=4/8)
  * @return         none
  */
-void CAN_CmdDJIMotor(
+void CanCmdDjiMotor(
     uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
 {
     DJI_Motor_Send_Data_s * dji_motor_send_data = NULL;
