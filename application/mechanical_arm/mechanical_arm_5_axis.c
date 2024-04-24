@@ -18,10 +18,36 @@
 #include "mechanical_arm_5_axis.h"
 
 #if (MECHANICAL_ARM_TYPE == MECHANICAL_ARM_5_AXIS)
+#include <stdbool.h>
+
 #include "CAN_communication.h"
+#include "detect_task.h"
+#include "pid.h"
 #include "usb_task.h"
 
-MechanicalArm_s MECHANICAL_ARM;
+static MechanicalArm_s MECHANICAL_ARM = {
+    .mode = MECHANICAL_ARM_ZERO_FORCE,
+    .reference =
+        {
+            .position = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+        },
+    .feedback =
+        {
+            .position = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+        },
+    .upper_limit =
+        {
+            .position =
+                {MAX_JOINT_0_POSITION, MAX_JOINT_1_POSITION, MAX_JOINT_2_POSITION,
+                 MAX_JOINT_3_POSITION, MAX_JOINT_4_POSITION},
+        },
+    .lower_limit =
+        {
+            .position =
+                {MIN_JOINT_0_POSITION, MIN_JOINT_1_POSITION, MIN_JOINT_2_POSITION,
+                 MIN_JOINT_3_POSITION, MIN_JOINT_4_POSITION},
+        },
+};
 
 /*-------------------- Init --------------------*/
 
@@ -32,22 +58,59 @@ MechanicalArm_s MECHANICAL_ARM;
  */
 void InitMechanicalArm(void)
 {
-    MotorInit(&MECHANICAL_ARM.joint_motor[0], 1, 1, CYBERGEAR_MOTOR);
-    MotorInit(&MECHANICAL_ARM.joint_motor[1], 2, 1, CYBERGEAR_MOTOR);
-    MotorInit(&MECHANICAL_ARM.joint_motor[2], 3, 1, CYBERGEAR_MOTOR);
-    MotorInit(&MECHANICAL_ARM.joint_motor[3], 5, 2, DJI_M6020);
-    MotorInit(&MECHANICAL_ARM.joint_motor[4], 2, 2, DJI_M3508);
-    // CybergearEnable(&MECHANICAL_ARM.joint_motor[0]);
+    // #Motor init ---------------------
+    MotorInit(&MECHANICAL_ARM.joint_motor[0], JOINT_MOTOR_0_ID, JOINT_MOTOR_0_CAN, CYBERGEAR_MOTOR);
+    MotorInit(&MECHANICAL_ARM.joint_motor[1], JOINT_MOTOR_1_ID, JOINT_MOTOR_1_CAN, CYBERGEAR_MOTOR);
+    MotorInit(&MECHANICAL_ARM.joint_motor[2], JOINT_MOTOR_2_ID, JOINT_MOTOR_2_CAN, CYBERGEAR_MOTOR);
+    MotorInit(&MECHANICAL_ARM.joint_motor[3], JOINT_MOTOR_3_ID, JOINT_MOTOR_3_CAN, DJI_M6020);
+    MotorInit(&MECHANICAL_ARM.joint_motor[4], JOINT_MOTOR_4_ID, JOINT_MOTOR_4_CAN, DJI_M3508);
+    // #PID init ---------------------
+    float pid_joint_3_angle[3] = {KP_JOINT_3_ANGLE, KI_JOINT_3_ANGLE, KD_JOINT_3_ANGLE};
+    float pid_joint_3_speed[3] = {KP_JOINT_3_SPEED, KI_JOINT_3_SPEED, KD_JOINT_3_SPEED};
+    float pid_joint_4_angle[3] = {KP_JOINT_4_ANGLE, KI_JOINT_4_ANGLE, KD_JOINT_4_ANGLE};
+    float pid_joint_4_speed[3] = {KP_JOINT_4_SPEED, KI_JOINT_4_SPEED, KD_JOINT_4_SPEED};
+    PID_init(
+        &MECHANICAL_ARM.pid.joint_angle[3], PID_POSITION, pid_joint_3_angle, MAX_OUT_JOINT_3_ANGLE,
+        MAX_IOUT_JOINT_3_ANGLE);
+    PID_init(
+        &MECHANICAL_ARM.pid.joint_speed[3], PID_POSITION, pid_joint_3_speed, MAX_OUT_JOINT_3_SPEED,
+        MAX_IOUT_JOINT_3_SPEED);
+    PID_init(
+        &MECHANICAL_ARM.pid.joint_angle[4], PID_POSITION, pid_joint_4_angle, MAX_OUT_JOINT_4_ANGLE,
+        MAX_IOUT_JOINT_4_ANGLE);
+    PID_init(
+        &MECHANICAL_ARM.pid.joint_speed[4], PID_POSITION, pid_joint_4_speed, MAX_OUT_JOINT_4_SPEED,
+        MAX_IOUT_JOINT_4_SPEED);
 }
 
 /*-------------------- Set mode --------------------*/
+bool CheckInitCompleted();
 
 /**
  * @brief          设置模式
  * @param[in]      none
  * @retval         none
  */
-void SetMechanicalArmMode(void) {}
+void SetMechanicalArmMode(void)
+{
+    if (toe_is_error(DBUS_TOE)) {
+        return;
+    }
+
+    if (MECHANICAL_ARM.mode < MECHANICAL_ARM_INIT) {
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_INIT;
+    } else if (MECHANICAL_ARM.mode == MECHANICAL_ARM_INIT) {
+        if (CheckInitCompleted()) {
+            MECHANICAL_ARM.mode = MECHANICAL_ARM_FOLLOW;
+        }
+    }
+}
+
+bool CheckInitCompleted()
+{
+    return false;
+    // TODO: add init completed condition
+}
 
 /*-------------------- Observe --------------------*/
 
@@ -60,6 +123,7 @@ void MechanicalArmObserver(void)
 {
     for (uint8_t i = 1; i < 5; i++) {
         GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
+        MECHANICAL_ARM.feedback.position[i] = MECHANICAL_ARM.joint_motor[i].pos;
     }
     OutputPCData.data_1 = MECHANICAL_ARM.joint_motor[3].w;
     OutputPCData.data_2 = MECHANICAL_ARM.joint_motor[3].temperature;
@@ -74,7 +138,13 @@ void MechanicalArmObserver(void)
  * @param[in]      none
  * @retval         none
  */
-void MechanicalArmReference(void) {}
+void MechanicalArmReference(void) {
+    MECHANICAL_ARM.reference.position[0] = 0.0f;
+    MECHANICAL_ARM.reference.position[1] = M_PI_2;
+    MECHANICAL_ARM.reference.position[2] = 0.0f;
+    MECHANICAL_ARM.reference.position[3] = M_PI_2;
+    MECHANICAL_ARM.reference.position[4] = M_PI_2;
+}
 
 /*-------------------- Console --------------------*/
 
@@ -85,8 +155,8 @@ void MechanicalArmReference(void) {}
  */
 void MechanicalArmConsole(void)
 {
-    MECHANICAL_ARM.joint_motor[3].current_set = 1500;
-    MECHANICAL_ARM.joint_motor[4].current_set = 1000;
+    MECHANICAL_ARM.joint_motor[3].current_set = 0;
+    MECHANICAL_ARM.joint_motor[4].current_set = 0;
 }
 
 /*-------------------- Cmd --------------------*/

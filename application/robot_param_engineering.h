@@ -7,8 +7,8 @@
 #define INCLUDED_ROBOT_PARAM_H
 #include "robot_typedef.h"
 
-#define CHASSIS_TYPE CHASSIS_NONE            // 选择底盘类型
-#define GIMBAL_TYPE GIMBAL_NONE               // 选择云台类型
+#define CHASSIS_TYPE CHASSIS_NONE                  // 选择底盘类型
+#define GIMBAL_TYPE GIMBAL_NONE                    // 选择云台类型
 #define SHOOT_TYPE SHOOT_NONE                      // 选择发射机构类型
 #define MECHANICAL_ARM_TYPE MECHANICAL_ARM_5_AXIS  // 选择机械臂类型
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL            // 选择控制类型
@@ -30,7 +30,7 @@ typedef enum {
 
 /*-------------------- Chassis --------------------*/
 //motor type
-#define WHEEL_MOTOR_TYPE DJI_M3508 //底盘驱动轮电机类型
+#define WHEEL_MOTOR_TYPE DJI_M3508  //底盘驱动轮电机类型
 //physical parameters ---------------------
 #define WHEEL_RADIUS 0.106f  //(m)轮子半径
 #define WHEEL_DIRECTION 1    //轮子方向
@@ -59,24 +59,59 @@ typedef enum {
 #define MAX_IOUT_CHASSIS_GIMBAL_FOLLOW_ANGLE 0.0f
 #define MAX_OUT_CHASSIS_GIMBAL_FOLLOW_ANGLE 0.0f
 
-/*-------------------- Gimbal --------------------*/
-//physical parameters ---------------------
-//PID parameters ---------------------
-
-/*-------------------- Shoot --------------------*/
-//physical parameters ---------------------
-#define FRIC_RADIUS 0.03f  // (m)摩擦轮半径
-#define BULLET_NUM 8       // 定义拨弹盘容纳弹丸个数
-#define GUN_NUM 1          // 定义枪管个数（一个枪管2个摩擦轮）
-
-//PID parameters ---------------------
-
 /*-------------------- Mechanical arm --------------------*/
-//motor type
+//motor type ---------------------
 #define JOINT_MOTOR_0_TYPE CYBERGEAR_MOTOR
 #define JOINT_MOTOR_1_TYPE CYBERGEAR_MOTOR
 #define JOINT_MOTOR_2_TYPE CYBERGEAR_MOTOR
 #define JOINT_MOTOR_3_TYPE DJI_M6020
 #define JOINT_MOTOR_4_TYPE DJI_M3508
+#define JOINT_MOTOR_0_ID 1
+#define JOINT_MOTOR_1_ID 2
+#define JOINT_MOTOR_2_ID 3
+#define JOINT_MOTOR_3_ID 5
+#define JOINT_MOTOR_4_ID 2
+#define JOINT_MOTOR_0_CAN 1
+#define JOINT_MOTOR_1_CAN 1
+#define JOINT_MOTOR_2_CAN 1
+#define JOINT_MOTOR_3_CAN 2
+#define JOINT_MOTOR_4_CAN 2
+//upper_limit parameters ---------------------
+#define MAX_JOINT_0_POSITION 6.283185f  //2*M_PI
+#define MAX_JOINT_1_POSITION M_PI
+#define MAX_JOINT_2_POSITION M_PI
+#define MAX_JOINT_3_POSITION 6.283185f
+#define MAX_JOINT_4_POSITION M_PI
+//lower_limit parameters ---------------------
+#define MIN_JOINT_0_POSITION 0.0f
+#define MIN_JOINT_1_POSITION 0.0f
+#define MIN_JOINT_2_POSITION 0.0f
+#define MIN_JOINT_3_POSITION 0.0f
+#define MIN_JOINT_4_POSITION 0.0f
+//PID parameters ---------------------
+//J3角度环PID参数
+#define KP_JOINT_3_ANGLE 0.0f
+#define KI_JOINT_3_ANGLE 0.0f
+#define KD_JOINT_3_ANGLE 0.0f
+#define MAX_IOUT_JOINT_3_ANGLE 0.0f
+#define MAX_OUT_JOINT_3_ANGLE 0.0f
+//J3速度环PID参数
+#define KP_JOINT_3_SPEED 0.0f
+#define KI_JOINT_3_SPEED 0.0f
+#define KD_JOINT_3_SPEED 0.0f
+#define MAX_IOUT_JOINT_3_SPEED 0.0f
+#define MAX_OUT_JOINT_3_SPEED 0.0f
+//J4角度环PID参数
+#define KP_JOINT_4_ANGLE 0.0f
+#define KI_JOINT_4_ANGLE 0.0f
+#define KD_JOINT_4_ANGLE 0.0f
+#define MAX_IOUT_JOINT_4_ANGLE 0.0f
+#define MAX_OUT_JOINT_4_ANGLE 0.0f
+//J4速度环PID参数
+#define KP_JOINT_4_SPEED 0.0f
+#define KI_JOINT_4_SPEED 0.0f
+#define KD_JOINT_4_SPEED 0.0f
+#define MAX_IOUT_JOINT_4_SPEED 0.0f
+#define MAX_OUT_JOINT_4_SPEED 0.0f
 
 #endif /* INCLUDED_ROBOT_PARAM_H */
