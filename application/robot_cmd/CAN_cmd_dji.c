@@ -21,32 +21,32 @@ extern CAN_HandleTypeDef hcan2;
 
 /*-------------------- DJI --------------------*/
 // 发送数据
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x200 = {
+DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X200 = {
     .CAN = &CAN_1,
     .std_id = DJI_200,
     .can_send_data = {0},
 };
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x1FF = {
+DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X1FF = {
     .CAN = &CAN_1,
     .std_id = DJI_1FF,
     .can_send_data = {0},
 };
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x2FF = {
+DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X2FF = {
     .CAN = &CAN_1,
     .std_id = DJI_2FF,
     .can_send_data = {0},
 };
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x200 = {
+DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN2_0X200 = {
     .CAN = &CAN_2,
     .std_id = DJI_200,
     .can_send_data = {0},
 };
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x1FF = {
+DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN2_0X1FF = {
     .CAN = &CAN_2,
     .std_id = DJI_1FF,
     .can_send_data = {0},
 };
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x2FF = {
+DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN2_0X2FF = {
     .CAN = &CAN_2,
     .std_id = DJI_2FF,
     .can_send_data = {0},
@@ -89,13 +89,13 @@ void CAN_CmdDJIMotor(
     if (can == 1) {
         switch (std_id) {
             case DJI_200: {
-                dji_motor_send_data = &DJI_Motor_Send_Data_CAN1_0x200;
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X200;
             } break;
             case DJI_1FF: {
-                dji_motor_send_data = &DJI_Motor_Send_Data_CAN1_0x1FF;
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X1FF;
             } break;
             case DJI_2FF: {
-                dji_motor_send_data = &DJI_Motor_Send_Data_CAN1_0x2FF;
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X2FF;
             } break;
             case DJI_1FE: {
             } break;
@@ -107,13 +107,13 @@ void CAN_CmdDJIMotor(
     } else if (can == 2) {
         switch (std_id) {
             case DJI_200: {
-                dji_motor_send_data = &DJI_Motor_Send_Data_CAN2_0x200;
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X200;
             } break;
             case DJI_1FF: {
-                dji_motor_send_data = &DJI_Motor_Send_Data_CAN2_0x1FF;
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X1FF;
             } break;
             case DJI_2FF: {
-                dji_motor_send_data = &DJI_Motor_Send_Data_CAN2_0x2FF;
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X2FF;
             } break;
             case DJI_1FE: {
             } break;
