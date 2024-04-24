@@ -183,8 +183,16 @@ fp32 theta_format(fp32 Ang)
     return loop_fp32_constrain(Ang, -PI, PI);
 }
 
-//角度格式化为-180~180
-// fp32 theta_format(fp32 Ang)
-// {
-//     return loop_fp32_constrain(Ang, -180.0f, 180.0f);
-// }
+/**
+ * @brief     角度在极坐标系中的转换
+ * @param[in] angle  (rad)当前角度
+ * @param[in] dangle (rad)旋转角度
+ * @param[in] direction 方向，1为正，-1为负
+ * @note      逆时针为正方向
+ * @return    转换后的角度
+ */
+fp32 theta_transfrom(fp32 angle, fp32 dangle,int8_t direction)
+{
+    return loop_fp32_constrain(angle * direction + dangle , -PI, PI);
+}
+
