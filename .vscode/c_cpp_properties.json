@@ -21,7 +21,6 @@
                 "ARM_MATH_MATRIX_CHECK",
                 "ARM_MATH_ROUNDING"
             ],
-            // "compilerPath": "C:\\Applications\\Keil_v5\\ARM\\ARMCC\\bin\\armcc.exe",
             "compilerPath": "C:\\Applications\\#Config\\MinGW64\\bin\\gcc.exe",
             "cStandard": "c99",
             "cppStandard": "c++14",

@@ -22,6 +22,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "struct_typedef.h"
+#include "motor.h"
 
 #ifndef CAN_N
 #define CAN_N
@@ -46,7 +47,11 @@ typedef struct  // DJI电机发送数据结构体
     uint8_t can_send_data[8];
 } DJI_Motor_Send_Data_s;
 
-void CanCmdDjiMotor(
+extern void CanCmdDjiMotor(
     uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
+extern void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id);
+
 #endif  //CAN_CMD_DJI_H
+
+/************************ END OF FILE ************************/

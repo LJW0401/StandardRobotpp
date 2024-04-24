@@ -308,4 +308,4 @@ void CybergearVelocityControl(Motor_s * p_motor, float kd)
     CybergearControl(p_motor, 0, 0, p_motor->velocity_set, 0, kd);
 }
 
-/************************ (C) COPYRIGHT 2024 Polarbear *****END OF FILE****/
+/************************ END OF FILE ************************/

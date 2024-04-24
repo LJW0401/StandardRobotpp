@@ -126,7 +126,6 @@ void CanCmdDjiMotor(
 
     if (dji_motor_send_data == NULL) return;
 
-    dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
     dji_motor_send_data->tx_message.IDE = CAN_ID_STD;
     dji_motor_send_data->tx_message.RTR = CAN_RTR_DATA;
     dji_motor_send_data->tx_message.DLC = 0x08;
@@ -144,3 +143,63 @@ void CanCmdDjiMotor(
         dji_motor_send_data->CAN, &dji_motor_send_data->tx_message,
         dji_motor_send_data->can_send_data);
 }
+
+void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id)
+{
+    if (p_motor->type == DJI_M2006 || p_motor->type == DJI_M3508 || p_motor->type == DJI_M6020)
+        return;
+
+    DJI_Motor_Send_Data_s * dji_motor_send_data = NULL;
+
+    if (p_motor->can == 1) {
+        switch (std_id) {
+            case DJI_200: {
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X200;
+            } break;
+            case DJI_1FF: {
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X1FF;
+            } break;
+            case DJI_2FF: {
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X2FF;
+            } break;
+            case DJI_1FE: {
+            } break;
+            case DJI_2FE: {
+            } break;
+            default: {
+            } break;
+        }
+    } else if (p_motor->can == 2) {
+        switch (std_id) {
+            case DJI_200: {
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X200;
+            } break;
+            case DJI_1FF: {
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X1FF;
+            } break;
+            case DJI_2FF: {
+                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X2FF;
+            } break;
+            case DJI_1FE: {
+            } break;
+            case DJI_2FE: {
+            } break;
+            default: {
+            } break;
+        }
+    }
+
+    if (dji_motor_send_data == NULL) return;
+
+    dji_motor_send_data->tx_message.IDE = CAN_ID_STD;
+    dji_motor_send_data->tx_message.RTR = CAN_RTR_DATA;
+    dji_motor_send_data->tx_message.DLC = 0x08;
+
+    uint8_t offset = ((p_motor->id - 1) % 4) * 2;
+    int16_t current_set = p_motor->current_set;
+
+    dji_motor_send_data->can_send_data[offset] = (current_set >> 8);
+    dji_motor_send_data->can_send_data[offset + 1] = current_set;
+}
+
+/************************ END OF FILE ************************/
