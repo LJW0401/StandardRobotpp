@@ -22,6 +22,7 @@
 
 #include "CAN_communication.h"
 #include "detect_task.h"
+#include "math.h"
 #include "pid.h"
 #include "usb_task.h"
 #include "user_lib.h"
@@ -48,6 +49,7 @@ static MechanicalArm_s MECHANICAL_ARM = {
                 {MIN_JOINT_0_POSITION, MIN_JOINT_1_POSITION, MIN_JOINT_2_POSITION,
                  MIN_JOINT_3_POSITION, MIN_JOINT_4_POSITION},
         },
+    .init_completed = {false, false, false, false, false},
 };
 
 /*-------------------- Init --------------------*/
@@ -121,6 +123,23 @@ void SetMechanicalArmMode(void)
 bool CheckInitCompleted(void)
 {
     return false;
+
+    bool init_completed = true;
+    for (uint8_t i = 1; i < 5; i++) {
+        init_completed = init_completed && MECHANICAL_ARM.init_completed[i];
+    }
+
+    if (init_completed) {
+        return true;
+    }
+
+    if (!MECHANICAL_ARM.init_completed[1]) {  //检测关节1电机初始化状况
+        if (fabsf(MECHANICAL_ARM.joint_motor[1].w) < JOINT_MIN_VELOCITY &&
+            MECHANICAL_ARM.joint_motor[1].T >= JOINT_INIT_MAX_TORQUE) {
+            MECHANICAL_ARM.init_completed[1] = true;
+        }
+    }
+
     // TODO: add init completed condition
 }
 
@@ -174,6 +193,36 @@ void MechanicalArmReference(void)
  */
 void MechanicalArmConsole(void)
 {
+    switch (MECHANICAL_ARM.mode) {
+        case MECHANICAL_ARM_INIT: {
+            // 0-2关节初始化
+            // 关节0无需初始化
+            MECHANICAL_ARM.joint_motor[0].velocity_set = 0.0f;
+            MECHANICAL_ARM.joint_motor[0].torque_set = 0.0f;
+            // 先对关节1进行初始化，再对关节2进行初始化
+            if (!MECHANICAL_ARM.init_completed[1]) {
+                MECHANICAL_ARM.joint_motor[1].velocity_set = JOINT_INIT_VELOCITY_SET;
+                MECHANICAL_ARM.joint_motor[2].velocity_set = 0.0f;
+
+                MECHANICAL_ARM.joint_motor[1].torque_set = 0.0f;
+                MECHANICAL_ARM.joint_motor[2].torque_set = 0.0f;
+            } else if (!MECHANICAL_ARM.init_completed[2]) {
+                MECHANICAL_ARM.joint_motor[1].velocity_set = 0.0f;
+                MECHANICAL_ARM.joint_motor[2].velocity_set = JOINT_INIT_VELOCITY_SET;
+
+                // 关节1初始化完成后，对关节1进行力矩控制，压住关节1防止关节1移动
+                MECHANICAL_ARM.joint_motor[1].torque_set = JOINT_1_INIT_TORQUE_SET;
+                MECHANICAL_ARM.joint_motor[2].torque_set = 0.0f;
+            }
+            // 3-4关节初始化（同步进行）
+        } break;
+
+        default:
+            break;
+    }
+
+#define STOP_ALL_JOINT
+#ifdef STOP_ALL_JOINT
     MECHANICAL_ARM.joint_motor[0].velocity_set = 0.0f;
     MECHANICAL_ARM.joint_motor[1].velocity_set = 0.0f;
     MECHANICAL_ARM.joint_motor[2].velocity_set = 0.0f;
@@ -184,6 +233,7 @@ void MechanicalArmConsole(void)
 
     MECHANICAL_ARM.joint_motor[3].current_set = 0.0f;
     MECHANICAL_ARM.joint_motor[4].current_set = 0.0f;
+#endif
 }
 
 /*-------------------- Cmd --------------------*/

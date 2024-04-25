@@ -121,5 +121,11 @@ typedef enum {
 #define KD_JOINT_4_SPEED 0.0f
 #define MAX_IOUT_JOINT_4_SPEED 0.0f
 #define MAX_OUT_JOINT_4_SPEED 0.0f
+// Init parameters ---------------------
+#define JOINT_INIT_MAX_TORQUE 2.1f    //(N*m)关节初始化时的最大力矩
+#define JOINT_INIT_VELOCITY_SET 0.5f  //(rad/s)关节初始化时的转速
+#define JOINT_1_INIT_TORQUE_SET 0.5f  //(N*m)
+// Other parameters ---------------------
+#define JOINT_MIN_VELOCITY 0.05f  //(rad/s)当关节速度低于此速度时认为关节已经停止运动了
 
 #endif /* INCLUDED_ROBOT_PARAM_H */

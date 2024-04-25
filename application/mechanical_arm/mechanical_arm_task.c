@@ -48,10 +48,10 @@ void mechanical_arm_task(void const * pvParameters)
     InitMechanicalArm();
 
     while (1) {
-        // 设置模式
-        SetMechanicalArmMode();
         // 更新状态量
         MechanicalArmObserver();
+        // 设置模式
+        SetMechanicalArmMode();
         // 设置目标量
         MechanicalArmReference();
         // 计算控制量

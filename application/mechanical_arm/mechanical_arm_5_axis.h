@@ -21,6 +21,8 @@
 #ifndef MECHANICAL_ARM_5_AXIS_H
 #define MECHANICAL_ARM_5_AXIS_H
 
+#include <stdbool.h>
+
 #include "mechanical_arm.h"
 #include "motor.h"
 #include "pid.h"
@@ -54,6 +56,8 @@ typedef struct
     Values_t feedback;     // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
+
+    bool init_completed[5];  // 初始化完成标志
 
     PID_t pid;  // PID控制器
 
