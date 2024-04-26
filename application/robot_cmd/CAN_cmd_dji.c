@@ -126,6 +126,7 @@ void CanCmdDjiMotor(
 
     if (dji_motor_send_data == NULL) return;
 
+    dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
     dji_motor_send_data->tx_message.IDE = CAN_ID_STD;
     dji_motor_send_data->tx_message.RTR = CAN_RTR_DATA;
     dji_motor_send_data->tx_message.DLC = 0x08;
@@ -191,6 +192,7 @@ void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id)
 
     if (dji_motor_send_data == NULL) return;
 
+    dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
     dji_motor_send_data->tx_message.IDE = CAN_ID_STD;
     dji_motor_send_data->tx_message.RTR = CAN_RTR_DATA;
     dji_motor_send_data->tx_message.DLC = 0x08;
