@@ -17,7 +17,6 @@
                 "ARM_MATH_CM4",
                 "__FPU_USED=1U",
                 "__FPU_PRESENT=1U",
-                "__CC_ARM",
                 "ARM_MATH_MATRIX_CHECK",
                 "ARM_MATH_ROUNDING"
             ],
