@@ -1064,6 +1064,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\referee\referee_usart_task.c</FilePath>
             </File>
+            <File>
+              <FileName>custom_controller_connect.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\referee\custom_controller_connect.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
