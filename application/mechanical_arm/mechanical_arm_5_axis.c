@@ -21,6 +21,7 @@
 #include <stdbool.h>
 
 #include "CAN_communication.h"
+#include "custom_controller_connect.h"
 #include "detect_task.h"
 #include "math.h"
 #include "pid.h"
@@ -161,11 +162,6 @@ void MechanicalArmObserver(void)
     MECHANICAL_ARM.feedback.position[2] = theta_transfrom(MECHANICAL_ARM.joint_motor[2].pos, 0, 1);
     MECHANICAL_ARM.feedback.position[3] = theta_transfrom(MECHANICAL_ARM.joint_motor[3].pos, 0, 1);
     MECHANICAL_ARM.feedback.position[4] = theta_transfrom(MECHANICAL_ARM.joint_motor[4].pos, 0, 1);
-
-    OutputPCData.data_1 = MECHANICAL_ARM.joint_motor[3].w;
-    OutputPCData.data_2 = MECHANICAL_ARM.joint_motor[3].temperature;
-    OutputPCData.data_3 = MECHANICAL_ARM.joint_motor[3].pos;
-    OutputPCData.data_4 = MECHANICAL_ARM.joint_motor[3].current;
 }
 
 /*-------------------- Reference --------------------*/
@@ -182,6 +178,14 @@ void MechanicalArmReference(void)
     MECHANICAL_ARM.reference.position[2] = 0.0f;
     MECHANICAL_ARM.reference.position[3] = M_PI_2;
     MECHANICAL_ARM.reference.position[4] = M_PI_2;
+
+    EngineerCustomControllerData_t engineer_custom_controller_data;
+    EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
+    OutputPCData.data_1 = engineer_custom_controller_data.yaw;
+    OutputPCData.data_2 = engineer_custom_controller_data.big_arm_pitch;
+    OutputPCData.data_3 = engineer_custom_controller_data.small_arm_pitch;
+    OutputPCData.data_4 = engineer_custom_controller_data.small_arm_roll;
+    OutputPCData.data_5 = (HAL_GetTick()%2000)/1000.0f;
 }
 
 /*-------------------- Console --------------------*/

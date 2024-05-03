@@ -59,11 +59,12 @@ void SendDataToPC(uint8_t * data)
 /*-------------------- Receive --------------------*/
 
 void EngineeringCustomControllerRxDecode(
-    EngineeringCustomControllerData_t * engineering_custom_controller_data,
-    CustomControllerData_t * custom_controller_data)
+    EngineerCustomControllerData_t * engineer_custom_controller_data)
 {
-    // 解码数据
-    // ...
+    CustomControllerData_t * custom_controller_data = GetCustomControllerDataPoint();
+    memcpy(
+        engineer_custom_controller_data, custom_controller_data->data,
+        sizeof(EngineerCustomControllerData_t));
 }
 
 /************************ END OF FILE ************************/
