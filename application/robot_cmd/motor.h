@@ -136,4 +136,9 @@ extern void MotorInit(
 
 extern void DjiMotorVelocityControl(
     Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward);
+
+extern void DjiMotorPositionControl(
+    Motor_s * p_motor, pid_type_def * angle_pid, pid_type_def * velocity_pid, float angle,
+    float feedforward);
+
 #endif  // MOTOR_H
