@@ -18,30 +18,34 @@
 #include "main.h"
 #include "protocol.h"
 
-typedef enum {
-    RED_HERO = 1,
-    RED_ENGINEER = 2,
-    RED_STANDARD_1 = 3,
-    RED_STANDARD_2 = 4,
-    RED_STANDARD_3 = 5,
-    RED_AERIAL = 6,
-    RED_SENTRY = 7,
-    BLUE_HERO = 11,
-    BLUE_ENGINEER = 12,
+// clang-format off
+typedef enum
+{
+    RED_HERO        = 1,
+    RED_ENGINEER    = 2,
+    RED_STANDARD_1  = 3,
+    RED_STANDARD_2  = 4,
+    RED_STANDARD_3  = 5,
+    RED_AERIAL      = 6,
+    RED_SENTRY      = 7,
+    BLUE_HERO       = 11,
+    BLUE_ENGINEER   = 12,
     BLUE_STANDARD_1 = 13,
     BLUE_STANDARD_2 = 14,
     BLUE_STANDARD_3 = 15,
-    BLUE_AERIAL = 16,
-    BLUE_SENTRY = 17,
+    BLUE_AERIAL     = 16,
+    BLUE_SENTRY     = 17,
 } robot_id_t;
-typedef enum {
-    PROGRESS_UNSTART = 0,
-    PROGRESS_PREPARE = 1,
-    PROGRESS_SELFCHECK = 2,
-    PROGRESS_5sCOUNTDOWN = 3,
-    PROGRESS_BATTLE = 4,
-    PROGRESS_CALCULATING = 5,
+typedef enum
+{
+    PROGRESS_UNSTART        = 0,
+    PROGRESS_PREPARE        = 1,
+    PROGRESS_SELFCHECK      = 2,
+    PROGRESS_5sCOUNTDOWN    = 3,
+    PROGRESS_BATTLE         = 4,
+    PROGRESS_CALCULATING    = 5,
 } game_progress_t;
+// clang-format on
 typedef __packed struct  //0x0001
 {
     uint8_t game_type : 4;       //比赛类型

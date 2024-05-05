@@ -56,7 +56,8 @@
         "mechanical_arm_task.h": "c",
         "string.h": "c",
         "crc8_crc16.h": "c",
-        "custom_controller_connect.h": "c"
+        "custom_controller_connect.h": "c",
+        "protocol.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

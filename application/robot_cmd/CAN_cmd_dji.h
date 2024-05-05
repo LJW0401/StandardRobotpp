@@ -1,10 +1,7 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       can_cmd_dji.c/h
-  * @brief      CAN发送函数，通过CAN信号控制电机.
-  * @note       支持DJI电机 GM3508 GM2006 GM6020
-  *         未来支持小米电机 Cybergear
-  *         未来支持达妙电机 DM8009
+  * @brief      CAN发送函数，通过CAN信号控制DJI电机 GM3508 GM2006 GM6020.
   * @history
   *  Version    Date            Author          Modification
   *  V2.0.0     Mar-27-2024     Penguin         1. 完成。
