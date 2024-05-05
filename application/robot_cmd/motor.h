@@ -16,6 +16,7 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
+#include "pid.h"
 #include "robot_typedef.h"
 #include "struct_typedef.h"
 
@@ -105,17 +106,20 @@ typedef struct
 typedef struct __Motor
 {
     /*电机信息*/
-    uint8_t id;        // 电机ID
-    MotorType_e type;  // 电机类型
-    uint8_t can;       // 电机所用CAN口
+    uint8_t id;             // 电机ID
+    MotorType_e type;       // 电机类型
+    uint8_t can;            // 电机所用CAN口
+    float reduction_ratio;  // 电机减速比
 
     /*状态量*/
     float a;            // (rad/s^2)电机加速度
     float w;            // (rad/s)电机输出轴转速
-    float T;            // (N*m)电机力矩
-    float pos;          // (rad)电机位置
+    float T;            // (N*m)电机输出力矩
+    float pos;          // (rad)电机输出轴位置
     float temperature;  // (℃)电机温度
     float current;      // (A)电机电流
+    int16_t round;      // (r)电机旋转圈数(用于计算输出轴位置)
+    uint16_t ecd;       // 电机编码器值
 
     /*控制量*/
     float current_set;   // 电机电流设定值
@@ -127,6 +131,9 @@ typedef struct __Motor
 
 /*-------------------- Motor function --------------------*/
 
-extern void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction);
+extern void MotorInit(
+    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction);
 
+extern void DjiMotorVelocityControl(
+    Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward);
 #endif  // MOTOR_H
