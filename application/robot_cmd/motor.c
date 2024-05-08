@@ -35,37 +35,3 @@ void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_typ
     p_motor->type = motor_type;
     p_motor->direction = direction;
 }
-
-/**
- * @brief       dji电机速度控制
- * @param[in]   p_motor 
- * @param[in]   pid 
- * @param[in]   velocity 
- * @param[in]   feedforward 
- */
-void DjiMotorVelocityControl(
-    Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward)
-{
-    if (p_motor == NULL || pid == NULL) return;
-    if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
-        return;
-    p_motor->current_set = PID_calc(pid, p_motor->w, velocity) + feedforward;
-}
-
-/**
- * @brief       dji电机位置控制
- * @param[in]   p_motor 
- * @param[in]   pid 
- * @param[in]   velocity 
- * @param[in]   feedforward 
- */
-void DjiMotorPositionControl(
-    Motor_s * p_motor, pid_type_def * angle_pid, pid_type_def * velocity_pid, float angle,
-    float feedforward)
-{
-    if (p_motor == NULL || angle_pid == NULL || velocity_pid == NULL) return;
-    if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
-        return;
-    float velocity_set = PID_calc(angle_pid, p_motor->pos, angle);
-    float current_set = PID_calc(velocity_pid, p_motor->w, velocity_set) + feedforward;
-}

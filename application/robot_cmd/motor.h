@@ -110,35 +110,35 @@ typedef struct __Motor
     MotorType_e type;       // 电机类型
     uint8_t can;            // 电机所用CAN口
     float reduction_ratio;  // 电机减速比
+    int8_t direction;       // 电机旋转方向（1或-1）
 
     /*状态量*/
-    float a;            // (rad/s^2)电机加速度
-    float w;            // (rad/s)电机输出轴转速
-    float T;            // (N*m)电机输出力矩
-    float pos;          // (rad)电机输出轴位置
-    float temperature;  // (℃)电机温度
-    float current;      // (A)电机电流
-    int16_t round;      // (r)电机旋转圈数(用于计算输出轴位置)
-    uint16_t ecd;       // 电机编码器值
+    struct __fdb
+    {
+        float a;            // (rad/s^2)电机加速度
+        float w;            // (rad/s)电机输出轴转速
+        float T;            // (N*m)电机输出力矩
+        float pos;          // (rad)电机输出轴位置
+        float temperature;  // (℃)电机温度
+        float current;      // (A)电机电流
+        int16_t round;      // (r)电机旋转圈数(用于计算输出轴位置)
+        uint16_t ecd;       // 电机编码器值
+    } fdb;
 
-    /*控制量*/
-    float current_set;   // 电机电流设定值
-    float torque_set;    // 电机力矩设定值
-    float velocity_set;  // 电机转速设定值
-    float position_set;  // 电机位置设定值
-    int8_t direction;    // 电机旋转方向（1或-1）
+    /*设定值*/
+    struct __set
+    {
+        float current;   // 电机电流
+        float torque;    // 电机力矩
+        float velocity;  // 电机转速
+        float position;  // 电机位置
+    } set;
+
 } Motor_s;
 
 /*-------------------- Motor function --------------------*/
 
 extern void MotorInit(
     Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction);
-
-extern void DjiMotorVelocityControl(
-    Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward);
-
-extern void DjiMotorPositionControl(
-    Motor_s * p_motor, pid_type_def * angle_pid, pid_type_def * velocity_pid, float angle,
-    float feedforward);
 
 #endif  // MOTOR_H

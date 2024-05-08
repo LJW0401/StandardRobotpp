@@ -96,16 +96,16 @@ static void CybergearRxDecode(Motor_s * p_motor, uint8_t rx_data[8])
 {
     uint16_t decode_temp_mi;  //小米电机反馈数据解码缓冲
     decode_temp_mi = (rx_data[0] << 8 | rx_data[1]);
-    p_motor->pos = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 4 * 3.1415926f;
+    p_motor->fdb.pos = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 4 * 3.1415926f;
 
     decode_temp_mi = (rx_data[2] << 8 | rx_data[3]);
-    p_motor->w = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 30.0f;
+    p_motor->fdb.w = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 30.0f;
 
     decode_temp_mi = (rx_data[4] << 8 | rx_data[5]);
-    p_motor->T = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 12.0f;
+    p_motor->fdb.T = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 12.0f;
 
     decode_temp_mi = (rx_data[6] << 8 | rx_data[7]);
-    p_motor->temperature = (float)decode_temp_mi / 10.0f;
+    p_motor->fdb.temperature = (float)decode_temp_mi / 10.0f;
 }
 
 /**
@@ -118,8 +118,8 @@ static void CybergearRxDecode(Motor_s * p_motor, uint8_t rx_data[8])
 static void DecodeExtIdData(
     CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
-    uint8_t motor_id = 0; 
-    if(((RxCanInfo_s *)(&rx_header->ExtId))->communication_type == 2){//通信类型2
+    uint8_t motor_id = 0;
+    if (((RxCanInfo_s *)(&rx_header->ExtId))->communication_type == 2) {  //通信类型2
         motor_id = ((RxCanInfoType_2_s *)(&rx_header->ExtId))->motor_id;
     }
 
@@ -182,15 +182,13 @@ CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return UNDEFINED_MODE;
 
+    // clang-format off
     if (p_motor->can == 1) {
-        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN1_CYBERGEAR_MEASURE[p_motor->id]
-                                                                  .ext_id))
-                                          ->mode_state);
+        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN1_CYBERGEAR_MEASURE[p_motor->id].ext_id))->mode_state);
     } else {
-        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN2_CYBERGEAR_MEASURE[p_motor->id]
-                                                                  .ext_id))
-                                          ->mode_state);
+        return (CybergearModeState_e)(((RxCanInfoType_2_s *)(&CAN2_CYBERGEAR_MEASURE[p_motor->id].ext_id))->mode_state);
     }
+    // clang-format on
 }
 
 /**
@@ -205,18 +203,22 @@ void GetMotorMeasure(Motor_s * p_motor)
         case DJI_M3508: {
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id - 1);
-            p_motor->w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA;
-            p_motor->pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192;
-            p_motor->temperature = p_dji_motor_measure->temperate;
-            p_motor->current = p_dji_motor_measure->given_current;
+            p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
+                                  p_motor->reduction_ratio * p_motor->direction;
+            p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
+            p_motor->fdb.temperature = p_dji_motor_measure->temperate;
+            p_motor->fdb.current = p_dji_motor_measure->given_current;
+            p_motor->fdb.ecd = p_dji_motor_measure->ecd;
         } break;
         case DJI_M6020: {
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id + 3);
-            p_motor->w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA;
-            p_motor->pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192;
-            p_motor->temperature = p_dji_motor_measure->temperate;
-            p_motor->current = p_dji_motor_measure->given_current;
+            p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
+                                  p_motor->reduction_ratio * p_motor->direction;
+            p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
+            p_motor->fdb.temperature = p_dji_motor_measure->temperate;
+            p_motor->fdb.current = p_dji_motor_measure->given_current;
+            p_motor->fdb.ecd = p_dji_motor_measure->ecd;
         } break;
         case CYBERGEAR_MOTOR: {
             if (p_motor->can == 1) {

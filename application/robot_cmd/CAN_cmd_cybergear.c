@@ -278,7 +278,7 @@ void CybergearTorqueControl(Motor_s * p_motor)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return;
 
-    CybergearControl(p_motor, p_motor->torque_set, 0, 0, 0, 0);
+    CybergearControl(p_motor, p_motor->set.torque, 0, 0, 0, 0);
 }
 
 /**
@@ -292,7 +292,7 @@ void CybergearPositionControl(Motor_s * p_motor, float kp, float kd)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return;
 
-    CybergearControl(p_motor, 0, p_motor->position_set, 0, kp, kd);
+    CybergearControl(p_motor, 0, p_motor->set.position, 0, kp, kd);
 }
 
 /**
@@ -305,7 +305,7 @@ void CybergearVelocityControl(Motor_s * p_motor, float kd)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return;
 
-    CybergearControl(p_motor, 0, 0, p_motor->velocity_set, 0, kd);
+    CybergearControl(p_motor, 0, 0, p_motor->set.velocity, 0, kd);
 }
 
 /************************ END OF FILE ************************/
