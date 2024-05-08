@@ -19,7 +19,7 @@
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 
-/*-------------------- DJI --------------------*/
+/*-------------------- Global var --------------------*/
 // 发送数据
 DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X200 = {
     .CAN = &CAN_1,
@@ -52,40 +52,17 @@ DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN2_0X2FF = {
     .can_send_data = {0},
 };
 
-/**
- * @brief          发送控制电流
- * @param[in]      can_handle 选择CAN1或CAN2
- * @param[in]      tx_header  CAN发送数据header
- * @param[in]      tx_data    发送数据
- * @return         none
- */
-static void CAN_SendTxMessage(
-    CAN_HandleTypeDef * can_handle, CAN_TxHeaderTypeDef * tx_header, uint8_t * tx_data)
-{
-    uint32_t send_mail_box;
-
-    uint32_t free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);  // 检测是否有空闲邮箱
-    while (free_TxMailbox < 3) {  // 等待空闲邮箱数达到3
-        free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);
-    }
-    HAL_CAN_AddTxMessage(can_handle, tx_header, tx_data, &send_mail_box);
-}
+/*-------------------- Function --------------------*/
 
 /**
- * @brief          通过CAN控制DJI电机(支持GM3508 GM2006 GM6020)
+ * @brief          获取发送数据缓冲区指针
  * @param[in]      can 发送数据使用的can口(1/2)
  * @param[in]      std_id 发送数据使用的std_id
- * @param[in]      curr_1 电机控制电流(id=1/5)
- * @param[in]      curr_2 电机控制电流(id=2/6)
- * @param[in]      curr_3 电机控制电流(id=3/7)
- * @param[in]      curr_4 电机控制电流(id=4/8)
- * @return         none
+ * @return         发送数据缓冲区指针
  */
-void CanCmdDjiMotor(
-    uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
+static DJI_Motor_Send_Data_s * GetSendDataBufferPoint(uint8_t can, DJI_Std_ID std_id)
 {
     DJI_Motor_Send_Data_s * dji_motor_send_data = NULL;
-
     if (can == 1) {
         switch (std_id) {
             case DJI_200: {
@@ -123,7 +100,42 @@ void CanCmdDjiMotor(
             } break;
         }
     }
+    return dji_motor_send_data;
+}
 
+/**
+ * @brief          发送控制电流
+ * @param[in]      can_handle 选择CAN1或CAN2
+ * @param[in]      tx_header  CAN发送数据header
+ * @param[in]      tx_data    发送数据
+ * @return         none
+ */
+static void CAN_SendTxMessage(
+    CAN_HandleTypeDef * can_handle, CAN_TxHeaderTypeDef * tx_header, uint8_t * tx_data)
+{
+    uint32_t send_mail_box;
+
+    uint32_t free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);  // 检测是否有空闲邮箱
+    while (free_TxMailbox < 3) {  // 等待空闲邮箱数达到3
+        free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);
+    }
+    HAL_CAN_AddTxMessage(can_handle, tx_header, tx_data, &send_mail_box);
+}
+
+/**
+ * @brief          通过CAN控制DJI电机(支持GM3508 GM2006 GM6020)
+ * @param[in]      can 发送数据使用的can口(1/2)
+ * @param[in]      std_id 发送数据使用的std_id
+ * @param[in]      curr_1 电机控制电流(id=1/5)
+ * @param[in]      curr_2 电机控制电流(id=2/6)
+ * @param[in]      curr_3 电机控制电流(id=3/7)
+ * @param[in]      curr_4 电机控制电流(id=4/8)
+ * @return         none
+ */
+void CanCmdDjiMotor(
+    uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
+{
+    DJI_Motor_Send_Data_s * dji_motor_send_data = GetSendDataBufferPoint(can, std_id);
     if (dji_motor_send_data == NULL) return;
 
     dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
@@ -150,46 +162,7 @@ void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id)
     if (p_motor->type == DJI_M2006 || p_motor->type == DJI_M3508 || p_motor->type == DJI_M6020)
         return;
 
-    DJI_Motor_Send_Data_s * dji_motor_send_data = NULL;
-
-    if (p_motor->can == 1) {
-        switch (std_id) {
-            case DJI_200: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X200;
-            } break;
-            case DJI_1FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X1FF;
-            } break;
-            case DJI_2FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X2FF;
-            } break;
-            case DJI_1FE: {
-            } break;
-            case DJI_2FE: {
-            } break;
-            default: {
-            } break;
-        }
-    } else if (p_motor->can == 2) {
-        switch (std_id) {
-            case DJI_200: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X200;
-            } break;
-            case DJI_1FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X1FF;
-            } break;
-            case DJI_2FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X2FF;
-            } break;
-            case DJI_1FE: {
-            } break;
-            case DJI_2FE: {
-            } break;
-            default: {
-            } break;
-        }
-    }
-
+    DJI_Motor_Send_Data_s * dji_motor_send_data = GetSendDataBufferPoint(p_motor->can, std_id);
     if (dji_motor_send_data == NULL) return;
 
     dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
@@ -198,10 +171,46 @@ void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id)
     dji_motor_send_data->tx_message.DLC = 0x08;
 
     uint8_t offset = ((p_motor->id - 1) % 4) * 2;
-    int16_t current_set = p_motor->current_set;
+    int16_t current_set = p_motor->set.current;
 
     dji_motor_send_data->can_send_data[offset] = (current_set >> 8);
     dji_motor_send_data->can_send_data[offset + 1] = current_set;
 }
 
+/*-------------------- 控制函数 --------------------*/
+
+/**
+ * @brief       dji电机速度控制
+ * @param[in]   p_motor 
+ * @param[in]   pid 
+ * @param[in]   velocity 
+ * @param[in]   feedforward 
+ */
+void DjiMotorVelocityControl(
+    Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward)
+{
+    if (p_motor == NULL || pid == NULL) return;
+    if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
+        return;
+    p_motor->set.current = PID_calc(pid, p_motor->fdb.w, velocity) + feedforward;
+}
+
+/**
+ * @brief       dji电机位置控制
+ * @param[in]   p_motor 
+ * @param[in]   pid 
+ * @param[in]   velocity 
+ * @param[in]   feedforward 
+ */
+void DjiMotorPositionControl(
+    Motor_s * p_motor, pid_type_def * angle_pid, pid_type_def * velocity_pid, float angle,
+    float feedforward)
+{
+    if (p_motor == NULL || angle_pid == NULL || velocity_pid == NULL) return;
+    if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
+        return;
+    float velocity_set = PID_calc(angle_pid, p_motor->fdb.pos, angle);
+    float current_set = PID_calc(velocity_pid, p_motor->fdb.w, velocity_set) + feedforward;
+    p_motor->set.current = current_set;
+}
 /************************ END OF FILE ************************/
