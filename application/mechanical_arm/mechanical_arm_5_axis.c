@@ -25,6 +25,7 @@
 #include "detect_task.h"
 #include "math.h"
 #include "pid.h"
+#include "signal_generator.h"
 #include "usb_task.h"
 #include "user_lib.h"
 
@@ -185,11 +186,10 @@ void MechanicalArmReference(void)
 
     EngineerCustomControllerData_t engineer_custom_controller_data;
     EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
-    OutputPCData.data_1 = engineer_custom_controller_data.yaw;
-    OutputPCData.data_2 = engineer_custom_controller_data.big_arm_pitch;
-    OutputPCData.data_3 = engineer_custom_controller_data.small_arm_pitch;
-    OutputPCData.data_4 = engineer_custom_controller_data.small_arm_roll;
-    OutputPCData.data_5 = (HAL_GetTick() % 2000) / 1000.0f;
+    OutputPCData.data_1 = GenerateSinWave(1.0f, 0.0f, 2.0f);
+    OutputPCData.data_2 = GeneratePulseWave(0.0f, 1.0f, 0.5f, 0.5f);
+    OutputPCData.data_3 = GenerateRampWave(0.0f, 1.0f, 0.0f, 2.0f);
+    OutputPCData.data_4 = GenerateSawtoothWave(0.0f,1.0f,1.0f);
 }
 
 /*-------------------- Console --------------------*/

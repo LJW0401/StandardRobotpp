@@ -392,16 +392,16 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.name_1, "yaw");
+    char_to_uint(OutputPCData.name_1, "sin");
     OutputPCData.type_1 = 1;
 
-    char_to_uint(OutputPCData.name_2, "b_pitch");
+    char_to_uint(OutputPCData.name_2, "Pulse");
     OutputPCData.type_2 = 1;
 
-    char_to_uint(OutputPCData.name_3, "s_pitch");
+    char_to_uint(OutputPCData.name_3, "Ramp");
     OutputPCData.type_3 = 1;
 
-    char_to_uint(OutputPCData.name_4, "s_roll");
+    char_to_uint(OutputPCData.name_4, "Sawtooth");
     OutputPCData.type_4 = 1;
 
     char_to_uint(OutputPCData.name_5, "pitch_n");
