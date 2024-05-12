@@ -78,12 +78,6 @@ typedef enum {
     LIMIT_CUR = 0X7018       //速度位置模式电流设置
 } Cybergear_Index_e;         //电机功能码
 
-typedef enum {
-    RESET_MODE = 0,        //Reset模式[复位]
-    CALI_MODE = 1,         //Cali 模式[标定]
-    RUN_MODE = 2           //Motor模式[运行]
-} Cybergear_Mode_State_e;  //电机模式状态
-
 typedef struct
 {
     uint32_t motor_id : 8;  // 只占8位
@@ -92,46 +86,6 @@ typedef struct
     uint32_t res : 3;
 } __attribute__((packed)) EXT_ID_t;  // 32位扩展ID解析结构体
 
-typedef struct
-{
-    uint32_t info : 24;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-} __attribute__((packed)) RxCAN_Info_s;  // 解码内容缓存
-
-typedef struct
-{
-    uint32_t FE : 8;
-    uint32_t motor_id : 16;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-    uint32_t MCU_id;
-} __attribute__((packed)) RxCAN_Info_Type_0_s;  // 通信类型0解码内容
-
-typedef struct
-{
-    uint32_t master_can_id : 8;
-    uint32_t motor_id : 8;
-    uint32_t under_voltage_fault : 1;
-    uint32_t over_current_fault : 1;
-    uint32_t over_temperature_fault : 1;
-    uint32_t magnetic_encoding_fault : 1;
-    uint32_t HALL_encoding_failure : 1;
-    uint32_t unmarked : 1;
-    uint32_t mode_state : 2;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-} __attribute__((packed)) RxCAN_Info_Type_2_s;  // 通信类型2解码内容
-
-typedef struct
-{
-    uint32_t motor_id : 8;
-    uint32_t master_can_id : 16;
-    uint32_t communication_type : 5;
-    uint32_t res : 3;
-    uint16_t index;
-} __attribute__((packed)) RxCAN_Info_Type_17_s;  // 通信类型17解码内容
-
 typedef struct  // cybergear电机发送数据结构体
 {
     CAN_HandleTypeDef * CAN;
@@ -139,13 +93,12 @@ typedef struct  // cybergear电机发送数据结构体
     EXT_ID_t EXT_ID;
     CAN_TxHeaderTypeDef tx_message;
     uint8_t txdata[8];
-} Cybergrear_Send_Data_s;
+} Cybergear_Send_Data_s;
 
 /*-------------------- 变量定义 --------------------*/
 static uint8_t MASTER_ID = 0x01;  //主控ID
 
-#define CYBERGEAR_NUM 8
-static Cybergrear_Send_Data_s CybergearSendData[CYBERGEAR_NUM];  //发送区与电机id对应
+static Cybergear_Send_Data_s CybergearSendData[CYBERGEAR_NUM];  //发送区索引与电机id对应(0位不动)
 
 /**
   * @brief          float转int，数据打包用
@@ -164,23 +117,6 @@ static uint32_t FloatToUint(float x, float x_min, float x_max, int bits)
     else if (x < x_min)
         x = x_min;
     return (uint32_t)((x - offset) * ((float)((1 << bits) - 1)) / span);
-}
-
-/**
-  * @brief          小米电机初始化
-  * @param[out]     hmotor 电机结构体
-  * @param[in]      can can1/can2
-  * @param[in]      motor_id 电机id (1 ~ CYBERGEAR_NUM)
-  * @retval         none
-  */
-void CybergearInit(CyberGear_s * hmotor, uint8_t can, uint8_t motor_id)
-{
-    hmotor->id = motor_id;
-    if (can == 1) {
-        CybergearSendData[hmotor->id - 1].CAN = &CAN_1;
-    } else {
-        CybergearSendData[hmotor->id - 1].CAN = &CAN_2;
-    }
 }
 
 /**
@@ -213,7 +149,7 @@ static void CybergearCanTx(uint8_t index)
 
 /**
   * @brief          运控模式电机控制指令（通信类型1）
-  * @param[in]      hmotor 电机结构体
+  * @param[in]      p_motor 电机结构体
   * @param[in]      torque 目标力矩
   * @param[in]      MechPosition 
   * @param[in]      velocity 
@@ -222,120 +158,154 @@ static void CybergearCanTx(uint8_t index)
   * @retval         none
   */
 void CybergearControl(
-    CyberGear_s * hmotor, float torque, float MechPosition, float velocity, float kp, float kd)
+    Motor_s * p_motor, float torque, float MechPosition, float velocity, float kp, float kd)
 {
-    CybergearSendData[hmotor->id].EXT_ID.mode = 1;
-    CybergearSendData[hmotor->id].EXT_ID.motor_id = hmotor->id;
-    CybergearSendData[hmotor->id].EXT_ID.data = FloatToUint(torque, T_MIN, T_MAX, 16);
-    CybergearSendData[hmotor->id].EXT_ID.res = 0;
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
 
-    CybergearSendData[hmotor->id].txdata[0] = FloatToUint(MechPosition, P_MIN, P_MAX, 16) >> 8;
-    CybergearSendData[hmotor->id].txdata[1] = FloatToUint(MechPosition, P_MIN, P_MAX, 16);
-    CybergearSendData[hmotor->id].txdata[2] = FloatToUint(velocity, V_MIN, V_MAX, 16) >> 8;
-    CybergearSendData[hmotor->id].txdata[3] = FloatToUint(velocity, V_MIN, V_MAX, 16);
-    CybergearSendData[hmotor->id].txdata[4] = FloatToUint(kp, KP_MIN, KP_MAX, 16) >> 8;
-    CybergearSendData[hmotor->id].txdata[5] = FloatToUint(kp, KP_MIN, KP_MAX, 16);
-    CybergearSendData[hmotor->id].txdata[6] = FloatToUint(kd, KD_MIN, KD_MAX, 16) >> 8;
-    CybergearSendData[hmotor->id].txdata[7] = FloatToUint(kd, KD_MIN, KD_MAX, 16);
+    CybergearSendData[p_motor->id].EXT_ID.mode = 1;
+    CybergearSendData[p_motor->id].EXT_ID.motor_id = p_motor->id;
+    CybergearSendData[p_motor->id].EXT_ID.data = FloatToUint(torque, T_MIN, T_MAX, 16);
+    CybergearSendData[p_motor->id].EXT_ID.res = 0;
 
-    CybergearCanTx(hmotor->id);
+    CybergearSendData[p_motor->id].txdata[0] = FloatToUint(MechPosition, P_MIN, P_MAX, 16) >> 8;
+    CybergearSendData[p_motor->id].txdata[1] = FloatToUint(MechPosition, P_MIN, P_MAX, 16);
+    CybergearSendData[p_motor->id].txdata[2] = FloatToUint(velocity, V_MIN, V_MAX, 16) >> 8;
+    CybergearSendData[p_motor->id].txdata[3] = FloatToUint(velocity, V_MIN, V_MAX, 16);
+    CybergearSendData[p_motor->id].txdata[4] = FloatToUint(kp, KP_MIN, KP_MAX, 16) >> 8;
+    CybergearSendData[p_motor->id].txdata[5] = FloatToUint(kp, KP_MIN, KP_MAX, 16);
+    CybergearSendData[p_motor->id].txdata[6] = FloatToUint(kd, KD_MIN, KD_MAX, 16) >> 8;
+    CybergearSendData[p_motor->id].txdata[7] = FloatToUint(kd, KD_MIN, KD_MAX, 16);
+
+    if (p_motor->can == 1) {
+        CybergearSendData[p_motor->id].CAN = &CAN_1;
+    } else {
+        CybergearSendData[p_motor->id].CAN = &CAN_2;
+    }
+
+    CybergearCanTx(p_motor->id);
 }
 
 /**
   * @brief          小米电机使能（通信类型 3）
-  * @param[in]      hmotor 电机结构体
-  * @param[in]      id 电机id
+  * @param[in]      p_motor 电机结构体
   * @retval         none
   */
-void CybergearEnable(CyberGear_s * hmotor)
+void CybergearEnable(Motor_s * p_motor)
 {
-    CybergearSendData[hmotor->id].EXT_ID.mode = 3;
-    CybergearSendData[hmotor->id].EXT_ID.motor_id = hmotor->id;
-    CybergearSendData[hmotor->id].EXT_ID.data = MASTER_ID;
-    CybergearSendData[hmotor->id].EXT_ID.res = 0;
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
+
+    CybergearSendData[p_motor->id].EXT_ID.mode = 3;
+    CybergearSendData[p_motor->id].EXT_ID.motor_id = p_motor->id;
+    CybergearSendData[p_motor->id].EXT_ID.data = MASTER_ID;
+    CybergearSendData[p_motor->id].EXT_ID.res = 0;
 
     for (uint8_t i = 0; i < 8; i++) {
-        CybergearSendData[hmotor->id].txdata[i] = 0;
+        CybergearSendData[p_motor->id].txdata[i] = 0;
     }
 
-    CybergearCanTx(hmotor->id);
+    if (p_motor->can == 1) {
+        CybergearSendData[p_motor->id].CAN = &CAN_1;
+    } else {
+        CybergearSendData[p_motor->id].CAN = &CAN_2;
+    }
+
+    CybergearCanTx(p_motor->id);
 }
 
 /**
   * @brief          电机停止运行帧（通信类型4）
-  * @param[in]      hmotor 电机结构体
+  * @param[in]      p_motor 电机结构体
   * @retval         none
   */
-void CybergearStop(CyberGear_s * hmotor)
+void CybergearStop(Motor_s * p_motor)
 {
-    CybergearSendData[hmotor->id].EXT_ID.mode = 4;
-    CybergearSendData[hmotor->id].EXT_ID.motor_id = hmotor->id;
-    CybergearSendData[hmotor->id].EXT_ID.data = MASTER_ID;
-    CybergearSendData[hmotor->id].EXT_ID.res = 0;
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
+
+    CybergearSendData[p_motor->id].EXT_ID.mode = 4;
+    CybergearSendData[p_motor->id].EXT_ID.motor_id = p_motor->id;
+    CybergearSendData[p_motor->id].EXT_ID.data = MASTER_ID;
+    CybergearSendData[p_motor->id].EXT_ID.res = 0;
 
     for (uint8_t i = 0; i < 8; i++) {
-        CybergearSendData[hmotor->id].txdata[i] = 0;
+        CybergearSendData[p_motor->id].txdata[i] = 0;
     }
 
-    CybergearCanTx(hmotor->id);
+    if (p_motor->can == 1) {
+        CybergearSendData[p_motor->id].CAN = &CAN_1;
+    } else {
+        CybergearSendData[p_motor->id].CAN = &CAN_2;
+    }
+
+    CybergearCanTx(p_motor->id);
 }
 
 /**
   * @brief          设置电机机械零位（通信类型6）会把当前电机位置设为机械零位（掉电丢失）
-  * @param[in]      hmotor 电机结构体
+  * @param[in]      p_motor 电机结构体
   * @retval         none
   */
-void CybergearSetMechPositionToZero(CyberGear_s * hmotor)
+void CybergearSetMechPositionToZero(Motor_s * p_motor)
 {
-    CybergearSendData[hmotor->id].EXT_ID.mode = 6;
-    CybergearSendData[hmotor->id].EXT_ID.motor_id = hmotor->id;
-    CybergearSendData[hmotor->id].EXT_ID.data = MASTER_ID;
-    CybergearSendData[hmotor->id].EXT_ID.res = 0;
-    
-    CybergearSendData[hmotor->id].txdata[0] = 1;
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
+
+    CybergearSendData[p_motor->id].EXT_ID.mode = 6;
+    CybergearSendData[p_motor->id].EXT_ID.motor_id = p_motor->id;
+    CybergearSendData[p_motor->id].EXT_ID.data = MASTER_ID;
+    CybergearSendData[p_motor->id].EXT_ID.res = 0;
+
+    CybergearSendData[p_motor->id].txdata[0] = 1;
     for (uint8_t i = 1; i < 8; i++) {
-        CybergearSendData[hmotor->id].txdata[i] = 0;
+        CybergearSendData[p_motor->id].txdata[i] = 0;
     }
 
-    CybergearCanTx(hmotor->id);
+    if (p_motor->can == 1) {
+        CybergearSendData[p_motor->id].CAN = &CAN_1;
+    } else {
+        CybergearSendData[p_motor->id].CAN = &CAN_2;
+    }
+
+    CybergearCanTx(p_motor->id);
 }
 
 /*-------------------- 封装的一些控制函数 --------------------*/
 
 /**
   * @brief          小米电机力矩控制模式控制指令
-  * @param[in]      hmotor 电机结构体
-  * @param[in]      torque 目标力矩
+  * @param[in]      p_motor 电机结构体
   * @retval         none
   */
-void CybergearTorqueControl(CyberGear_s* hmotor, float torque)
+void CybergearTorqueControl(Motor_s * p_motor)
 {
-    CybergearControl(hmotor, torque, 0, 0, 0, 0);
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
+
+    CybergearControl(p_motor, p_motor->set.torque, 0, 0, 0, 0);
 }
 
 /**
   * @brief          小米电机位置模式控制指令
-  * @param[in]      hmotor 电机结构体
-  * @param[in]      position 控制位置 (rad)
+  * @param[in]      p_motor 电机结构体
   * @param[in]      kp 响应速度(到达位置快慢)，一般取1-10
   * @param[in]      kd 电机阻尼，过小会震荡，过大电机会震动明显。一般取0.5左右
   * @retval         none
   */
-void CybergearPositionControl(CyberGear_s* hmotor, float position, float kp, float kd)
+void CybergearPositionControl(Motor_s * p_motor, float kp, float kd)
 {
-    CybergearControl(hmotor, 0, position, 0, kp, kd);
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
+
+    CybergearControl(p_motor, 0, p_motor->set.position, 0, kp, kd);
 }
 
 /**
   * @brief          小米电机速度模式控制指令
-  * @param[in]      hmotor 电机结构体
-  * @param[in]      velocity 控制速度
+  * @param[in]      p_motor 电机结构体
   * @param[in]      kd 响应速度，一般取0.1-1
   * @retval         none
   */
-void CybergearVelocityControl(CyberGear_s* hmotor, float velocity, float kd)
+void CybergearVelocityControl(Motor_s * p_motor, float kd)
 {
-    CybergearControl(hmotor, 0, 0, velocity, 0, kd);
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
+
+    CybergearControl(p_motor, 0, 0, p_motor->set.velocity, 0, kd);
 }
 
-/************************ (C) COPYRIGHT 2024 Polarbear *****END OF FILE****/
+/************************ END OF FILE ************************/

@@ -20,24 +20,22 @@
 #include "motor.h"
 #include "stm32f4xx_hal.h"
 
-extern void CybergearInit(CyberGear_s * hmotor, uint8_t can, uint8_t motor_id);
-
 /*-------------------- 按照小米电机文档写的各种通信类型 --------------------*/
 extern void CybergearControl(
-    CyberGear_s * hmotor, float torque, float MechPosition, float velocity, float kp, float kd);
+    Motor_s * p_motor, float torque, float MechPosition, float velocity, float kp, float kd);
 
-extern void CybergearEnable(CyberGear_s * hmotor);
+extern void CybergearEnable(Motor_s * p_motor);
 
-extern void CybergearStop(CyberGear_s * hmotor);
+extern void CybergearStop(Motor_s * p_motor);
 
-extern void CybergearSetMechPositionToZero(CyberGear_s * hmotor);
+extern void CybergearSetMechPositionToZero(Motor_s * p_motor);
 
 /*-------------------- 封装的一些控制函数 --------------------*/
 
-extern void CybergearTorqueControl(CyberGear_s * hmotor, float torque);
+extern void CybergearTorqueControl(Motor_s * p_motor);
 
-extern void CybergearPositionControl(CyberGear_s * hmotor, float position, float kp, float kd);
+extern void CybergearPositionControl(Motor_s * p_motor, float kp, float kd);
 
-extern void CybergearVelocityControl(CyberGear_s * hmotor, float velocity, float kd);
+extern void CybergearVelocityControl(Motor_s * p_motor, float kd);
 
 #endif  //CAN_CMD_CYBERGEAR_H

@@ -31,8 +31,8 @@ typedef struct
     LoadMode_e mode;       // 射击模式
     FricState_e state;     // 摩擦轮状态
 
-    DJI_Motor_s fric_motor[4];  // 摩擦轮电机
-    DJI_Motor_s trigger_motor;  // 拨弹盘电机
+    Motor_s fric_motor[4];  // 摩擦轮电机
+    Motor_s trigger_motor;  // 拨弹盘电机
 
     /*目标量*/
     float shoot_frequency;  // (Hz)射频

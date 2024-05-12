@@ -130,7 +130,6 @@ static SendPacketRobotStatus_s SendPacketRobotStatus;
 OutputPCData_s OutputPCData;
 
 static uint8_t USB_SEND_MODE;
-static const fp32 *gimbal_INT_gyro_angle_point;
 static usb_send_duration_t usb_send_duration;
 
 // Function Prototypes
@@ -383,7 +382,7 @@ static void usb_send_outputPC(uint8_t t)
     }
     usb_send_duration.outputPC_data = 0;
 
-    gimbal_INT_gyro_angle_point = get_INS_angle_point();
+    // const fp32 *gimbal_INT_gyro_angle_point = get_INS_angle_point();
     const RC_ctrl_t *rc_ctrl = get_remote_control_point();
 
     const Angle_t *angle = GetAnglePoint();
@@ -393,25 +392,20 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.name_1, "yaw");
+    char_to_uint(OutputPCData.name_1, "sin");
     OutputPCData.type_1 = 1;
-    OutputPCData.data_1 = gimbal_INT_gyro_angle_point[0];
 
-    char_to_uint(OutputPCData.name_2, "pitch");
+    char_to_uint(OutputPCData.name_2, "Pulse");
     OutputPCData.type_2 = 1;
-    OutputPCData.data_2 = gimbal_INT_gyro_angle_point[1];
 
-    char_to_uint(OutputPCData.name_3, "roll");
+    char_to_uint(OutputPCData.name_3, "Ramp");
     OutputPCData.type_3 = 1;
-    OutputPCData.data_3 = gimbal_INT_gyro_angle_point[2];
 
-    char_to_uint(OutputPCData.name_4, "yaw_n");
+    char_to_uint(OutputPCData.name_4, "Sawtooth");
     OutputPCData.type_4 = 1;
-    OutputPCData.data_4 = angle->yaw;
 
     char_to_uint(OutputPCData.name_5, "pitch_n");
     OutputPCData.type_5 = 1;
-    OutputPCData.data_5 = angle->pitch;
 
     char_to_uint(OutputPCData.name_6, "roll_n");
     OutputPCData.type_6 = 1;

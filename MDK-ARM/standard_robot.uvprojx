@@ -889,6 +889,11 @@
               <FileType>1</FileType>
               <FilePath>..\components\support\kalman_filter.c</FilePath>
             </File>
+            <File>
+              <FileName>signal_generator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\components\support\signal_generator.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1064,6 +1069,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\referee\referee_usart_task.c</FilePath>
             </File>
+            <File>
+              <FileName>custom_controller_connect.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\referee\custom_controller_connect.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1083,6 +1093,11 @@
               <FileName>CAN_cmd_cybergear.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\application\robot_cmd\CAN_cmd_cybergear.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\robot_cmd\motor.c</FilePath>
             </File>
           </Files>
         </Group>

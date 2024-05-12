@@ -19,9 +19,10 @@
   */
 #ifndef REMOTE_CONTROL_H
 #define REMOTE_CONTROL_H
-#include "struct_typedef.h"
 #include "bsp_rc.h"
+#include "struct_typedef.h"
 
+// clang-format off
 #define SBUS_RX_BUF_NUM 36u
 
 #define RC_FRAME_LENGTH 18u
@@ -56,6 +57,7 @@
 #define KEY_PRESSED_OFFSET_C            ((uint16_t)1 << 13)
 #define KEY_PRESSED_OFFSET_V            ((uint16_t)1 << 14)
 #define KEY_PRESSED_OFFSET_B            ((uint16_t)1 << 15)
+
 /* ----------------------- Data Struct ------------------------------------- */
 typedef __packed struct
 {
@@ -78,13 +80,14 @@ typedef __packed struct
         } key;
 
 } RC_ctrl_t;
+// clang-format on
 
 /* ----------------------- Internal Data ----------------------------------- */
 
 extern void remote_control_init(void);
-extern const RC_ctrl_t *get_remote_control_point(void);
+extern const RC_ctrl_t * get_remote_control_point(void);
 extern uint8_t RC_data_is_error(void);
 extern void slove_RC_lost(void);
 extern void slove_data_error(void);
-extern void sbus_to_usart1(uint8_t *sbus);
+extern void sbus_to_usart1(uint8_t * sbus);
 #endif

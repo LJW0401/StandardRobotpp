@@ -32,9 +32,10 @@
 #define __TUNING_MODE TUNING_NONE  // 调参模式
 
 /*-------------------- 检测选择是否合法 --------------------*/
-#if (                                                                                  \
-    (CHASSIS_TYPE != CHASSIS_MECANUM_WHEEL) && (CHASSIS_TYPE != CHASSIS_OMNI_WHEEL) && \
-    (CHASSIS_TYPE != CHASSIS_STEERING_WHEEL) && (CHASSIS_TYPE != CHASSIS_BALANCE))
+#if (                                                                                   \
+    (CHASSIS_TYPE != CHASSIS_NONE) && (CHASSIS_TYPE != CHASSIS_MECANUM_WHEEL) &&        \
+    (CHASSIS_TYPE != CHASSIS_OMNI_WHEEL) && (CHASSIS_TYPE != CHASSIS_STEERING_WHEEL) && \
+    (CHASSIS_TYPE != CHASSIS_BALANCE))
 #error "Please select a valid chassis type"
 #endif
 

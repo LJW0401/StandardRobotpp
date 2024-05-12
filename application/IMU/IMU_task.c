@@ -24,50 +24,33 @@
 
 #include "IMU_task.h"
 
-#include "main.h"
-
-#include "cmsis_os.h"
-
+#include "ahrs.h"
+#include "bmi088driver.h"
 #include "bsp_imu_pwm.h"
 #include "bsp_spi.h"
-#include "bmi088driver.h"
-#include "ist8310driver.h"
-#include "pid.h"
-#include "ahrs.h"
-#include "user_lib.h"
-#include "math.h"
-
 #include "calibrate_task.h"
+#include "cmsis_os.h"
 #include "detect_task.h"
+#include "ist8310driver.h"
+#include "main.h"
+#include "math.h"
+#include "pid.h"
+#include "user_lib.h"
 
+// clang-format off
 #define IMU_temp_PWM(pwm) imu_pwm_set(pwm) // pwm给定
 
-#define IMU_temp_PWM(pwm) imu_pwm_set(pwm) // pwm给定
+#define BMI088_BOARD_INSTALL_SPIN_MATRIX    \
+    {0.0f, 1.0f, 0.0f},                     \
+    {-1.0f, 0.0f, 0.0f},                    \
+    {0.0f, 0.0f, 1.0f}                      \
 
-#define BMI088_BOARD_INSTALL_SPIN_MATRIX \
-    {0.0f, 1.0f, 0.0f},                  \
-        {-1.0f, 0.0f, 0.0f},             \
-    {                                    \
-        0.0f, 0.0f, 1.0f                 \
-    }
 
-#define IST8310_BOARD_INSTALL_SPIN_MATRIX \
-    {1.0f, 0.0f, 0.0f},                   \
-        {0.0f, 1.0f, 0.0f},               \
-    {                                     \
-        0.0f, 0.0f, 1.0f                  \
-    }
+#define IST8310_BOARD_INSTALL_SPIN_MATRIX   \
+    {1.0f, 0.0f, 0.0f},                     \
+    {0.0f, 1.0f, 0.0f},                     \
+    {0.0f, 0.0f, 1.0f}                      \
 
-/**
- * @brief          rotate the gyro, accel and mag, and calculate the zero drift, because sensors have
- *                 different install derection.
- * @param[out]     gyro: after plus zero drift and rotate
- * @param[out]     accel: after plus zero drift and rotate
- * @param[out]     mag: after plus zero drift and rotate
- * @param[in]      bmi088: gyro and accel data
- * @param[in]      ist8310: mag data
- * @retval         none
- */
 /**
  * @brief          旋转陀螺仪,加速度计和磁力计,并计算零漂,因为设备有不同安装方式
  * @param[out]     gyro: 加上零漂和旋转
@@ -78,23 +61,12 @@
  * @retval         none
  */
 static void imu_cali_slove(fp32 gyro[3], fp32 accel[3], fp32 mag[3], bmi088_real_data_t *bmi088, ist8310_real_data_t *ist8310);
-
-/**
- * @brief          control the temperature of bmi088
- * @param[in]      temp: the temperature of bmi088
- * @retval         none
- */
 /**
  * @brief          控制bmi088的温度
  * @param[in]      temp:bmi088的温度
  * @retval         none
  */
 static void imu_temp_control(fp32 temp);
-/**
- * @brief          open the SPI DMA accord to the value of imu_update_flag
- * @param[in]      none
- * @retval         none
- */
 /**
  * @brief          根据imu_update_flag的值开启SPI DMA
  * @param[in]      temp:bmi088的温度
@@ -241,12 +213,6 @@ static void VelocityUpdate(void);
 static void AccelUpdate(void);
 static void ImuDataUpdate(void);
 
-
-/**
- * @brief          imu task, init bmi088, ist8310, calculate the euler angle
- * @param[in]      pvParameters: NULL
- * @retval         none
- */
 /**
  * @brief          imu任务, 初始化 bmi088, ist8310, 计算欧拉角
  * @param[in]      pvParameters: NULL
@@ -1152,3 +1118,4 @@ void DMA2_Stream2_IRQHandler(void)
         }
     }
 }
+// clang-format on

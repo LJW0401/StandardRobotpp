@@ -65,3 +65,6 @@
 感谢各个战队的代码开源
 - 跃鹿 [basic_framework-dev](https://gitee.com/hnuyuelurm/basic_framework)
 - 未来战队 [XRobot仓库](https://github.com/xrobot-org/XRobot) , [XRobot文档](https://xrobot-org.github.io/)
+
+## 附录
+本文的详细补充内容写在 [附录](./doc/appendix.md) 中。

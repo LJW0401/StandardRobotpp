@@ -3,6 +3,7 @@
 
 #include "struct_typedef.h"
 
+// clang-format off
 #define HEADER_SOF 0xA5
 #define REF_PROTOCOL_FRAME_MAX_SIZE         128
 
@@ -65,5 +66,6 @@ typedef struct
 } unpack_data_t;
 
 #pragma pack(pop)
+// clang-format on
 
-#endif //ROBOMASTER_PROTOCOL_H
+#endif  //ROBOMASTER_PROTOCOL_H
