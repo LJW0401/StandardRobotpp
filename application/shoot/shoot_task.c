@@ -26,6 +26,17 @@
 uint32_t shoot_high_water;
 #endif
 
+#ifndef __weak
+#define __weak __attribute__((weak))
+#endif /* __weak */
+
+__weak void InitShoot(void);
+__weak void SetShootMode(void);
+__weak void ShootObserver(void);
+__weak void ShootReference(void);
+__weak void ShootConsole(void);
+__weak void SendShootCmd(void);
+
 /**
  * @brief          射击任务
  * @param[in]      pvParameters: 空
@@ -53,4 +64,41 @@ void shoot_task(void const * pvParameters)
         // 系统延时
         vTaskDelay(SHOOT_CONTROL_TIME);
     }
+}
+
+__weak void InitShoot(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+__weak void SetShootMode(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+__weak void ShootObserver(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+__weak void ShootReference(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+__weak void ShootConsole(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+__weak void SendShootCmd(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
 }

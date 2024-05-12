@@ -21,118 +21,81 @@
 #include "leg_model.h"
 
 static Chassis_s CHASSIS = {
-  .mode = CHASSIS_ZERO_FORCE,
-  .yaw_mid = 0,
-  .dyaw = 0.0f,
-  .upper_limit =
-    {
-      .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
-      .speed_vector.vx = MAX_SPEED_VECTOR_VX,
-      .speed_vector.vy = MAX_SPEED_VECTOR_VY,
-      .speed_vector.wz = MAX_SPEED_VECTOR_WZ,
-    },
-  .lower_limit =
-    {
-      .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
-      .speed_vector.vx = MIN_SPEED_VECTOR_VX,
-      .speed_vector.vy = MIN_SPEED_VECTOR_VY,
-      .speed_vector.wz = MIN_SPEED_VECTOR_WZ,
-    },
-  .feedback =
-    {
-      .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
-      .speed_vector.vx = 0.0f,
-      .speed_vector.vy = 0.0f,
-      .speed_vector.wz = 0.0f,
-    },
-  .reference =
-    {
-      .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
-      .speed_vector.vx = 0.0f,
-      .speed_vector.vy = 0.0f,
-      .speed_vector.wz = 0.0f,
-    },
+    .mode = CHASSIS_ZERO_FORCE,
+    .yaw_mid = 0,
+    .dyaw = 0.0f,
+    .upper_limit =
+        {
+            .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
+            .speed_vector.vx = MAX_SPEED_VECTOR_VX,
+            .speed_vector.vy = MAX_SPEED_VECTOR_VY,
+            .speed_vector.wz = MAX_SPEED_VECTOR_WZ,
+        },
+    .lower_limit =
+        {
+            .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
+            .speed_vector.vx = MIN_SPEED_VECTOR_VX,
+            .speed_vector.vy = MIN_SPEED_VECTOR_VY,
+            .speed_vector.wz = MIN_SPEED_VECTOR_WZ,
+        },
+    .feedback =
+        {
+            .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
+            .speed_vector.vx = 0.0f,
+            .speed_vector.vy = 0.0f,
+            .speed_vector.wz = 0.0f,
+        },
+    .reference =
+        {
+            .wheel_speed = {0.0f, 0.0f, 0.0f, 0.0f},
+            .speed_vector.vx = 0.0f,
+            .speed_vector.vy = 0.0f,
+            .speed_vector.wz = 0.0f,
+        },
 
-  .pid =
-    {
-      .wheel_pid_speed[0] =
+    .pid =
         {
-          .Kp = KP_CHASSIS_WHEEL_SPEED,
-          .Ki = KI_CHASSIS_WHEEL_SPEED,
-          .Kd = KD_CHASSIS_WHEEL_SPEED,
-          .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
-          .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
+            .wheel_pid_speed[0] =
+                {
+                    .Kp = KP_CHASSIS_WHEEL_SPEED,
+                    .Ki = KI_CHASSIS_WHEEL_SPEED,
+                    .Kd = KD_CHASSIS_WHEEL_SPEED,
+                    .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
+                    .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
+                },
+            .wheel_pid_speed[1] =
+                {
+                    .Kp = KP_CHASSIS_WHEEL_SPEED,
+                    .Ki = KI_CHASSIS_WHEEL_SPEED,
+                    .Kd = KD_CHASSIS_WHEEL_SPEED,
+                    .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
+                    .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
+                },
+            .wheel_pid_speed[2] =
+                {
+                    .Kp = KP_CHASSIS_WHEEL_SPEED,
+                    .Ki = KI_CHASSIS_WHEEL_SPEED,
+                    .Kd = KD_CHASSIS_WHEEL_SPEED,
+                    .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
+                    .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
+                },
+            .wheel_pid_speed[3] =
+                {
+                    .Kp = KP_CHASSIS_WHEEL_SPEED,
+                    .Ki = KI_CHASSIS_WHEEL_SPEED,
+                    .Kd = KD_CHASSIS_WHEEL_SPEED,
+                    .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
+                    .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
+                },
+            .gimbal_follow_pid_angle =
+                {
+                    .Kp = KP_CHASSIS_GIMBAL_FOLLOW_ANGLE,
+                    .Ki = KI_CHASSIS_GIMBAL_FOLLOW_ANGLE,
+                    .Kd = KD_CHASSIS_GIMBAL_FOLLOW_ANGLE,
+                    .max_iout = MAX_IOUT_CHASSIS_GIMBAL_FOLLOW_ANGLE,
+                    .max_out = MAX_OUT_CHASSIS_GIMBAL_FOLLOW_ANGLE,
+                },
         },
-      .wheel_pid_speed[1] =
-        {
-          .Kp = KP_CHASSIS_WHEEL_SPEED,
-          .Ki = KI_CHASSIS_WHEEL_SPEED,
-          .Kd = KD_CHASSIS_WHEEL_SPEED,
-          .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
-          .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
-        },
-      .wheel_pid_speed[2] =
-        {
-          .Kp = KP_CHASSIS_WHEEL_SPEED,
-          .Ki = KI_CHASSIS_WHEEL_SPEED,
-          .Kd = KD_CHASSIS_WHEEL_SPEED,
-          .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
-          .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
-        },
-      .wheel_pid_speed[3] =
-        {
-          .Kp = KP_CHASSIS_WHEEL_SPEED,
-          .Ki = KI_CHASSIS_WHEEL_SPEED,
-          .Kd = KD_CHASSIS_WHEEL_SPEED,
-          .max_iout = MAX_IOUT_CHASSIS_WHEEL_SPEED,
-          .max_out = MAX_OUT_CHASSIS_WHEEL_SPEED,
-        },
-      .gimbal_follow_pid_angle =
-        {
-          .Kp = KP_CHASSIS_GIMBAL_FOLLOW_ANGLE,
-          .Ki = KI_CHASSIS_GIMBAL_FOLLOW_ANGLE,
-          .Kd = KD_CHASSIS_GIMBAL_FOLLOW_ANGLE,
-          .max_iout = MAX_IOUT_CHASSIS_GIMBAL_FOLLOW_ANGLE,
-          .max_out = MAX_OUT_CHASSIS_GIMBAL_FOLLOW_ANGLE,
-        },
-    },
-
-  .wheel_motor[0] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
-  .wheel_motor[1] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
-  .wheel_motor[2] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
-  .wheel_motor[3] =
-    {
-      .accel = 0.0f,
-      .w = 0.0f,
-      .v = 0.0f,
-      .position = 0.0f,
-      .current_set = 0,
-      .direction = WHEEL_DIRECTION,
-    },
 };
 
 /*-------------------- Init --------------------*/
@@ -148,8 +111,7 @@ void InitChassis(void)
     /*-------------------- 初始化底盘电机 --------------------*/
     uint8_t i;
     for (i = 0; i < 4; i++) {
-        CHASSIS.wheel_motor[i].motor_measure =
-          GetDjiMotorMeasurePoint(1, WHEEL1 + i);  // 获取底盘电机
+        MotorInit(&CHASSIS.wheel_motor[i], i, 1, WHEEL_MOTOR_TYPE);
     }
 }
 
@@ -239,10 +201,10 @@ void ChassisConsole(void)
  */
 void SendChassisCmd(void)
 {
-    CAN_CmdDJIMotor(
-      &DJI_Motor_Send_Data_CAN1_0x200,  //底盘电机控制电流通过CAN1发送，使用的标识符为0x200
-      CHASSIS.wheel_motor[0].current_set, CHASSIS.wheel_motor[1].current_set,
-      CHASSIS.wheel_motor[2].current_set, CHASSIS.wheel_motor[3].current_set);
+    CanCmdDjiMotor(
+        1, DJI_200,  //底盘电机控制电流通过CAN1发送，使用的标识符为0x200
+        CHASSIS.wheel_motor[0].current_set, CHASSIS.wheel_motor[1].current_set,
+        CHASSIS.wheel_motor[2].current_set, CHASSIS.wheel_motor[3].current_set);
 }
 
 #endif /* CHASSIS_BALANCE */
