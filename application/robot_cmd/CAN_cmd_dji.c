@@ -157,6 +157,11 @@ void CanCmdDjiMotor(
         dji_motor_send_data->can_send_data);
 }
 
+/**
+ * @brief 添加信息到发送数据缓冲区
+ * @param p_motor 电机结构体
+ * @param std_id 电机控制数据标准ID
+ */
 void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id)
 {
     if (p_motor->type == DJI_M2006 || p_motor->type == DJI_M3508 || p_motor->type == DJI_M6020)
@@ -175,6 +180,20 @@ void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id)
 
     dji_motor_send_data->can_send_data[offset] = (current_set >> 8);
     dji_motor_send_data->can_send_data[offset + 1] = current_set;
+}
+
+/**
+ * @brief 发送电机控制数据
+ * @param can 1/2
+ * @param std_id 电机控制数据标准ID
+ */
+void SendDjiMotorCmdData(uint8_t can, DJI_Std_ID std_id)
+{
+    DJI_Motor_Send_Data_s * dji_motor_send_data = GetSendDataBufferPoint(can, std_id);
+    if (dji_motor_send_data == NULL) return;
+    CAN_SendTxMessage(
+        dji_motor_send_data->CAN, &dji_motor_send_data->tx_message,
+        dji_motor_send_data->can_send_data);
 }
 
 /*-------------------- 控制函数 --------------------*/
