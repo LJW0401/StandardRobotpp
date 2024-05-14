@@ -21,11 +21,9 @@
 
 #include <string.h>
 
+#include "bsp_can.h"
 #include "cmsis_os.h"
 #include "detect_task.h"
-
-extern CAN_HandleTypeDef hcan1;
-extern CAN_HandleTypeDef hcan2;
 
 // motor data read
 #define get_motor_measure(ptr, data)                                   \
@@ -53,8 +51,7 @@ static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM];
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-static void DecodeStdIdData(
-    CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
+static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
     switch (rx_header->StdId) {
         case DJI_M1_ID:
@@ -115,8 +112,7 @@ static void CybergearRxDecode(Motor_s * p_motor, uint8_t rx_data[8])
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-static void DecodeExtIdData(
-    CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
+static void DecodeExtIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
     uint8_t motor_id = 0;
     if (((RxCanInfo_s *)(&rx_header->ExtId))->communication_type == 2) {  //通信类型2
@@ -141,7 +137,7 @@ static void DecodeExtIdData(
  * @param[in]      hcan:CAN句柄指针
  * @retval         none
  */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
+void HAL_CAN_RxFifo0MsgPendingCallback(hcan_t * hcan)
 {
     CAN_RxHeaderTypeDef rx_header;
     uint8_t rx_data[8];
@@ -204,7 +200,7 @@ void GetMotorMeasure(Motor_s * p_motor)
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id - 1);
             p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
-                                  p_motor->reduction_ratio * p_motor->direction;
+                             p_motor->reduction_ratio * p_motor->direction;
             p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
             p_motor->fdb.temperature = p_dji_motor_measure->temperate;
             p_motor->fdb.current = p_dji_motor_measure->given_current;
@@ -214,7 +210,7 @@ void GetMotorMeasure(Motor_s * p_motor)
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id + 3);
             p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
-                                  p_motor->reduction_ratio * p_motor->direction;
+                             p_motor->reduction_ratio * p_motor->direction;
             p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
             p_motor->fdb.temperature = p_dji_motor_measure->temperate;
             p_motor->fdb.current = p_dji_motor_measure->given_current;
@@ -227,9 +223,9 @@ void GetMotorMeasure(Motor_s * p_motor)
                 CybergearRxDecode(p_motor, CAN2_CYBERGEAR_MEASURE[p_motor->id].rx_data);
             }
         } break;
-        case DM_MOTOR: {
+        case DM_8009: {
         } break;
-        case MF_MOTOR: {
+        case MF_9025: {
         } break;
         default:
             break;
