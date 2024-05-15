@@ -1099,6 +1099,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\robot_cmd\motor.c</FilePath>
             </File>
+            <File>
+              <FileName>CAN_cmd_damiao.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\robot_cmd\CAN_cmd_damiao.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -26,7 +26,7 @@
 #include "detect_task.h"
 
 // motor data read
-#define get_motor_measure(ptr, data)                                   \
+#define get_dji_motor_measure(ptr, data)                               \
     {                                                                  \
         (ptr)->last_ecd = (ptr)->ecd;                                  \
         (ptr)->ecd = (uint16_t)((data)[0] << 8 | (data)[1]);           \
@@ -34,13 +34,26 @@
         (ptr)->given_current = (uint16_t)((data)[4] << 8 | (data)[5]); \
         (ptr)->temperate = (data)[6];                                  \
     }
+//TODO: 8009电机数据解析
+#define get_dm_motor_measure(ptr, data)                      \
+    {                                                        \
+        (ptr)->err = 0;                                      \
+        (ptr)->pos = (uint16_t)((data)[0] << 8 | (data)[1]); \
+        (ptr)->vel = (uint16_t)((data)[2] << 8 | (data)[3]); \
+        (ptr)->t = (uint16_t)((data)[4] << 8 | (data)[5]);   \
+        (ptr)->t_mos = (data)[6];                            \
+        (ptr)->t_rotor = (data)[6];                          \
+    }
 
 // 接收数据
 static DjiMotorMeasure_t CAN1_DJI_MEASURE[11];
 static DjiMotorMeasure_t CAN2_DJI_MEASURE[11];
 
-static CybergearMeasure_s CAN1_CYBERGEAR_MEASURE[CYBERGEAR_NUM];
-static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM];
+static CybergearMeasure_s CAN1_CYBERGEAR_MEASURE[CYBERGEAR_NUM + 1];
+static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM + 1];
+
+static DmMeasure_s CAN1_DM_MEASURE[DM_NUM];
+static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
 
 /*-------------------- Decode --------------------*/
 
@@ -69,13 +82,29 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             i = rx_header->StdId - DJI_M1_ID;
             if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
             {
-                get_motor_measure(&CAN1_DJI_MEASURE[i], rx_data);
+                get_dji_motor_measure(&CAN1_DJI_MEASURE[i], rx_data);
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
-                get_motor_measure(&CAN2_DJI_MEASURE[i], rx_data);
+                get_dji_motor_measure(&CAN2_DJI_MEASURE[i], rx_data);
             }
             break;
         }
+        case DM_M1_ID:
+        case DM_M2_ID:
+        case DM_M3_ID:
+        case DM_M4_ID:
+        case DM_M5_ID:
+        case DM_M6_ID: {  // 以上ID为DM电机标识符
+            static uint8_t i = 0;
+            i = rx_header->StdId - DJI_M1_ID;
+            if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
+            {
+                get_dm_motor_measure(&CAN1_DM_MEASURE[i], rx_data);
+            } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
+            {
+                get_dm_motor_measure(&CAN2_DM_MEASURE[i], rx_data);
+            }
+        } break;
         default: {
             break;
         }

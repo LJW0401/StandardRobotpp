@@ -44,6 +44,15 @@ typedef enum {
     DJI_M10_ID = 0x20A,  // 6020电机ID
     DJI_M11_ID = 0x20B,  // 6020电机ID
 } DJI_Motor_ID;
+
+typedef enum __DmMotorType{
+    DM_M1_ID = 0x401,
+    DM_M2_ID,
+    DM_M3_ID,
+    DM_M4_ID,
+    DM_M5_ID,
+    DM_M6_ID,
+} DmMotorType_e;
 // clang-format on
 
 extern const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i);

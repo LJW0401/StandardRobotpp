@@ -47,7 +47,7 @@ typedef struct _DjiMotorMeasure
 } DjiMotorMeasure_t;
 
 /*-------------------- CyberGear --------------------*/
-#define CYBERGEAR_NUM 8
+#define CYBERGEAR_NUM 5
 
 typedef enum _CybergearModeState {
     UNDEFINED_MODE = -1,  //未定义模式
@@ -94,6 +94,16 @@ typedef struct
 } CybergearMeasure_s;
 
 /*-------------------- DM Motor --------------------*/
+#define DM_NUM 6
+typedef struct
+{
+    uint16_t err;
+    uint16_t pos;
+    uint16_t vel;
+    uint16_t t;
+    uint16_t t_mos;
+    uint16_t t_rotor;
+} DmMeasure_s;
 
 /*-------------------- MF Motor --------------------*/
 
