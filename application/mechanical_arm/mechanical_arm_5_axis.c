@@ -189,7 +189,7 @@ void MechanicalArmReference(void)
     OutputPCData.data_1 = GenerateSinWave(1.0f, 0.0f, 2.0f);
     OutputPCData.data_2 = GeneratePulseWave(0.0f, 1.0f, 0.5f, 0.5f);
     OutputPCData.data_3 = GenerateRampWave(0.0f, 1.0f, 0.0f, 2.0f);
-    OutputPCData.data_4 = GenerateSawtoothWave(0.0f,1.0f,1.0f);
+    OutputPCData.data_4 = GenerateSawtoothWave(0.0f, 1.0f, 1.0f);
 }
 
 /*-------------------- Console --------------------*/
@@ -277,6 +277,19 @@ void SendMechanicalArmCmd(void)
             CanCmdDjiMotor(2, DJI_200, 0, 0, 0, 0);
         }
     }
+
+    Motor_s dm_motor = {
+        .can = 1,
+        .id = 1,
+        .direction = 1,
+        .reduction_ratio = 1,
+        .type = DM_8009,
+        .set = {.torque = 1, .velocity = 1, .position = GenerateSinWave(2.0f, 0.0f, 2.0f)},
+    };
+
+    DmEnable(&dm_motor);
+    // DmMitCtrlTorque(&dm_motor);
+    DmMitCtrlPosition(&dm_motor, 2, 1);
 }
 
 #endif /* MECHANICAL_ARM_5_AXIS */

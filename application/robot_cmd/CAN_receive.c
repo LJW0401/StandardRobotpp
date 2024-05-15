@@ -34,16 +34,6 @@
         (ptr)->given_current = (uint16_t)((data)[4] << 8 | (data)[5]); \
         (ptr)->temperate = (data)[6];                                  \
     }
-//TODO: 8009电机数据解析
-#define get_dm_motor_measure(ptr, data)                      \
-    {                                                        \
-        (ptr)->err = 0;                                      \
-        (ptr)->pos = (uint16_t)((data)[0] << 8 | (data)[1]); \
-        (ptr)->vel = (uint16_t)((data)[2] << 8 | (data)[3]); \
-        (ptr)->t = (uint16_t)((data)[4] << 8 | (data)[5]);   \
-        (ptr)->t_mos = (data)[6];                            \
-        (ptr)->t_rotor = (data)[6];                          \
-    }
 
 // 接收数据
 static DjiMotorMeasure_t CAN1_DJI_MEASURE[11];
@@ -56,6 +46,30 @@ static DmMeasure_s CAN1_DM_MEASURE[DM_NUM];
 static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
 
 /*-------------------- Decode --------------------*/
+
+/**
+************************************************************************
+* @brief:      	DmFdbData: 获取DM电机反馈数据函数
+* @param[in]:   motor:    指向motor_t结构的指针，包含电机相关信息和反馈数据
+* @param[in]:   rx_data:  指向包含反馈数据的数组指针
+* @retval:     	void
+* @details:    	从接收到的数据中提取DM4310电机的反馈信息，包括电机ID、
+*               状态、位置、速度、扭矩以及相关温度参数
+************************************************************************
+**/
+void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
+{
+    dm_measure->id = (rx_data[0]) & 0x0F;
+    dm_measure->err = (rx_data[0]) >> 4;
+    dm_measure->p_int = (rx_data[1] << 8) | rx_data[2];
+    dm_measure->v_int = (rx_data[3] << 4) | (rx_data[4] >> 4);
+    dm_measure->t_int = ((rx_data[4] & 0xF) << 8) | rx_data[5];
+    dm_measure->pos = uint_to_float(dm_measure->p_int, -12.5, 12.5, 16);  // (-12.5,12.5)
+    dm_measure->vel = uint_to_float(dm_measure->v_int, -45.0, 45.0, 12);  // (-45.0,45.0)
+    dm_measure->tor = uint_to_float(dm_measure->t_int, -18.0, 18.0, 12);  // (-18.0,18.0)
+    dm_measure->t_mos = (float)(rx_data[6]);
+    dm_measure->t_rotor = (float)(rx_data[7]);
+}
 
 /**
  * @brief          若接收到的数据标识符为StdId则对应解码
@@ -96,13 +110,13 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
         case DM_M5_ID:
         case DM_M6_ID: {  // 以上ID为DM电机标识符
             static uint8_t i = 0;
-            i = rx_header->StdId - DJI_M1_ID;
+            i = rx_header->StdId - DM_M1_ID;
             if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
             {
-                get_dm_motor_measure(&CAN1_DM_MEASURE[i], rx_data);
+                DmFdbData(&CAN1_DM_MEASURE[i], rx_data);
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
-                get_dm_motor_measure(&CAN2_DM_MEASURE[i], rx_data);
+                DmFdbData(&CAN2_DM_MEASURE[i], rx_data);
             }
         } break;
         default: {

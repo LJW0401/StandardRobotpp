@@ -36,17 +36,17 @@ typedef enum {
     DJI_M2_ID  = 0x202,   // 3508/2006电机ID
     DJI_M3_ID  = 0x203,   // 3508/2006电机ID
     DJI_M4_ID  = 0x204,   // 3508/2006电机ID
-    DJI_M5_ID  = 0x205,   // 3508/2006电机ID (/6020电机ID 不建议使用)
-    DJI_M6_ID  = 0x206,   // 3508/2006电机ID (/6020电机ID 不建议使用)
-    DJI_M7_ID  = 0x207,   // 3508/2006电机ID (/6020电机ID 不建议使用)
-    DJI_M8_ID  = 0x208,   // 3508/2006电机ID (/6020电机ID 不建议使用)
+    DJI_M5_ID  = 0x205,   // 3508/2006电机ID (/6020电机ID 如分不清关系不建议使用)
+    DJI_M6_ID  = 0x206,   // 3508/2006电机ID (/6020电机ID 如分不清关系不建议使用)
+    DJI_M7_ID  = 0x207,   // 3508/2006电机ID (/6020电机ID 如分不清关系不建议使用)
+    DJI_M8_ID  = 0x208,   // 3508/2006电机ID (/6020电机ID 如分不清关系不建议使用)
     DJI_M9_ID  = 0x209,   // 6020电机ID
     DJI_M10_ID = 0x20A,  // 6020电机ID
     DJI_M11_ID = 0x20B,  // 6020电机ID
 } DJI_Motor_ID;
 
 typedef enum __DmMotorType{
-    DM_M1_ID = 0x401,
+    DM_M1_ID = 0x51,
     DM_M2_ID,
     DM_M3_ID,
     DM_M4_ID,

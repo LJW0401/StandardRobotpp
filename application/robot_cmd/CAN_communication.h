@@ -3,6 +3,7 @@
 
 #include "CAN_cmd_dji.h"
 #include "CAN_cmd_cybergear.h"
+#include "CAN_cmd_damiao.h"
 #include "CAN_receive.h"
 
 #endif  // CAN_COMMUNICATION_H

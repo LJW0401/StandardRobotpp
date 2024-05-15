@@ -97,12 +97,22 @@ typedef struct
 #define DM_NUM 6
 typedef struct
 {
-    uint16_t err;
-    uint16_t pos;
-    uint16_t vel;
-    uint16_t t;
-    uint16_t t_mos;
-    uint16_t t_rotor;
+    int id;
+    int err;
+    int p_int;
+    int v_int;
+    int t_int;
+    int kp_int;
+    int kd_int;
+
+    float pos;
+    float vel;
+    float tor;
+    float Kp;
+    float Kd;
+
+    float t_mos;
+    float t_rotor;
 } DmMeasure_s;
 
 /*-------------------- MF Motor --------------------*/
