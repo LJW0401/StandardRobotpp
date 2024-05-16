@@ -54,6 +54,15 @@ static MechanicalArm_s MECHANICAL_ARM = {
     .init_completed = {false, false, false, false, false},
 };
 
+Motor_s dm_motor = {
+    .can = 1,
+    .id = 1,
+    .direction = 1,
+    .reduction_ratio = 1,
+    .type = DM_8009,
+    .set = {.torque = 1, .velocity = 1, .position = 0},
+};
+
 /*-------------------- Init --------------------*/
 
 /**
@@ -167,6 +176,9 @@ void MechanicalArmObserver(void)
         theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1);
     MECHANICAL_ARM.feedback.position[4] =
         theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1);
+
+    GetMotorMeasure(&dm_motor);
+    OutputPCData.data_2 = dm_motor.fdb.pos;
 }
 
 /*-------------------- Reference --------------------*/
@@ -186,10 +198,9 @@ void MechanicalArmReference(void)
 
     EngineerCustomControllerData_t engineer_custom_controller_data;
     EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
-    OutputPCData.data_1 = GenerateSinWave(1.0f, 0.0f, 2.0f);
-    OutputPCData.data_2 = GeneratePulseWave(0.0f, 1.0f, 0.5f, 0.5f);
-    OutputPCData.data_3 = GenerateRampWave(0.0f, 1.0f, 0.0f, 2.0f);
-    OutputPCData.data_4 = GenerateSawtoothWave(0.0f, 1.0f, 1.0f);
+
+    dm_motor.set.position = GenerateSinWave(1.0f, 0.0f, 2.0f);
+    OutputPCData.data_1 = dm_motor.set.position;
 }
 
 /*-------------------- Console --------------------*/
@@ -277,15 +288,6 @@ void SendMechanicalArmCmd(void)
             CanCmdDjiMotor(2, DJI_200, 0, 0, 0, 0);
         }
     }
-
-    Motor_s dm_motor = {
-        .can = 1,
-        .id = 1,
-        .direction = 1,
-        .reduction_ratio = 1,
-        .type = DM_8009,
-        .set = {.torque = 1, .velocity = 1, .position = GenerateSinWave(2.0f, 0.0f, 2.0f)},
-    };
 
     DmEnable(&dm_motor);
     // DmMitCtrlTorque(&dm_motor);

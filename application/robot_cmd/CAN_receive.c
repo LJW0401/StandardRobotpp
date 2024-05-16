@@ -24,6 +24,7 @@
 #include "bsp_can.h"
 #include "cmsis_os.h"
 #include "detect_task.h"
+#include "user_lib.h"
 
 // motor data read
 #define get_dji_motor_measure(ptr, data)                               \
@@ -64,9 +65,9 @@ void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
     dm_measure->p_int = (rx_data[1] << 8) | rx_data[2];
     dm_measure->v_int = (rx_data[3] << 4) | (rx_data[4] >> 4);
     dm_measure->t_int = ((rx_data[4] & 0xF) << 8) | rx_data[5];
-    dm_measure->pos = uint_to_float(dm_measure->p_int, -12.5, 12.5, 16);  // (-12.5,12.5)
-    dm_measure->vel = uint_to_float(dm_measure->v_int, -45.0, 45.0, 12);  // (-45.0,45.0)
-    dm_measure->tor = uint_to_float(dm_measure->t_int, -18.0, 18.0, 12);  // (-18.0,18.0)
+    dm_measure->pos = uint_to_float(dm_measure->p_int, DM_P_MIN, DM_P_MAX, 16); // (-12.5,12.5)
+    dm_measure->vel = uint_to_float(dm_measure->v_int, DM_V_MIN, DM_V_MAX, 12); // (-45.0,45.0)
+    dm_measure->tor = uint_to_float(dm_measure->t_int, DM_T_MIN, DM_T_MAX, 12);  // (-18.0,18.0)
     dm_measure->t_mos = (float)(rx_data[6]);
     dm_measure->t_rotor = (float)(rx_data[7]);
 }
@@ -217,6 +218,22 @@ const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
     return &CAN1_DJI_MEASURE[1];
 }
 
+/**
+ * @brief          获取DJI电机反馈数据
+ * @param[out]     p_motor 电机结构体 
+ * @param[in]      p_dji_motor_measure 电机反馈数据缓存区
+ * @return         none
+ */
+static void GetDjiFdbData(Motor_s * p_motor, const DjiMotorMeasure_t * p_dji_motor_measure)
+{
+    p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA * p_motor->reduction_ratio *
+                     p_motor->direction;
+    p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
+    p_motor->fdb.temperature = p_dji_motor_measure->temperate;
+    p_motor->fdb.current = p_dji_motor_measure->given_current;
+    p_motor->fdb.ecd = p_dji_motor_measure->ecd;
+}
+
 CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return UNDEFINED_MODE;
@@ -231,6 +248,20 @@ CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
 }
 
 /**
+ * @brief          获取DM电机反馈数据
+ * @param[out]     motor 电机结构体 
+ * @param[in]      dm_measure 电机反馈数据缓存区
+ * @return         none
+ */
+static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
+{
+    motor->fdb.pos = dm_measure->pos;
+    motor->fdb.w = dm_measure->vel;
+    motor->fdb.T = dm_measure->tor;
+    motor->fdb.temperature = dm_measure->t_mos;
+}
+
+/**
  * @brief          获取接收数据
  * @param[out]     p_motor 电机结构体
  * @return         none
@@ -242,22 +273,12 @@ void GetMotorMeasure(Motor_s * p_motor)
         case DJI_M3508: {
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id - 1);
-            p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
-                             p_motor->reduction_ratio * p_motor->direction;
-            p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
-            p_motor->fdb.temperature = p_dji_motor_measure->temperate;
-            p_motor->fdb.current = p_dji_motor_measure->given_current;
-            p_motor->fdb.ecd = p_dji_motor_measure->ecd;
+            GetDjiFdbData(p_motor, p_dji_motor_measure);
         } break;
         case DJI_M6020: {
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id + 3);
-            p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
-                             p_motor->reduction_ratio * p_motor->direction;
-            p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
-            p_motor->fdb.temperature = p_dji_motor_measure->temperate;
-            p_motor->fdb.current = p_dji_motor_measure->given_current;
-            p_motor->fdb.ecd = p_dji_motor_measure->ecd;
+            GetDjiFdbData(p_motor, p_dji_motor_measure);
         } break;
         case CYBERGEAR_MOTOR: {
             if (p_motor->can == 1) {
@@ -267,6 +288,11 @@ void GetMotorMeasure(Motor_s * p_motor)
             }
         } break;
         case DM_8009: {
+            if (p_motor->can == 1) {
+                GetDmFdbData(p_motor, &CAN1_DM_MEASURE[p_motor->id - 1]);
+            } else {
+                GetDmFdbData(p_motor, &CAN2_DM_MEASURE[p_motor->id - 1]);
+            }
         } break;
         case MF_9025: {
         } break;

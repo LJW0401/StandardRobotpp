@@ -24,6 +24,8 @@
 #define CAN_2 hcan2
 #endif
 
+
+
 /*-------------------- User functions --------------------*/
 void DmEnable(Motor_s * motor);
 void DmDisable(Motor_s * motor);

@@ -21,24 +21,6 @@
 #include "struct_typedef.h"
 #include "user_lib.h"
 
-// clang-format off
-#define MIT_MODE       0x000
-#define POS_MODE       0x100
-#define SPEED_MODE     0x200
-#define POSI_MODE      0x300
-
-#define P_MIN -12.5f
-#define P_MAX 12.5f
-#define V_MIN -30.0f
-#define V_MAX 30.0f
-#define KP_MIN 0.0f
-#define KP_MAX 500.0f
-#define KD_MIN 0.0f
-#define KD_MAX 5.0f
-#define T_MIN -10.0f
-#define T_MAX 10.0f
-// clang-format on
-
 // 电机参数设置结构体
 typedef struct __MotorCtrl
 {
@@ -60,6 +42,36 @@ struct __CanCtrlData
     .tx_header.RTR = CAN_RTR_DATA,
     .tx_header.DLC = 8,
 };
+
+/*-------------------- Private functions --------------------*/
+
+/**
+************************************************************************
+* @brief:      	ClearErr: 清除电机错误函数
+* @param[in]:   hcan:     指向CAN_HandleTypeDef结构的指针
+* @param[in]:   motor_id: 电机ID，指定目标电机
+* @param[in]:   mode_id:  模式ID，指定要清除错误的模式
+* @retval:     	void
+* @details:    	通过CAN总线向特定电机发送清除错误的命令。
+************************************************************************
+**/
+static void ClearErr(hcan_t* hcan, uint16_t motor_id, uint16_t mode_id)
+{
+    CAN_CTRL_DATA.hcan = hcan;
+
+    CAN_CTRL_DATA.tx_header.StdId = motor_id + mode_id;
+	
+	CAN_CTRL_DATA.tx_data[0] = 0xFF;
+	CAN_CTRL_DATA.tx_data[1] = 0xFF;
+	CAN_CTRL_DATA.tx_data[2] = 0xFF;
+	CAN_CTRL_DATA.tx_data[3] = 0xFF;
+	CAN_CTRL_DATA.tx_data[4] = 0xFF;
+	CAN_CTRL_DATA.tx_data[5] = 0xFF;
+	CAN_CTRL_DATA.tx_data[6] = 0xFF;
+	CAN_CTRL_DATA.tx_data[7] = 0xFB;
+	
+    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+}
 
 /**
 ************************************************************************
@@ -165,13 +177,13 @@ static void MitCtrl(
 {
     uint16_t pos_tmp, vel_tmp, kp_tmp, kd_tmp, tor_tmp;
 
-    CAN_CTRL_DATA.tx_header.StdId = motor_id + MIT_MODE;
+    CAN_CTRL_DATA.tx_header.StdId = motor_id + DM_MIT_MODE;
 
-    pos_tmp = float_to_uint(pos, P_MIN, P_MAX, 16);
-    vel_tmp = float_to_uint(vel, V_MIN, V_MAX, 12);
-    kp_tmp = float_to_uint(kp, KP_MIN, KP_MAX, 12);
-    kd_tmp = float_to_uint(kd, KD_MIN, KD_MAX, 12);
-    tor_tmp = float_to_uint(torq, T_MIN, T_MAX, 12);
+    pos_tmp = float_to_uint(pos, DM_P_MIN, DM_P_MAX, 16);
+    vel_tmp = float_to_uint(vel, DM_V_MIN, DM_V_MAX, 12);
+    kp_tmp = float_to_uint(kp, DM_KP_MIN, DM_KP_MAX, 12);
+    kd_tmp = float_to_uint(kd, DM_KD_MIN, DM_KD_MAX, 12);
+    tor_tmp = float_to_uint(torq, DM_T_MIN, DM_T_MAX, 12);
 
     CAN_CTRL_DATA.tx_data[0] = (pos_tmp >> 8);
     CAN_CTRL_DATA.tx_data[1] = pos_tmp;
@@ -199,7 +211,7 @@ void DmEnable(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    EnableMotorMode(hcan, motor->id, MIT_MODE);
+    EnableMotorMode(hcan, motor->id, DM_MIT_MODE);
 }
 
 void DmDisable(Motor_s * motor)
@@ -214,7 +226,7 @@ void DmDisable(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    DisableMotorMode(hcan, motor->id, MIT_MODE);
+    DisableMotorMode(hcan, motor->id, DM_MIT_MODE);
 }
 
 void DmSavePosZero(Motor_s * motor)
@@ -229,7 +241,7 @@ void DmSavePosZero(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    SavePosZero(hcan, motor->id, MIT_MODE);
+    SavePosZero(hcan, motor->id, DM_MIT_MODE);
 }
 
 void DmMitCtrlTorque(Motor_s * motor)

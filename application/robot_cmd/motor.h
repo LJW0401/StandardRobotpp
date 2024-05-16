@@ -95,6 +95,25 @@ typedef struct
 
 /*-------------------- DM Motor --------------------*/
 #define DM_NUM 6
+
+// clang-format off
+#define DM_MIT_MODE       0x000
+#define DM_POS_MODE       0x100
+#define DM_SPEED_MODE     0x200
+#define DM_POSI_MODE      0x300
+
+#define DM_P_MIN   -12.5f
+#define DM_P_MAX    12.5f
+#define DM_V_MIN   -30.0f
+#define DM_V_MAX    30.0f
+#define DM_KP_MIN   0.0f
+#define DM_KP_MAX   500.0f
+#define DM_KD_MIN   0.0f
+#define DM_KD_MAX   5.0f
+#define DM_T_MIN   -10.0f
+#define DM_T_MAX    10.0f
+// clang-format on
+
 typedef struct
 {
     int id;
