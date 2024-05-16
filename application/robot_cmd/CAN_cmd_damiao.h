@@ -26,9 +26,9 @@
 
 /*-------------------- User functions --------------------*/
 
-extern void DmEnable(Motor_s * motor, uint16_t mode_id);
-extern void DmDisable(Motor_s * motor, uint16_t mode_id);
-extern void DmSavePosZero(Motor_s * motor, uint16_t mode_id);
+extern void DmEnable(Motor_s * motor, DmMode_e mode_id);
+extern void DmDisable(Motor_s * motor, DmMode_e mode_id);
+extern void DmSavePosZero(Motor_s * motor, DmMode_e mode_id);
 
 extern void DmMitCtrlTorque(Motor_s * motor);
 extern void DmMitCtrlVelocity(Motor_s * motor, float kd);

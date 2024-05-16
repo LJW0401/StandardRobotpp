@@ -289,7 +289,7 @@ void SendMechanicalArmCmd(void)
         }
     }
 
-    DmEnable(&dm_motor);
+    DmEnable(&dm_motor,DM_MODE_MIT);
     // DmMitCtrlTorque(&dm_motor);
     DmMitCtrlPosition(&dm_motor, 2, 1);
 }

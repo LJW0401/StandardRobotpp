@@ -97,10 +97,13 @@ typedef struct
 #define DM_NUM 6
 
 // clang-format off
-#define DM_MIT_MODE       0x000
-#define DM_POS_MODE       0x100
-#define DM_SPEED_MODE     0x200
-#define DM_POSI_MODE      0x300
+typedef enum __DmMode
+{
+    DM_MODE_MIT =    0x000,
+    DM_MODE_POS =    0x100,
+    DM_MODE_SPEED =  0x200,
+    DM_MODE_POSI =   0x300,
+} DmMode_e;
 
 #define DM_P_MIN   -12.5f
 #define DM_P_MAX    12.5f

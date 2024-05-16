@@ -55,7 +55,7 @@ struct __CanCtrlData
 * @details    	通过CAN总线向特定电机发送清除错误的命令。
 ************************************************************************
 **/
-static void ClearErr(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+static void ClearErr(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.hcan = hcan;
 
@@ -83,14 +83,11 @@ static void ClearErr(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 * @details    	通过CAN总线向特定电机发送启用特定模式的命令
 ************************************************************************
 **/
-static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.hcan = hcan;
 
     CAN_CTRL_DATA.tx_header.StdId = motor_id + mode_id;
-    // CAN_CTRL_DATA.tx_header.IDE = CAN_ID_STD;
-    // CAN_CTRL_DATA.tx_header.RTR = CAN_RTR_DATA;
-    // CAN_CTRL_DATA.tx_header.DLC = 8;
 
     CAN_CTRL_DATA.tx_data[0] = 0xFF;
     CAN_CTRL_DATA.tx_data[1] = 0xFF;
@@ -114,7 +111,7 @@ static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 * @details    	通过CAN总线向特定电机发送禁用特定模式的命令
 ************************************************************************
 **/
-static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.hcan = hcan;
 
@@ -142,7 +139,7 @@ static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 * @details    	通过CAN总线向特定电机发送保存位置零点的命令
 ************************************************************************
 **/
-void SavePosZero(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+void SavePosZero(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.tx_header.StdId = motor_id + mode_id;
 
@@ -177,7 +174,7 @@ static void MitCtrl(
 {
     uint16_t pos_tmp, vel_tmp, kp_tmp, kd_tmp, tor_tmp;
 
-    CAN_CTRL_DATA.tx_header.StdId = motor_id + DM_MIT_MODE;
+    CAN_CTRL_DATA.tx_header.StdId = motor_id + DM_MODE_MIT;
 
     pos_tmp = float_to_uint(pos, DM_P_MIN, DM_P_MAX, 16);
     vel_tmp = float_to_uint(vel, DM_V_MIN, DM_V_MAX, 12);
@@ -205,7 +202,7 @@ static void MitCtrl(
  * @param[in]      mode_id 模式ID
  * @retval         none
  */
-void DmEnable(Motor_s * motor, uint16_t mode_id)
+void DmEnable(Motor_s * motor, DmMode_e mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -226,7 +223,7 @@ void DmEnable(Motor_s * motor, uint16_t mode_id)
  * @param[in]      mode_id 模式ID
  * @retval         none
  */
-void DmDisable(Motor_s * motor, uint16_t mode_id)
+void DmDisable(Motor_s * motor, DmMode_e mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -247,7 +244,7 @@ void DmDisable(Motor_s * motor, uint16_t mode_id)
  * @param[in]      mode_id 模式ID
  * @retval         none
  */
-void DmSavePosZero(Motor_s * motor, uint16_t mode_id)
+void DmSavePosZero(Motor_s * motor, DmMode_e mode_id)
 {
     if (motor->type != DM_8009) return;
 
