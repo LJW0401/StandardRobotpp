@@ -16,9 +16,6 @@
 
 #include "CAN_cmd_dji.h"
 
-extern CAN_HandleTypeDef hcan1;
-extern CAN_HandleTypeDef hcan2;
-
 /*-------------------- Global var --------------------*/
 // 发送数据
 DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X200 = {
@@ -101,25 +98,6 @@ static DJI_Motor_Send_Data_s * GetSendDataBufferPoint(uint8_t can, DJI_Std_ID st
         }
     }
     return dji_motor_send_data;
-}
-
-/**
- * @brief          发送控制电流
- * @param[in]      can_handle 选择CAN1或CAN2
- * @param[in]      tx_header  CAN发送数据header
- * @param[in]      tx_data    发送数据
- * @return         none
- */
-static void CAN_SendTxMessage(
-    CAN_HandleTypeDef * can_handle, CAN_TxHeaderTypeDef * tx_header, uint8_t * tx_data)
-{
-    uint32_t send_mail_box;
-
-    uint32_t free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);  // 检测是否有空闲邮箱
-    while (free_TxMailbox < 3) {  // 等待空闲邮箱数达到3
-        free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);
-    }
-    HAL_CAN_AddTxMessage(can_handle, tx_header, tx_data, &send_mail_box);
 }
 
 /**

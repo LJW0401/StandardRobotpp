@@ -47,7 +47,7 @@ typedef struct _DjiMotorMeasure
 } DjiMotorMeasure_t;
 
 /*-------------------- CyberGear --------------------*/
-#define CYBERGEAR_NUM 8
+#define CYBERGEAR_NUM 5
 
 typedef enum _CybergearModeState {
     UNDEFINED_MODE = -1,  //未定义模式
@@ -94,6 +94,55 @@ typedef struct
 } CybergearMeasure_s;
 
 /*-------------------- DM Motor --------------------*/
+#define DM_NUM 6
+
+// clang-format off
+#define DM_MODE_MIT      0x000
+#define DM_MODE_POS      0x100
+#define DM_MODE_SPEED    0x200
+#define DM_MODE_POSI     0x300
+
+#define DM_STATE_DISABLE                0x00
+#define DM_STATE_ENABLE                 0x01
+#define DM_STATE_OVERVOLTAGE            0x08
+#define DM_STATE_UNDERVOLTAGE           0x09
+#define DM_STATE_OVERCURRENT            0x0A
+#define DM_STATE_MOS_OVER_TEMPERATURE   0x0B
+#define DM_STATE_COIL_OVER_TEMPERATURE  0x0C
+#define DM_STATE_COMMUNICATION_LOSS     0x0D
+#define DM_STATE_OVERLOAD               0x0E
+
+#define DM_P_MIN   -12.5f
+#define DM_P_MAX    12.5f
+#define DM_V_MIN   -30.0f
+#define DM_V_MAX    30.0f
+#define DM_KP_MIN   0.0f
+#define DM_KP_MAX   500.0f
+#define DM_KD_MIN   0.0f
+#define DM_KD_MAX   5.0f
+#define DM_T_MIN   -10.0f
+#define DM_T_MAX    10.0f
+// clang-format on
+
+typedef struct
+{
+    int id;
+    int state;
+    int p_int;
+    int v_int;
+    int t_int;
+    int kp_int;
+    int kd_int;
+
+    float pos;
+    float vel;
+    float tor;
+    float Kp;
+    float Kd;
+
+    float t_mos;
+    float t_rotor;
+} DmMeasure_s;
 
 /*-------------------- MF Motor --------------------*/
 
@@ -111,6 +160,7 @@ typedef struct __Motor
     uint8_t can;            // 电机所用CAN口
     float reduction_ratio;  // 电机减速比
     int8_t direction;       // 电机旋转方向（1或-1）
+    uint16_t mode;          // 电机模式
 
     /*状态量*/
     struct __fdb
@@ -123,6 +173,7 @@ typedef struct __Motor
         float current;      // (A)电机电流
         int16_t round;      // (r)电机旋转圈数(用于计算输出轴位置)
         uint16_t ecd;       // 电机编码器值
+        uint8_t state;      // 电机状态
     } fdb;
 
     /*设定值*/
@@ -139,6 +190,7 @@ typedef struct __Motor
 /*-------------------- Motor function --------------------*/
 
 extern void MotorInit(
-    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction);
+    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction,
+    float reduction_ratio, uint16_t mode);
 
 #endif  // MOTOR_H

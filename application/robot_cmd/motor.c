@@ -27,11 +27,18 @@
  * @param[in]   can 电机使用的can口
  * @param[in]   motor_type 电机种类
  * @param[in]   direction 电机旋转方向
+ * @param[in]   reduction_ratio 电机减速比（如电机反馈已经处理完了可以不用注意）
+ * @param[in]   mode 电机运行模式（通常关节电机需要用到）
  */
-void MotorInit(Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction)
+void MotorInit(
+    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction,
+    float reduction_ratio, uint16_t mode)
 {
     p_motor->id = id;
     p_motor->can = can;
     p_motor->type = motor_type;
     p_motor->direction = direction;
+    p_motor->reduction_ratio = reduction_ratio;
+    p_motor->mode = mode;
 }
+

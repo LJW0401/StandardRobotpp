@@ -52,8 +52,8 @@ typedef enum __MotorType {
     DJI_M3508,
     DJI_M6020,
     CYBERGEAR_MOTOR,
-    DM_MOTOR,
-    MF_MOTOR,
+    DM_8009,
+    MF_9025,
 } MotorType_e;
 
 #endif /* ROBOT_TYPEDEF_H */

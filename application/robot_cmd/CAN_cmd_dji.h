@@ -17,6 +17,7 @@
 #ifndef CAN_CMD_DJI_H
 #define CAN_CMD_DJI_H
 
+#include "bsp_can.h"
 #include "motor.h"
 #include "stm32f4xx_hal.h"
 #include "struct_typedef.h"
@@ -38,7 +39,7 @@ typedef enum {
 
 typedef struct  // DJI电机发送数据结构体
 {
-    CAN_HandleTypeDef * CAN;
+    hcan_t * CAN;
     DJI_Std_ID std_id;
     CAN_TxHeaderTypeDef tx_message;
     uint8_t can_send_data[8];
