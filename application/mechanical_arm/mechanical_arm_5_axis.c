@@ -60,7 +60,6 @@ Motor_s dm_motor = {
     .direction = 1,
     .reduction_ratio = 1,
     .type = DM_8009,
-    .mode = DM_MODE_MIT,
     .set = {.torque = 1, .velocity = 1, .position = 0},
 };
 
@@ -76,19 +75,19 @@ void InitMechanicalArm(void)
     // #Motor init ---------------------
     MotorInit(
         &MECHANICAL_ARM.joint_motor[0], JOINT_MOTOR_0_ID, JOINT_MOTOR_0_CAN, JOINT_MOTOR_0_TYPE,
-        JOINT_MOTOR_0_DIRECTION, JOINT_MOTOR_0_REDUCTION_RATIO, JOINT_MOTOR_0_MODE);
+        JOINT_MOTOR_0_DIRECTION);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[1], JOINT_MOTOR_1_ID, JOINT_MOTOR_1_CAN, JOINT_MOTOR_1_TYPE,
-        JOINT_MOTOR_1_DIRECTION, JOINT_MOTOR_1_REDUCTION_RATIO, JOINT_MOTOR_1_MODE);
+        JOINT_MOTOR_1_DIRECTION);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[2], JOINT_MOTOR_2_ID, JOINT_MOTOR_2_CAN, JOINT_MOTOR_2_TYPE,
-        JOINT_MOTOR_2_DIRECTION, JOINT_MOTOR_2_REDUCTION_RATIO, JOINT_MOTOR_2_MODE);
+        JOINT_MOTOR_2_DIRECTION);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[3], JOINT_MOTOR_3_ID, JOINT_MOTOR_3_CAN, JOINT_MOTOR_3_TYPE,
-        JOINT_MOTOR_3_DIRECTION, JOINT_MOTOR_3_REDUCTION_RATIO, JOINT_MOTOR_3_MODE);
+        JOINT_MOTOR_3_DIRECTION);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[4], JOINT_MOTOR_4_ID, JOINT_MOTOR_4_CAN, JOINT_MOTOR_4_TYPE,
-        JOINT_MOTOR_4_DIRECTION, JOINT_MOTOR_4_REDUCTION_RATIO, JOINT_MOTOR_4_MODE);
+        JOINT_MOTOR_4_DIRECTION);
     // #PID init ---------------------
     float pid_joint_3_angle[3] = {KP_JOINT_3_ANGLE, KI_JOINT_3_ANGLE, KD_JOINT_3_ANGLE};
     float pid_joint_3_speed[3] = {KP_JOINT_3_SPEED, KI_JOINT_3_SPEED, KD_JOINT_3_SPEED};
@@ -290,7 +289,7 @@ void SendMechanicalArmCmd(void)
         }
     }
 
-    DmEnable(&dm_motor);
+    DmEnable(&dm_motor,DM_MODE_MIT);
     // DmMitCtrlTorque(&dm_motor);
     DmMitCtrlPosition(&dm_motor, 2, 1);
 }

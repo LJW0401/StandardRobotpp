@@ -156,10 +156,10 @@ typedef struct __Motor
 {
     /*电机信息*/
     uint8_t id;             // 电机ID
-    uint8_t can;            // 电机所用CAN口
     MotorType_e type;       // 电机类型
-    int8_t direction;       // 电机旋转方向（1或-1）
+    uint8_t can;            // 电机所用CAN口
     float reduction_ratio;  // 电机减速比
+    int8_t direction;       // 电机旋转方向（1或-1）
     uint16_t mode;          // 电机模式
 
     /*状态量*/
@@ -190,7 +190,6 @@ typedef struct __Motor
 /*-------------------- Motor function --------------------*/
 
 extern void MotorInit(
-    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction,
-    float reduction_ratio, uint16_t mode);
+    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction);
 
 #endif  // MOTOR_H
