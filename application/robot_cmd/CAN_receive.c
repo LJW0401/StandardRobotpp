@@ -61,7 +61,7 @@ static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
 void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
 {
     dm_measure->id = (rx_data[0]) & 0x0F;
-    dm_measure->err = (rx_data[0]) >> 4;
+    dm_measure->state = (rx_data[0]) >> 4;
     dm_measure->p_int = (rx_data[1] << 8) | rx_data[2];
     dm_measure->v_int = (rx_data[3] << 4) | (rx_data[4] >> 4);
     dm_measure->t_int = ((rx_data[4] & 0xF) << 8) | rx_data[5];
@@ -259,6 +259,7 @@ static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
     motor->fdb.w = dm_measure->vel;
     motor->fdb.T = dm_measure->tor;
     motor->fdb.temperature = dm_measure->t_mos;
+    motor->fdb.state = dm_measure->state;
 }
 
 /**

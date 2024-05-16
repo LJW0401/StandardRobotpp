@@ -195,6 +195,26 @@ static void MitCtrl(
 }
 
 /*-------------------- User functions --------------------*/
+/**
+ * @brief          达妙电机清除错误
+ * @param[in]      motor 电机结构体
+ * @param[in]      mode_id 模式ID
+ * @retval         none
+ */
+void DmClearErr(Motor_s * motor, DmMode_e mode_id)
+{
+    if (motor->type != DM_8009) return;
+
+    hcan_t * hcan = NULL;
+    if (motor->can == 1)
+        hcan = &hcan1;
+    else if (motor->can == 2)
+        hcan = &hcan2;
+
+    if (hcan == NULL) return;
+
+    ClearErr(hcan, motor->id, mode_id);
+}
 
 /**
  * @brief          达妙电机使能
@@ -235,7 +255,7 @@ void DmDisable(Motor_s * motor, DmMode_e mode_id)
 
     if (hcan == NULL) return;
 
-    EnableMotorMode(hcan, motor->id, mode_id);
+    DisableMotorMode(hcan, motor->id, mode_id);
 }
 
 /**

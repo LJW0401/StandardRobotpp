@@ -99,11 +99,21 @@ typedef struct
 // clang-format off
 typedef enum __DmMode
 {
-    DM_MODE_MIT =    0x000,
-    DM_MODE_POS =    0x100,
-    DM_MODE_SPEED =  0x200,
-    DM_MODE_POSI =   0x300,
+    DM_MODE_MIT     = 0x000,
+    DM_MODE_POS     = 0x100,
+    DM_MODE_SPEED   = 0x200,
+    DM_MODE_POSI    = 0x300,
 } DmMode_e;
+
+#define DM_STATE_ENABLE                 0x00
+#define DM_STATE_DISABLE                0x01
+#define DM_STATE_OVERVOLTAGE            0x08
+#define DM_STATE_UNDERVOLTAGE           0x09
+#define DM_STATE_OVERCURRENT            0x0A
+#define DM_STATE_MOS_OVER_TEMPERATURE   0x0B
+#define DM_STATE_COIL_OVER_TEMPERATURE  0x0C
+#define DM_STATE_COMMUNICATION_LOSS     0x0D
+#define DM_STATE_OVERLOAD               0x0E
 
 #define DM_P_MIN   -12.5f
 #define DM_P_MAX    12.5f
@@ -120,7 +130,7 @@ typedef enum __DmMode
 typedef struct
 {
     int id;
-    int err;
+    int state;
     int p_int;
     int v_int;
     int t_int;
@@ -165,6 +175,7 @@ typedef struct __Motor
         float current;      // (A)电机电流
         int16_t round;      // (r)电机旋转圈数(用于计算输出轴位置)
         uint16_t ecd;       // 电机编码器值
+        uint8_t state;      // 电机状态
     } fdb;
 
     /*设定值*/
