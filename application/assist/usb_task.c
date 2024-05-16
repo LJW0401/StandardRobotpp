@@ -392,13 +392,13 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.name_1, "sin");
+    char_to_uint(OutputPCData.name_1, "ref_pos");
     OutputPCData.type_1 = 1;
 
-    char_to_uint(OutputPCData.name_2, "Pulse");
+    char_to_uint(OutputPCData.name_2, "fdb_pos");
     OutputPCData.type_2 = 1;
 
-    char_to_uint(OutputPCData.name_3, "Ramp");
+    char_to_uint(OutputPCData.name_3, "state");
     OutputPCData.type_3 = 1;
 
     char_to_uint(OutputPCData.name_4, "Sawtooth");

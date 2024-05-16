@@ -21,14 +21,13 @@
 
 #include <string.h>
 
+#include "bsp_can.h"
 #include "cmsis_os.h"
 #include "detect_task.h"
-
-extern CAN_HandleTypeDef hcan1;
-extern CAN_HandleTypeDef hcan2;
+#include "user_lib.h"
 
 // motor data read
-#define get_motor_measure(ptr, data)                                   \
+#define get_dji_motor_measure(ptr, data)                               \
     {                                                                  \
         (ptr)->last_ecd = (ptr)->ecd;                                  \
         (ptr)->ecd = (uint16_t)((data)[0] << 8 | (data)[1]);           \
@@ -41,10 +40,37 @@ extern CAN_HandleTypeDef hcan2;
 static DjiMotorMeasure_t CAN1_DJI_MEASURE[11];
 static DjiMotorMeasure_t CAN2_DJI_MEASURE[11];
 
-static CybergearMeasure_s CAN1_CYBERGEAR_MEASURE[CYBERGEAR_NUM];
-static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM];
+static CybergearMeasure_s CAN1_CYBERGEAR_MEASURE[CYBERGEAR_NUM + 1];
+static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM + 1];
+
+static DmMeasure_s CAN1_DM_MEASURE[DM_NUM];
+static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
 
 /*-------------------- Decode --------------------*/
+
+/**
+************************************************************************
+* @brief:      	DmFdbData: 获取DM电机反馈数据函数
+* @param[in]:   motor:    指向motor_t结构的指针，包含电机相关信息和反馈数据
+* @param[in]:   rx_data:  指向包含反馈数据的数组指针
+* @retval:     	void
+* @details:    	从接收到的数据中提取DM4310电机的反馈信息，包括电机ID、
+*               状态、位置、速度、扭矩以及相关温度参数
+************************************************************************
+**/
+void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
+{
+    dm_measure->id = (rx_data[0]) & 0x0F;
+    dm_measure->state = (rx_data[0]) >> 4;
+    dm_measure->p_int = (rx_data[1] << 8) | rx_data[2];
+    dm_measure->v_int = (rx_data[3] << 4) | (rx_data[4] >> 4);
+    dm_measure->t_int = ((rx_data[4] & 0xF) << 8) | rx_data[5];
+    dm_measure->pos = uint_to_float(dm_measure->p_int, DM_P_MIN, DM_P_MAX, 16);  // (-12.5,12.5)
+    dm_measure->vel = uint_to_float(dm_measure->v_int, DM_V_MIN, DM_V_MAX, 12);  // (-45.0,45.0)
+    dm_measure->tor = uint_to_float(dm_measure->t_int, DM_T_MIN, DM_T_MAX, 12);  // (-18.0,18.0)
+    dm_measure->t_mos = (float)(rx_data[6]);
+    dm_measure->t_rotor = (float)(rx_data[7]);
+}
 
 /**
  * @brief          若接收到的数据标识符为StdId则对应解码
@@ -53,8 +79,7 @@ static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM];
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-static void DecodeStdIdData(
-    CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
+static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
     switch (rx_header->StdId) {
         case DJI_M1_ID:
@@ -72,13 +97,29 @@ static void DecodeStdIdData(
             i = rx_header->StdId - DJI_M1_ID;
             if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
             {
-                get_motor_measure(&CAN1_DJI_MEASURE[i], rx_data);
+                get_dji_motor_measure(&CAN1_DJI_MEASURE[i], rx_data);
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
-                get_motor_measure(&CAN2_DJI_MEASURE[i], rx_data);
+                get_dji_motor_measure(&CAN2_DJI_MEASURE[i], rx_data);
             }
             break;
         }
+        case DM_M1_ID:
+        case DM_M2_ID:
+        case DM_M3_ID:
+        case DM_M4_ID:
+        case DM_M5_ID:
+        case DM_M6_ID: {  // 以上ID为DM电机标识符
+            static uint8_t i = 0;
+            i = rx_header->StdId - DM_M1_ID;
+            if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
+            {
+                DmFdbData(&CAN1_DM_MEASURE[i], rx_data);
+            } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
+            {
+                DmFdbData(&CAN2_DM_MEASURE[i], rx_data);
+            }
+        } break;
         default: {
             break;
         }
@@ -115,8 +156,7 @@ static void CybergearRxDecode(Motor_s * p_motor, uint8_t rx_data[8])
  * @param[in]      rx_header CAN接收数据头
  * @param[in]      rx_data CAN接收数据
  */
-static void DecodeExtIdData(
-    CAN_HandleTypeDef * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
+static void DecodeExtIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
     uint8_t motor_id = 0;
     if (((RxCanInfo_s *)(&rx_header->ExtId))->communication_type == 2) {  //通信类型2
@@ -141,7 +181,7 @@ static void DecodeExtIdData(
  * @param[in]      hcan:CAN句柄指针
  * @retval         none
  */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan)
+void HAL_CAN_RxFifo0MsgPendingCallback(hcan_t * hcan)
 {
     CAN_RxHeaderTypeDef rx_header;
     uint8_t rx_data[8];
@@ -178,6 +218,36 @@ const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
     return &CAN1_DJI_MEASURE[1];
 }
 
+/**
+ * @brief          获取DJI电机反馈数据
+ * @param[out]     p_motor 电机结构体 
+ * @param[in]      p_dji_motor_measure 电机反馈数据缓存区
+ * @return         none
+ */
+static void GetDjiFdbData(Motor_s * p_motor, const DjiMotorMeasure_t * p_dji_motor_measure)
+{
+    p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA * p_motor->reduction_ratio *
+                     p_motor->direction;
+    p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
+    p_motor->fdb.temperature = p_dji_motor_measure->temperate;
+    p_motor->fdb.current = p_dji_motor_measure->given_current;
+    p_motor->fdb.ecd = p_dji_motor_measure->ecd;
+}
+
+/**
+ * @brief          获取cybergear电机反馈数据
+ * @param[out]     p_motor 电机结构体 
+ * @param[in]      p_dji_motor_measure 电机反馈数据缓存区
+ * @return         none
+ */
+static void GetCybergearFdbData(Motor_s * p_motor, const CybergearMeasure_s * p_cybergear_measure)
+{
+    CybergearRxDecode(p_motor, p_cybergear_measure);
+    RxCanInfoType_2_s * rx_info =
+        (RxCanInfoType_2_s *)(&CAN1_CYBERGEAR_MEASURE[p_motor->id].ext_id);
+    p_motor->fdb.state = rx_info->mode_state;
+}
+
 CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return UNDEFINED_MODE;
@@ -192,6 +262,21 @@ CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
 }
 
 /**
+ * @brief          获取DM电机反馈数据
+ * @param[out]     motor 电机结构体 
+ * @param[in]      dm_measure 电机反馈数据缓存区
+ * @return         none
+ */
+static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
+{
+    motor->fdb.pos = dm_measure->pos;
+    motor->fdb.w = dm_measure->vel;
+    motor->fdb.T = dm_measure->tor;
+    motor->fdb.temperature = dm_measure->t_mos;
+    motor->fdb.state = dm_measure->state;
+}
+
+/**
  * @brief          获取接收数据
  * @param[out]     p_motor 电机结构体
  * @return         none
@@ -203,33 +288,28 @@ void GetMotorMeasure(Motor_s * p_motor)
         case DJI_M3508: {
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id - 1);
-            p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
-                                  p_motor->reduction_ratio * p_motor->direction;
-            p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
-            p_motor->fdb.temperature = p_dji_motor_measure->temperate;
-            p_motor->fdb.current = p_dji_motor_measure->given_current;
-            p_motor->fdb.ecd = p_dji_motor_measure->ecd;
+            GetDjiFdbData(p_motor, p_dji_motor_measure);
         } break;
         case DJI_M6020: {
             const DjiMotorMeasure_t * p_dji_motor_measure =
                 GetDjiMotorMeasurePoint(p_motor->can, p_motor->id + 3);
-            p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA *
-                                  p_motor->reduction_ratio * p_motor->direction;
-            p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
-            p_motor->fdb.temperature = p_dji_motor_measure->temperate;
-            p_motor->fdb.current = p_dji_motor_measure->given_current;
-            p_motor->fdb.ecd = p_dji_motor_measure->ecd;
+            GetDjiFdbData(p_motor, p_dji_motor_measure);
         } break;
         case CYBERGEAR_MOTOR: {
             if (p_motor->can == 1) {
-                CybergearRxDecode(p_motor, CAN1_CYBERGEAR_MEASURE[p_motor->id].rx_data);
+                GetCybergearFdbData(p_motor, CAN1_CYBERGEAR_MEASURE[p_motor->id].rx_data);
             } else {
-                CybergearRxDecode(p_motor, CAN2_CYBERGEAR_MEASURE[p_motor->id].rx_data);
+                GetCybergearFdbData(p_motor, CAN2_CYBERGEAR_MEASURE[p_motor->id].rx_data);
             }
         } break;
-        case DM_MOTOR: {
+        case DM_8009: {
+            if (p_motor->can == 1) {
+                GetDmFdbData(p_motor, &CAN1_DM_MEASURE[p_motor->id - 1]);
+            } else {
+                GetDmFdbData(p_motor, &CAN2_DM_MEASURE[p_motor->id - 1]);
+            }
         } break;
-        case MF_MOTOR: {
+        case MF_9025: {
         } break;
         default:
             break;

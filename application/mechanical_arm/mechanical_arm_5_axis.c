@@ -66,19 +66,20 @@ void InitMechanicalArm(void)
     // #Motor init ---------------------
     MotorInit(
         &MECHANICAL_ARM.joint_motor[0], JOINT_MOTOR_0_ID, JOINT_MOTOR_0_CAN, JOINT_MOTOR_0_TYPE,
-        JOINT_MOTOR_0_DIRECTION);
+        JOINT_MOTOR_0_DIRECTION, JOINT_MOTOR_0_REDUCTION_RATIO, JOINT_MOTOR_0_MODE);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[1], JOINT_MOTOR_1_ID, JOINT_MOTOR_1_CAN, JOINT_MOTOR_1_TYPE,
-        JOINT_MOTOR_1_DIRECTION);
+        JOINT_MOTOR_1_DIRECTION, JOINT_MOTOR_1_REDUCTION_RATIO, JOINT_MOTOR_1_MODE);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[2], JOINT_MOTOR_2_ID, JOINT_MOTOR_2_CAN, JOINT_MOTOR_2_TYPE,
-        JOINT_MOTOR_2_DIRECTION);
+        JOINT_MOTOR_2_DIRECTION, JOINT_MOTOR_2_REDUCTION_RATIO, JOINT_MOTOR_2_MODE);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[3], JOINT_MOTOR_3_ID, JOINT_MOTOR_3_CAN, JOINT_MOTOR_3_TYPE,
-        JOINT_MOTOR_3_DIRECTION);
+        JOINT_MOTOR_3_DIRECTION, JOINT_MOTOR_3_REDUCTION_RATIO, JOINT_MOTOR_3_MODE);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[4], JOINT_MOTOR_4_ID, JOINT_MOTOR_4_CAN, JOINT_MOTOR_4_TYPE,
-        JOINT_MOTOR_4_DIRECTION);
+        JOINT_MOTOR_4_DIRECTION, JOINT_MOTOR_4_REDUCTION_RATIO, JOINT_MOTOR_4_MODE);
+
     // #PID init ---------------------
     float pid_joint_3_angle[3] = {KP_JOINT_3_ANGLE, KI_JOINT_3_ANGLE, KD_JOINT_3_ANGLE};
     float pid_joint_3_speed[3] = {KP_JOINT_3_SPEED, KI_JOINT_3_SPEED, KD_JOINT_3_SPEED};
@@ -96,6 +97,8 @@ void InitMechanicalArm(void)
     PID_init(
         &MECHANICAL_ARM.pid.joint_speed[4], PID_POSITION, pid_joint_4_speed, MAX_OUT_JOINT_4_SPEED,
         MAX_IOUT_JOINT_4_SPEED);
+
+    MECHANICAL_ARM.rc = get_remote_control_point();
 }
 
 /*-------------------- Set mode --------------------*/
@@ -186,10 +189,6 @@ void MechanicalArmReference(void)
 
     EngineerCustomControllerData_t engineer_custom_controller_data;
     EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
-    OutputPCData.data_1 = GenerateSinWave(1.0f, 0.0f, 2.0f);
-    OutputPCData.data_2 = GeneratePulseWave(0.0f, 1.0f, 0.5f, 0.5f);
-    OutputPCData.data_3 = GenerateRampWave(0.0f, 1.0f, 0.0f, 2.0f);
-    OutputPCData.data_4 = GenerateSawtoothWave(0.0f,1.0f,1.0f);
 }
 
 /*-------------------- Console --------------------*/

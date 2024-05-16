@@ -49,6 +49,10 @@ extern fp32 theta_format(fp32 Ang);
 
 extern fp32 theta_transfrom(fp32 angle, fp32 dangle,int8_t direction);
 
+extern int float_to_uint(float x_float, float x_min, float x_max, int bits);
+
+extern float uint_to_float(int x_int, float x_min, float x_max, int bits);
+
 
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)

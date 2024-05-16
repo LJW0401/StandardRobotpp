@@ -13,16 +13,15 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
-#include "can_cmd_cybergear.h"
+#include "CAN_cmd_cybergear.h"
+
+#include "bsp_can.h"
 
 #ifndef CAN_N
 #define CAN_N
 #define CAN_1 hcan1
 #define CAN_2 hcan2
 #endif
-
-extern CAN_HandleTypeDef hcan1;
-extern CAN_HandleTypeDef hcan2;
 
 /* Private defines -----------------------------------------------------------*/
 #define P_MIN -12.5f
@@ -88,7 +87,7 @@ typedef struct
 
 typedef struct  // cybergear电机发送数据结构体
 {
-    CAN_HandleTypeDef * CAN;
+    hcan_t * CAN;
     Cybergear_Run_Mode_e run_mode;
     EXT_ID_t EXT_ID;
     CAN_TxHeaderTypeDef tx_message;
