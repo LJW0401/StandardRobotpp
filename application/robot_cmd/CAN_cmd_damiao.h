@@ -34,5 +34,7 @@ extern void DmMitCtrlTorque(Motor_s * motor);
 extern void DmMitCtrlVelocity(Motor_s * motor, float kd);
 extern void DmMitCtrlPosition(Motor_s * motor, float kp, float kd);
 
+extern void DmPosCtrl(Motor_s * motor);
+extern void DmSpeedCtrl(Motor_s * motor);
 #endif /* CAN_CMD_DAMIAO_H */
 /************************ END OF FILE ************************/

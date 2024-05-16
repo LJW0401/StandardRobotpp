@@ -194,6 +194,68 @@ static void MitCtrl(
     CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
 }
 
+/**
+************************************************************************
+* @brief      	PosSpeedCtrl: 位置速度控制函数
+* @param[in]   hcan:		指向CAN_HandleTypeDef结构的指针，用于指定CAN总线
+* @param[in]   motor_id:	电机ID，指定目标电机
+* @param[in]   vel:			速度给定值
+* @retval     	void
+* @details    	通过CAN总线向电机发送位置速度控制命令
+************************************************************************
+**/
+static void PosSpeedCtrl(hcan_t * hcan, uint16_t motor_id, float pos, float vel)
+{
+    CAN_CTRL_DATA.hcan = hcan;
+
+    CAN_CTRL_DATA.tx_header.StdId = motor_id + DM_MODE_POS;
+    CAN_CTRL_DATA.tx_header.DLC = 8;
+
+    uint8_t *pbuf, *vbuf;
+    pbuf = (uint8_t *)&pos;
+    vbuf = (uint8_t *)&vel;
+
+    CAN_CTRL_DATA.tx_data[0] = *pbuf;
+    CAN_CTRL_DATA.tx_data[1] = *(pbuf + 1);
+    CAN_CTRL_DATA.tx_data[2] = *(pbuf + 2);
+    CAN_CTRL_DATA.tx_data[3] = *(pbuf + 3);
+
+    CAN_CTRL_DATA.tx_data[4] = *vbuf;
+    CAN_CTRL_DATA.tx_data[5] = *(vbuf + 1);
+    CAN_CTRL_DATA.tx_data[6] = *(vbuf + 2);
+    CAN_CTRL_DATA.tx_data[7] = *(vbuf + 3);
+
+    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+}
+
+/**
+************************************************************************
+* @brief      	SpeedCtrl: 速度控制函数
+* @param[in]    hcan: 	  指向CAN_HandleTypeDef结构的指针，用于指定CAN总线
+* @param[in]    motor_id: 电机ID，指定目标电机
+* @param[in]    vel: 	  速度给定值
+* @retval     	void
+* @details    	通过CAN总线向电机发送速度控制命令
+************************************************************************
+**/
+static void SpeedCtrl(hcan_t * hcan, uint16_t motor_id, float vel)
+{
+    CAN_CTRL_DATA.hcan = hcan;
+
+    CAN_CTRL_DATA.tx_header.StdId = motor_id + DM_MODE_SPEED;
+    CAN_CTRL_DATA.tx_header.DLC = 4;
+
+    uint8_t * vbuf;
+    vbuf = (uint8_t *)&vel;
+
+    CAN_CTRL_DATA.tx_data[0] = *vbuf;
+    CAN_CTRL_DATA.tx_data[1] = *(vbuf + 1);
+    CAN_CTRL_DATA.tx_data[2] = *(vbuf + 2);
+    CAN_CTRL_DATA.tx_data[3] = *(vbuf + 3);
+
+    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+}
+
 /*-------------------- User functions --------------------*/
 /**
  * @brief          达妙电机清除错误
@@ -337,5 +399,45 @@ void DmMitCtrlPosition(Motor_s * motor, float kp, float kd)
     if (hcan == NULL) return;
 
     MitCtrl(hcan, motor->id, motor->set.position, 0, kp, kd, 0);
+}
+
+/**
+ * @brief          达妙电机位置模式控制
+ * @param[in]      motor 电机结构体
+ * @retval         none
+ */
+void DmPosCtrl(Motor_s * motor)
+{
+    if (motor->type != DM_8009) return;
+
+    hcan_t * hcan = NULL;
+    if (motor->can == 1)
+        hcan = &hcan1;
+    else if (motor->can == 2)
+        hcan = &hcan2;
+
+    if (hcan == NULL) return;
+
+    PosSpeedCtrl(hcan, motor->id, motor->set.position, motor->set.velocity);
+}
+
+/**
+ * @brief          达妙电机速度模式控制
+ * @param[in]      motor 电机结构体
+ * @retval         none
+ */
+void DmSpeedCtrl(Motor_s * motor)
+{
+    if (motor->type != DM_8009) return;
+
+    hcan_t * hcan = NULL;
+    if (motor->can == 1)
+        hcan = &hcan1;
+    else if (motor->can == 2)
+        hcan = &hcan2;
+
+    if (hcan == NULL) return;
+
+    SpeedCtrl(hcan, motor->id, motor->set.velocity);
 }
 /************************ END OF FILE ************************/
