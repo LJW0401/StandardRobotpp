@@ -85,6 +85,7 @@
 #include <stdbool.h>
 
 #define PRESET_SELF_COLOR 1
+#define PC_PACKET_NUM 10
 
 typedef struct {
     uint8_t vision;
@@ -203,36 +204,12 @@ typedef struct
 {
     uint8_t header;
     uint16_t length;
-    uint8_t name_1[10];
-    uint8_t type_1;
-    float data_1;
-    uint8_t name_2[10];
-    uint8_t type_2;
-    float data_2;
-    uint8_t name_3[10];
-    uint8_t type_3;
-    float data_3;
-    uint8_t name_4[10];
-    uint8_t type_4;
-    float data_4;
-    uint8_t name_5[10];
-    uint8_t type_5;
-    float data_5;
-    uint8_t name_6[10];
-    uint8_t type_6;
-    float data_6;
-    uint8_t name_7[10];
-    uint8_t type_7;
-    float data_7;
-    uint8_t name_8[10];
-    uint8_t type_8;
-    float data_8;
-    uint8_t name_9[10];
-    uint8_t type_9;
-    float data_9;
-    uint8_t name_10[10];
-    uint8_t type_10;
-    float data_10;
+    struct __packet
+    {
+        uint8_t name[10];
+        uint8_t type;
+        float data;
+    } __attribute__((packed)) packets[PC_PACKET_NUM];
     uint16_t checksum;
 } __attribute__((packed)) OutputPCData_s;
 
