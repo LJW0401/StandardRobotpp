@@ -6,6 +6,7 @@
 #ifndef INCLUDED_ROBOT_PARAM_H
 #define INCLUDED_ROBOT_PARAM_H
 #include "robot_typedef.h"
+#include "motor.h"
 
 #define CHASSIS_TYPE CHASSIS_NONE                  // 选择底盘类型
 #define GIMBAL_TYPE GIMBAL_NONE                    // 选择云台类型
@@ -84,6 +85,18 @@ typedef enum {
 #define JOINT_MOTOR_2_DIRECTION 1
 #define JOINT_MOTOR_3_DIRECTION 1
 #define JOINT_MOTOR_4_DIRECTION 1
+
+#define JOINT_MOTOR_0_REDUCTION_RATIO 1
+#define JOINT_MOTOR_1_REDUCTION_RATIO 1
+#define JOINT_MOTOR_2_REDUCTION_RATIO 1
+#define JOINT_MOTOR_3_REDUCTION_RATIO 1
+#define JOINT_MOTOR_4_REDUCTION_RATIO 1
+
+#define JOINT_MOTOR_0_MODE 0
+#define JOINT_MOTOR_1_MODE 0
+#define JOINT_MOTOR_2_MODE 0
+#define JOINT_MOTOR_3_MODE 0
+#define JOINT_MOTOR_4_MODE 0
 //upper_limit parameters ---------------------
 #define MAX_JOINT_0_POSITION 6.283185f  //2*M_PI
 #define MAX_JOINT_1_POSITION M_PI
