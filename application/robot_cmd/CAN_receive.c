@@ -237,12 +237,12 @@ static void GetDjiFdbData(Motor_s * p_motor, const DjiMotorMeasure_t * p_dji_mot
 /**
  * @brief          获取cybergear电机反馈数据
  * @param[out]     p_motor 电机结构体 
- * @param[in]      p_dji_motor_measure 电机反馈数据缓存区
+ * @param[in]      p_cybergear_measure 电机反馈数据缓存区
  * @return         none
  */
-static void GetCybergearFdbData(Motor_s * p_motor, const CybergearMeasure_s * p_cybergear_measure)
+static void GetCybergearFdbData(Motor_s * p_motor, CybergearMeasure_s * p_cybergear_measure)
 {
-    CybergearRxDecode(p_motor, p_cybergear_measure);
+    CybergearRxDecode(p_motor, p_cybergear_measure->rx_data);
     RxCanInfoType_2_s * rx_info =
         (RxCanInfoType_2_s *)(&CAN1_CYBERGEAR_MEASURE[p_motor->id].ext_id);
     p_motor->fdb.state = rx_info->mode_state;
@@ -297,9 +297,9 @@ void GetMotorMeasure(Motor_s * p_motor)
         } break;
         case CYBERGEAR_MOTOR: {
             if (p_motor->can == 1) {
-                GetCybergearFdbData(p_motor, CAN1_CYBERGEAR_MEASURE[p_motor->id].rx_data);
+                GetCybergearFdbData(p_motor, &CAN1_CYBERGEAR_MEASURE[p_motor->id]);
             } else {
-                GetCybergearFdbData(p_motor, CAN2_CYBERGEAR_MEASURE[p_motor->id].rx_data);
+                GetCybergearFdbData(p_motor, &CAN2_CYBERGEAR_MEASURE[p_motor->id]);
             }
         } break;
         case DM_8009: {

@@ -14,8 +14,9 @@
   *  v2.1.1     Mar-24-2024     LihanChen       1. 简化Append_CRC16_Check_Sum()函数，移除usb_printf()函数
   *  v2.1.2     Mar-25-2024     Penguin         1. 优化了数据接收逻辑，添加了数据指针获取函数
   *                                             2. 通过CRC8_CRC16.c/h文件中的函数实现CRC8校验和CRC16校验
-  *  v2.2.0     Apr-4-2024      Penguin         1. 添加了USB数据发送失败重发功能，保障了发送频率稳定
-  *  v2.3.0     Apr-6-2024      Penguin         1. 添加了不同数据包的USB发送周期控制
+  *  v2.2.0     Apr-04-2024     Penguin         1. 添加了USB数据发送失败重发功能，保障了发送频率稳定
+  *  v2.3.0     Apr-06-2024     Penguin         1. 添加了不同数据包的USB发送周期控制
+  *  v2.3.1     May-16-2024     Penguin         1. 将发送给串口助手的数据整合成数据包
   @verbatim
   =================================================================================
 如果要添加一个新的接收数据包
@@ -81,32 +82,34 @@
 #include "usb_task.h"
 
 #include <stdio.h>
+
+#include "CRC8_CRC16.h"
+#include "IMU_task.h"
+#include "bsp_buzzer.h"
+#include "cmsis_os.h"
+#include "detect_task.h"
+#include "referee.h"
+#include "remote_control.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 #include "usbd_conf.h"
-#include "cmsis_os.h"
-#include "bsp_buzzer.h"
-#include "IMU_task.h"
-#include "referee.h"
-#include "CRC8_CRC16.h"
-#include "remote_control.h"
-#include "detect_task.h"
 
 // Constants
 #define OUTPUT_VISION_MODE 0
 #define OUTPUT_PC_MODE 1
 
-#define EXPECTED_INPUT_SCANSTATUS_HEDER 0xA3
-#define EXPECTED_INPUT_NAVIGATION_HEDER 0xA4
-#define EXPECTED_INPUT_VISION_HEDER 0xA5
-#define EXPECTED_INPUT_PC_HEDER 0xA6
-#define SET_OUTPUT_PC_HEDER 0x6A
-#define SET_OUTPUT_VISION_HEDER 0x5A
-#define SET_OUTPUT_AllRobotHP_HEDER 0x5B
-#define SET_OUTPUT_GameStatus_HEDER 0x5C
-#define SET_OUTPUT_RobotStatus_HEDER 0x5D
+// clang-format off
+#define EXPECTED_INPUT_SCANSTATUS_HEDER  0xA3
+#define EXPECTED_INPUT_NAVIGATION_HEDER  0xA4
+#define EXPECTED_INPUT_VISION_HEDER      0xA5
+#define EXPECTED_INPUT_PC_HEDER          0xA6
+#define SET_OUTPUT_PC_HEDER              0x6A
+#define SET_OUTPUT_VISION_HEDER          0x5A
+#define SET_OUTPUT_AllRobotHP_HEDER      0x5B
+#define SET_OUTPUT_GameStatus_HEDER      0x5C
+#define SET_OUTPUT_RobotStatus_HEDER     0x5D
+// clang-format on
 
-#define CRC16_INIT 0xFFFF
 #define USB_STATE_INVALID 0xFF
 #define APP_RX_DATA_SIZE 2048
 #define APP_TX_DATA_SIZE 2048
@@ -119,8 +122,7 @@ static uint8_t usb_rx_buf[APP_RX_DATA_SIZE];
 static ReceivedPacketVision_s ReceivedPacketVision;
 static ReceivedPacketTwist_s ReceivedPacketTwist;
 static ReceivedPacketScanStatus_s ReceivedScanStatus = {
-    .stop_gimbal_scan = 0,
-    .chassis_spin_vel = 0};
+    .stop_gimbal_scan = 0, .chassis_spin_vel = 0};
 static InputPCData_s InputPCData;
 
 static SendPacketVision_s SendPacketVision;
@@ -144,41 +146,39 @@ static uint8_t usb_receive_scan_status(void);
 static uint8_t usb_receive_PC(void);
 static void usb_receive(void);
 static void usb_send_data(uint16_t len);
-static void char_to_uint(uint8_t *word, const char *str);
+static void char_to_uint(uint8_t * word, const char * str);
 
 /**
  * @brief      USB任务主函数，switch中为发送，接收部分在usb_receive()中处理
  * @param[in]  argument: 任务参数
  * @retval     None
  */
-void usb_task(void const *argument)
+void usb_task(void const * argument)
 {
     MX_USB_DEVICE_Init();
     memset(&usb_send_duration, 0, sizeof(usb_send_duration_t));
     USB_SEND_MODE = OUTPUT_VISION_MODE;
 
-    while (1)
-    {
+    while (1) {
         usb_receive();
 
-        switch (USB_SEND_MODE)
-        {
-        case OUTPUT_VISION_MODE:
-            usb_send_vision(6);
+        switch (USB_SEND_MODE) {
+            case OUTPUT_VISION_MODE:
+                usb_send_vision(6);
 
-            usb_send_AllRobotHP(100);
-            usb_send_GameStatus(100);
-            usb_send_RobotStatus(100);
-            break;
+                usb_send_AllRobotHP(100);
+                usb_send_GameStatus(100);
+                usb_send_RobotStatus(100);
+                break;
 
-        case OUTPUT_PC_MODE:
-            usb_send_outputPC(1);
-            break;
+            case OUTPUT_PC_MODE:
+                usb_send_outputPC(1);
+                break;
 
-        case USB_STATE_INVALID:
-            break;
+            case USB_STATE_INVALID:
+                break;
         }
-        osDelay(1); // 运行周期1ms
+        osDelay(1);  // 运行周期1ms
     }
 }
 
@@ -190,39 +190,37 @@ void usb_task(void const *argument)
 static void usb_receive(void)
 {
     uint32_t len = USB_RECEIVE_LEN;
-    CDC_Receive_FS(usb_rx_buf, &len); // Read data into the buffer
+    CDC_Receive_FS(usb_rx_buf, &len);  // Read data into the buffer
     uint8_t receive_ok = 0;
 
-    switch (usb_rx_buf[0])
-    {
-    case EXPECTED_INPUT_SCANSTATUS_HEDER:
-        /* 云台是否扫描模式 */
-        receive_ok = usb_receive_scan_status();
-        break;
+    switch (usb_rx_buf[0]) {
+        case EXPECTED_INPUT_SCANSTATUS_HEDER:
+            /* 云台是否扫描模式 */
+            receive_ok = usb_receive_scan_status();
+            break;
 
-    case EXPECTED_INPUT_NAVIGATION_HEDER:
-        /* 导航 */
-        receive_ok = usb_receive_navigation();
-        break;
+        case EXPECTED_INPUT_NAVIGATION_HEDER:
+            /* 导航 */
+            receive_ok = usb_receive_navigation();
+            break;
 
-    case EXPECTED_INPUT_VISION_HEDER:
-        /* 自瞄 */
-        USB_SEND_MODE = OUTPUT_VISION_MODE;
-        receive_ok = usb_receive_vision();
-        break;
+        case EXPECTED_INPUT_VISION_HEDER:
+            /* 自瞄 */
+            USB_SEND_MODE = OUTPUT_VISION_MODE;
+            receive_ok = usb_receive_vision();
+            break;
 
-    case EXPECTED_INPUT_PC_HEDER:
-        /* LJW串口助手 https://gitee.com/SMBU-POLARBEAR/Serial_Port_Assistant */
-        USB_SEND_MODE = OUTPUT_PC_MODE;
-        receive_ok = usb_receive_PC();
-        break;
+        case EXPECTED_INPUT_PC_HEDER:
+            /* LJW串口助手 https://gitee.com/SMBU-POLARBEAR/Serial_Port_Assistant */
+            USB_SEND_MODE = OUTPUT_PC_MODE;
+            receive_ok = usb_receive_PC();
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 
-    if (receive_ok)
-    {
+    if (receive_ok) {
         //detect_hook(USB_TOE);
     }
 }
@@ -234,8 +232,7 @@ static void usb_receive(void)
 static void usb_send_data(uint16_t len)
 {
     uint8_t usb_send_state = USBD_FAIL;
-    while (usb_send_state != USBD_OK)
-    {
+    while (usb_send_state != USBD_OK) {
         usb_send_state = CDC_Transmit_FS(usb_tx_buf, len);
     }
 }
@@ -247,8 +244,7 @@ static void usb_send_data(uint16_t len)
  */
 static void usb_send_vision(uint8_t t)
 {
-    if (usb_send_duration.vision < t)
-    {
+    if (usb_send_duration.vision < t) {
         usb_send_duration.vision++;
         return;
     }
@@ -256,13 +252,11 @@ static void usb_send_vision(uint8_t t)
 
     SendPacketVision.header = SET_OUTPUT_VISION_HEDER;
 
-    uint8_t self_color = get_team_color(); // 获取自身颜色
-    if (self_color == 2)                   // 处理裁判系统队伍判断异常的情况
+    uint8_t self_color = get_team_color();  // 获取自身颜色
+    if (self_color == 2)                    // 处理裁判系统队伍判断异常的情况
     {
         SendPacketVision.detect_color = !PRESET_SELF_COLOR;
-    }
-    else
-    {
+    } else {
         SendPacketVision.detect_color = !self_color;
     }
 
@@ -278,8 +272,7 @@ static void usb_send_vision(uint8_t t)
  */
 static void usb_send_AllRobotHP(uint8_t t)
 {
-    if (usb_send_duration.all_robot_hp < t)
-    {
+    if (usb_send_duration.all_robot_hp < t) {
         usb_send_duration.all_robot_hp++;
         return;
     }
@@ -316,8 +309,7 @@ static void usb_send_AllRobotHP(uint8_t t)
  */
 static void usb_send_GameStatus(uint8_t t)
 {
-    if (usb_send_duration.game_status < t)
-    {
+    if (usb_send_duration.game_status < t) {
         usb_send_duration.game_status++;
         return;
     }
@@ -340,8 +332,7 @@ static void usb_send_GameStatus(uint8_t t)
  */
 static void usb_send_RobotStatus(uint8_t t)
 {
-    if (usb_send_duration.robot_status < t)
-    {
+    if (usb_send_duration.robot_status < t) {
         usb_send_duration.robot_status++;
         return;
     }
@@ -352,13 +343,11 @@ static void usb_send_RobotStatus(uint8_t t)
     SendPacketRobotStatus.robot_id = robot_status.robot_id;
     SendPacketRobotStatus.current_hp = robot_status.current_HP;
     SendPacketRobotStatus.shooter_heat = get_shoot_heat();
-    uint8_t self_color = get_team_color(); // 获取自身颜色
-    if (self_color == 2)                   // 处理裁判系统队伍判断异常的情况
+    uint8_t self_color = get_team_color();  // 获取自身颜色
+    if (self_color == 2)                    // 处理裁判系统队伍判断异常的情况
     {
         SendPacketRobotStatus.team_color = PRESET_SELF_COLOR;
-    }
-    else
-    {
+    } else {
         SendPacketRobotStatus.team_color = self_color;
     }
     SendPacketRobotStatus.is_attacked = 0;
@@ -375,53 +364,31 @@ static void usb_send_RobotStatus(uint8_t t)
  */
 static void usb_send_outputPC(uint8_t t)
 {
-    if (usb_send_duration.outputPC_data < t)
-    {
+    if (usb_send_duration.outputPC_data < t) {
         usb_send_duration.outputPC_data++;
         return;
     }
     usb_send_duration.outputPC_data = 0;
 
     // const fp32 *gimbal_INT_gyro_angle_point = get_INS_angle_point();
-    const RC_ctrl_t *rc_ctrl = get_remote_control_point();
+    const RC_ctrl_t * rc_ctrl = get_remote_control_point();
 
-    const Angle_t *angle = GetAnglePoint();
-    const Accel_t *accel = GetAccelPoint();
-    const Velocity_t *velocity = GetVelocityPoint();
+    const Angle_t * angle = GetAnglePoint();
+    const Accel_t * accel = GetAccelPoint();
+    const Velocity_t * velocity = GetVelocityPoint();
 
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.name_1, "ref_pos");
-    OutputPCData.type_1 = 1;
+    char_to_uint(OutputPCData.packets[1].name, "ref_pos");
+    OutputPCData.packets[1].type = 1;
 
-    char_to_uint(OutputPCData.name_2, "fdb_pos");
-    OutputPCData.type_2 = 1;
+    char_to_uint(OutputPCData.packets[2].name, "fdb_pos");
+    OutputPCData.packets[2].type = 1;
 
-    char_to_uint(OutputPCData.name_3, "state");
-    OutputPCData.type_3 = 1;
-
-    char_to_uint(OutputPCData.name_4, "Sawtooth");
-    OutputPCData.type_4 = 1;
-
-    char_to_uint(OutputPCData.name_5, "pitch_n");
-    OutputPCData.type_5 = 1;
-
-    char_to_uint(OutputPCData.name_6, "roll_n");
-    OutputPCData.type_6 = 1;
-    OutputPCData.data_6 = angle->roll;
-
-    char_to_uint(OutputPCData.name_7, "wx");
-    OutputPCData.type_7 = 1;
-    OutputPCData.data_7 = velocity->x;
-
-    char_to_uint(OutputPCData.name_8, "wy");
-    OutputPCData.type_8 = 1;
-    OutputPCData.data_8 = velocity->y;
-
-    char_to_uint(OutputPCData.name_9, "wz");
-    OutputPCData.type_9 = 1;
-    OutputPCData.data_9 = velocity->z;
+    char_to_uint(OutputPCData.packets[3].name, "rc.ch");
+    OutputPCData.packets[3].type = 1;
+    OutputPCData.packets[3].data = rc_ctrl->rc.ch[0];
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));
@@ -435,9 +402,9 @@ static void usb_send_outputPC(uint8_t t)
  */
 static uint8_t usb_receive_scan_status(void)
 {
-    uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketScanStatus_s));
-    if (crc_ok)
-    {
+    uint8_t crc_ok =
+        verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketScanStatus_s));
+    if (crc_ok) {
         memcpy(&ReceivedScanStatus, usb_rx_buf, sizeof(ReceivedPacketScanStatus_s));
     }
     return crc_ok;
@@ -451,8 +418,7 @@ static uint8_t usb_receive_scan_status(void)
 static uint8_t usb_receive_navigation(void)
 {
     uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketTwist_s));
-    if (crc_ok)
-    {
+    if (crc_ok) {
         memcpy(&ReceivedPacketTwist, usb_rx_buf, sizeof(ReceivedPacketTwist_s));
     }
     return crc_ok;
@@ -466,8 +432,7 @@ static uint8_t usb_receive_navigation(void)
 static uint8_t usb_receive_vision(void)
 {
     uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(ReceivedPacketVision_s));
-    if (crc_ok)
-    {
+    if (crc_ok) {
         memcpy(&ReceivedPacketVision, usb_rx_buf, sizeof(ReceivedPacketVision_s));
         // buzzer_on(500, 30000);
     }
@@ -482,8 +447,7 @@ static uint8_t usb_receive_vision(void)
 static uint8_t usb_receive_PC(void)
 {
     uint8_t crc_ok = verify_CRC16_check_sum((uint8_t *)usb_rx_buf, sizeof(InputPCData_s));
-    if (crc_ok)
-    {
+    if (crc_ok) {
         memcpy(&InputPCData, usb_rx_buf, sizeof(InputPCData_s));
         // buzzer_on(500, 30000);
     }
@@ -496,11 +460,10 @@ static uint8_t usb_receive_PC(void)
  * @param[in]  str: 原始字符串
  * @retval     None
  */
-void char_to_uint(uint8_t *word, const char *str)
+void char_to_uint(uint8_t * word, const char * str)
 {
     int i = 0;
-    while (str[i] != '\0' && i < 10)
-    {
+    while (str[i] != '\0' && i < 10) {
         word[i] = str[i];
         i++;
     }
@@ -511,10 +474,7 @@ void char_to_uint(uint8_t *word, const char *str)
  * @param[in]      none
  * @return         视觉接收数据指针
  */
-const ReceivedPacketVision_s *GetReceivedPacketVisionPoint(void)
-{
-    return &ReceivedPacketVision;
-}
+const ReceivedPacketVision_s * GetReceivedPacketVisionPoint(void) { return &ReceivedPacketVision; }
 
 /**
  * @brief          获取视觉发送数据
@@ -522,27 +482,18 @@ const ReceivedPacketVision_s *GetReceivedPacketVisionPoint(void)
  * @return         视觉发送数据指针
  * @note           用于修改需要发送的视觉数据
  */
-SendPacketVision_s *GetSendPacketVisionPoint(void)
-{
-    return &SendPacketVision;
-}
+SendPacketVision_s * GetSendPacketVisionPoint(void) { return &SendPacketVision; }
 
 /**
  * @brief          获取导航接收数据
  * @param[in]      none
  * @return         导航接收数据指针
  */
-const ReceivedPacketTwist_s *GetReceivedPacketTwistPoint(void)
-{
-    return &ReceivedPacketTwist;
-}
+const ReceivedPacketTwist_s * GetReceivedPacketTwistPoint(void) { return &ReceivedPacketTwist; }
 
 /**
  * @brief          获取由上位机发送的云台是否进入扫描模式
  * @param[in]      none
  * @return         视觉接收数据指针
  */
-const ReceivedPacketScanStatus_s *GetReceivedPacketScanStatus(void)
-{
-    return &ReceivedScanStatus;
-}
+const ReceivedPacketScanStatus_s * GetReceivedPacketScanStatus(void) { return &ReceivedScanStatus; }
