@@ -97,13 +97,10 @@ typedef struct
 #define DM_NUM 6
 
 // clang-format off
-typedef enum __DmMode
-{
-    DM_MODE_MIT     = 0x000,
-    DM_MODE_POS     = 0x100,
-    DM_MODE_SPEED   = 0x200,
-    DM_MODE_POSI    = 0x300,
-} DmMode_e;
+#define DM_MODE_MIT     0x000
+#define DM_MODE_POS     0x100
+#define DM_MODE_SPEED   0x200
+#define DM_MODE_POSI    0x300
 
 #define DM_STATE_ENABLE                 0x00
 #define DM_STATE_DISABLE                0x01
@@ -163,6 +160,7 @@ typedef struct __Motor
     uint8_t can;            // 电机所用CAN口
     float reduction_ratio;  // 电机减速比
     int8_t direction;       // 电机旋转方向（1或-1）
+    uint16_t mode;          // 电机模式
 
     /*状态量*/
     struct __fdb
