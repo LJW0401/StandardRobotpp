@@ -54,16 +54,6 @@ static MechanicalArm_s MECHANICAL_ARM = {
     .init_completed = {false, false, false, false, false},
 };
 
-Motor_s dm_motor = {
-    .can = 1,
-    .id = 1,
-    .direction = 1,
-    .reduction_ratio = 1,
-    .type = DM_8009,
-    .mode = DM_MODE_MIT,
-    .set = {.torque = 1, .velocity = 3, .position = 0},
-};
-
 /*-------------------- Init --------------------*/
 
 /**
@@ -180,10 +170,6 @@ void MechanicalArmObserver(void)
         theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1);
     MECHANICAL_ARM.feedback.position[4] =
         theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1);
-
-    GetMotorMeasure(&dm_motor);
-    OutputPCData.data_2 = dm_motor.fdb.pos;
-    OutputPCData.data_3 = dm_motor.fdb.state;
 }
 
 /*-------------------- Reference --------------------*/
@@ -203,9 +189,6 @@ void MechanicalArmReference(void)
 
     EngineerCustomControllerData_t engineer_custom_controller_data;
     EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
-
-    dm_motor.set.position = GenerateSinWave(1.0f, 0.0f, 2.0f);
-    OutputPCData.data_1 = dm_motor.set.position;
 }
 
 /*-------------------- Console --------------------*/
@@ -293,19 +276,6 @@ void SendMechanicalArmCmd(void)
             CanCmdDjiMotor(2, DJI_200, 0, 0, 0, 0);
         }
     }
-
-    if (switch_is_up(MECHANICAL_ARM.rc->rc.s[0])) {
-        DmDisable(&dm_motor);
-    }else if(switch_is_mid(MECHANICAL_ARM.rc->rc.s[0])){
-        DmEnable(&dm_motor);
-    }else if(switch_is_down(MECHANICAL_ARM.rc->rc.s[0])){
-        DmMitCtrlPosition(&dm_motor, 2, 1);
-    }
-
-    if (switch_is_down(MECHANICAL_ARM.rc->rc.s[1])){
-        DmSavePosZero(&dm_motor);
-    }
-
 }
 
 #endif /* MECHANICAL_ARM_5_AXIS */

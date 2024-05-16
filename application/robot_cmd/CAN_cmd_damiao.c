@@ -1,10 +1,10 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
-  * @file       can_cmd_dji.c/h
+  * @file       can_cmd_dm.c/h
   * @brief      CAN发送函数，通过CAN信号控制达妙电机 8009.
   * @history
   *  Version    Date            Author          Modification
-  *  V2.0.0     May-15-2024     Penguin         1. 完成。
+  *  V2.0.0     May-16-2024     Penguin         1. 完成。
   *
   @verbatim
   ==============================================================================
@@ -17,6 +17,7 @@
 
 #include "bsp_can.h"
 #include "motor.h"
+#include "stdbool.h"
 #include "stm32f4xx_hal.h"
 #include "struct_typedef.h"
 #include "user_lib.h"
@@ -256,6 +257,26 @@ static void SpeedCtrl(hcan_t * hcan, uint16_t motor_id, float vel)
     CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
 }
 
+/*-------------------- Check functions --------------------*/
+
+/**
+ * @brief      获取can总线句柄
+ * @param[in]  motor 电机结构体
+ * @return     can总线句柄
+ * @note       获取电机结构体中的can号，返回对应的can总线句柄，同时检测电机类型是否为达妙电机
+ */
+static hcan_t * GetHcanPoint(Motor_s * motor)
+{
+    if (motor->type != DM_8009) return NULL;
+
+    if (motor->can == 1)
+        return &hcan1;
+    else if (motor->can == 2)
+        return &hcan2;
+
+    return NULL;
+}
+
 /*-------------------- User functions --------------------*/
 /**
  * @brief          达妙电机清除错误
@@ -265,14 +286,7 @@ static void SpeedCtrl(hcan_t * hcan, uint16_t motor_id, float vel)
  */
 void DmClearErr(Motor_s * motor)
 {
-    if (motor->type != DM_8009) return;
-
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
-
+    hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
     ClearErr(hcan, motor->id, motor->mode);
@@ -286,14 +300,7 @@ void DmClearErr(Motor_s * motor)
  */
 void DmEnable(Motor_s * motor)
 {
-    if (motor->type != DM_8009) return;
-
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
-
+    hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
     EnableMotorMode(hcan, motor->id, motor->mode);
@@ -307,14 +314,7 @@ void DmEnable(Motor_s * motor)
  */
 void DmDisable(Motor_s * motor)
 {
-    if (motor->type != DM_8009) return;
-
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
-
+    hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
     DisableMotorMode(hcan, motor->id, motor->mode);
@@ -328,14 +328,7 @@ void DmDisable(Motor_s * motor)
  */
 void DmSavePosZero(Motor_s * motor)
 {
-    if (motor->type != DM_8009) return;
-
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
-
+    hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
     SavePosZero(hcan, motor->id, motor->mode);
@@ -348,14 +341,7 @@ void DmSavePosZero(Motor_s * motor)
  */
 void DmMitCtrlTorque(Motor_s * motor)
 {
-    if (motor->type != DM_8009) return;
-
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
-
+    hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
     MitCtrl(hcan, motor->id, 0, 0, 0, 0, motor->set.torque);
@@ -368,14 +354,7 @@ void DmMitCtrlTorque(Motor_s * motor)
  */
 void DmMitCtrlVelocity(Motor_s * motor, float kd)
 {
-    if (motor->type != DM_8009) return;
-
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
-
+    hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
     MitCtrl(hcan, motor->id, 0, motor->set.velocity, 0, kd, 0);
@@ -388,14 +367,7 @@ void DmMitCtrlVelocity(Motor_s * motor, float kd)
  */
 void DmMitCtrlPosition(Motor_s * motor, float kp, float kd)
 {
-    if (motor->type != DM_8009) return;
-
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
-
+    hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
     MitCtrl(hcan, motor->id, motor->set.position, 0, kp, kd, 0);
@@ -406,38 +378,24 @@ void DmMitCtrlPosition(Motor_s * motor, float kp, float kd)
  * @param[in]      motor 电机结构体
  * @retval         none
  */
-// void DmPosCtrl(Motor_s * motor)
-// {
-//     if (motor->type != DM_8009) return;
+void DmPosCtrl(Motor_s * motor)
+{
+    hcan_t * hcan = GetHcanPoint(motor);
+    if (hcan == NULL) return;
 
-//     hcan_t * hcan = NULL;
-//     if (motor->can == 1)
-//         hcan = &hcan1;
-//     else if (motor->can == 2)
-//         hcan = &hcan2;
-
-//     if (hcan == NULL) return;
-
-//     PosSpeedCtrl(hcan, motor->id, motor->set.position, motor->set.velocity);
-// }
+    PosSpeedCtrl(hcan, motor->id, motor->set.position, motor->set.velocity);
+}
 
 /**
  * @brief          达妙电机速度模式控制
  * @param[in]      motor 电机结构体
  * @retval         none
  */
-// void DmSpeedCtrl(Motor_s * motor)
-// {
-//     if (motor->type != DM_8009) return;
+void DmSpeedCtrl(Motor_s * motor)
+{
+    hcan_t * hcan = GetHcanPoint(motor);
+    if (hcan == NULL) return;
 
-//     hcan_t * hcan = NULL;
-//     if (motor->can == 1)
-//         hcan = &hcan1;
-//     else if (motor->can == 2)
-//         hcan = &hcan2;
-
-//     if (hcan == NULL) return;
-
-//     SpeedCtrl(hcan, motor->id, motor->set.velocity);
-// }
+    SpeedCtrl(hcan, motor->id, motor->set.velocity);
+}
 /************************ END OF FILE ************************/
