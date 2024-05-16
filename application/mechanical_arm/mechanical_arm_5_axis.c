@@ -60,6 +60,7 @@ Motor_s dm_motor = {
     .direction = 1,
     .reduction_ratio = 1,
     .type = DM_8009,
+    .mode = DM_MODE_MIT,
     .set = {.torque = 1, .velocity = 1, .position = 0},
 };
 
@@ -289,7 +290,7 @@ void SendMechanicalArmCmd(void)
         }
     }
 
-    DmEnable(&dm_motor,DM_MODE_MIT);
+    DmEnable(&dm_motor);
     // DmMitCtrlTorque(&dm_motor);
     DmMitCtrlPosition(&dm_motor, 2, 1);
 }
