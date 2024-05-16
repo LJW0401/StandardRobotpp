@@ -398,7 +398,7 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.name_2, "fdb_pos");
     OutputPCData.type_2 = 1;
 
-    char_to_uint(OutputPCData.name_3, "Ramp");
+    char_to_uint(OutputPCData.name_3, "state");
     OutputPCData.type_3 = 1;
 
     char_to_uint(OutputPCData.name_4, "Sawtooth");

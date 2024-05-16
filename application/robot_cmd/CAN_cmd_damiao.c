@@ -406,38 +406,38 @@ void DmMitCtrlPosition(Motor_s * motor, float kp, float kd)
  * @param[in]      motor 电机结构体
  * @retval         none
  */
-void DmPosCtrl(Motor_s * motor)
-{
-    if (motor->type != DM_8009) return;
+// void DmPosCtrl(Motor_s * motor)
+// {
+//     if (motor->type != DM_8009) return;
 
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
+//     hcan_t * hcan = NULL;
+//     if (motor->can == 1)
+//         hcan = &hcan1;
+//     else if (motor->can == 2)
+//         hcan = &hcan2;
 
-    if (hcan == NULL) return;
+//     if (hcan == NULL) return;
 
-    PosSpeedCtrl(hcan, motor->id, motor->set.position, motor->set.velocity);
-}
+//     PosSpeedCtrl(hcan, motor->id, motor->set.position, motor->set.velocity);
+// }
 
 /**
  * @brief          达妙电机速度模式控制
  * @param[in]      motor 电机结构体
  * @retval         none
  */
-void DmSpeedCtrl(Motor_s * motor)
-{
-    if (motor->type != DM_8009) return;
+// void DmSpeedCtrl(Motor_s * motor)
+// {
+//     if (motor->type != DM_8009) return;
 
-    hcan_t * hcan = NULL;
-    if (motor->can == 1)
-        hcan = &hcan1;
-    else if (motor->can == 2)
-        hcan = &hcan2;
+//     hcan_t * hcan = NULL;
+//     if (motor->can == 1)
+//         hcan = &hcan1;
+//     else if (motor->can == 2)
+//         hcan = &hcan2;
 
-    if (hcan == NULL) return;
+//     if (hcan == NULL) return;
 
-    SpeedCtrl(hcan, motor->id, motor->set.velocity);
-}
+//     SpeedCtrl(hcan, motor->id, motor->set.velocity);
+// }
 /************************ END OF FILE ************************/

@@ -102,8 +102,8 @@ typedef struct
 #define DM_MODE_SPEED    0x200
 #define DM_MODE_POSI     0x300
 
-#define DM_STATE_ENABLE                 0x00
-#define DM_STATE_DISABLE                0x01
+#define DM_STATE_DISABLE                0x00
+#define DM_STATE_ENABLE                 0x01
 #define DM_STATE_OVERVOLTAGE            0x08
 #define DM_STATE_UNDERVOLTAGE           0x09
 #define DM_STATE_OVERCURRENT            0x0A

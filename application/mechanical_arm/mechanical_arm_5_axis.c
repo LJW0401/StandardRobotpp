@@ -61,7 +61,7 @@ Motor_s dm_motor = {
     .reduction_ratio = 1,
     .type = DM_8009,
     .mode = DM_MODE_MIT,
-    .set = {.torque = 1, .velocity = 1, .position = 0},
+    .set = {.torque = 1, .velocity = 3, .position = 0},
 };
 
 /*-------------------- Init --------------------*/
@@ -107,6 +107,8 @@ void InitMechanicalArm(void)
     PID_init(
         &MECHANICAL_ARM.pid.joint_speed[4], PID_POSITION, pid_joint_4_speed, MAX_OUT_JOINT_4_SPEED,
         MAX_IOUT_JOINT_4_SPEED);
+
+    MECHANICAL_ARM.rc = get_remote_control_point();
 }
 
 /*-------------------- Set mode --------------------*/
@@ -181,6 +183,7 @@ void MechanicalArmObserver(void)
 
     GetMotorMeasure(&dm_motor);
     OutputPCData.data_2 = dm_motor.fdb.pos;
+    OutputPCData.data_3 = dm_motor.fdb.state;
 }
 
 /*-------------------- Reference --------------------*/
@@ -291,9 +294,18 @@ void SendMechanicalArmCmd(void)
         }
     }
 
-    DmEnable(&dm_motor);
-    // DmMitCtrlTorque(&dm_motor);
-    DmMitCtrlPosition(&dm_motor, 2, 1);
+    if (switch_is_up(MECHANICAL_ARM.rc->rc.s[0])) {
+        DmDisable(&dm_motor);
+    }else if(switch_is_mid(MECHANICAL_ARM.rc->rc.s[0])){
+        DmEnable(&dm_motor);
+    }else if(switch_is_down(MECHANICAL_ARM.rc->rc.s[0])){
+        DmMitCtrlPosition(&dm_motor, 2, 1);
+    }
+
+    if (switch_is_down(MECHANICAL_ARM.rc->rc.s[1])){
+        DmSavePosZero(&dm_motor);
+    }
+
 }
 
 #endif /* MECHANICAL_ARM_5_AXIS */
