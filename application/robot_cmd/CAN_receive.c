@@ -65,8 +65,8 @@ void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
     dm_measure->p_int = (rx_data[1] << 8) | rx_data[2];
     dm_measure->v_int = (rx_data[3] << 4) | (rx_data[4] >> 4);
     dm_measure->t_int = ((rx_data[4] & 0xF) << 8) | rx_data[5];
-    dm_measure->pos = uint_to_float(dm_measure->p_int, DM_P_MIN, DM_P_MAX, 16); // (-12.5,12.5)
-    dm_measure->vel = uint_to_float(dm_measure->v_int, DM_V_MIN, DM_V_MAX, 12); // (-45.0,45.0)
+    dm_measure->pos = uint_to_float(dm_measure->p_int, DM_P_MIN, DM_P_MAX, 16);  // (-12.5,12.5)
+    dm_measure->vel = uint_to_float(dm_measure->v_int, DM_V_MIN, DM_V_MAX, 12);  // (-45.0,45.0)
     dm_measure->tor = uint_to_float(dm_measure->t_int, DM_T_MIN, DM_T_MAX, 12);  // (-18.0,18.0)
     dm_measure->t_mos = (float)(rx_data[6]);
     dm_measure->t_rotor = (float)(rx_data[7]);
@@ -234,6 +234,20 @@ static void GetDjiFdbData(Motor_s * p_motor, const DjiMotorMeasure_t * p_dji_mot
     p_motor->fdb.ecd = p_dji_motor_measure->ecd;
 }
 
+/**
+ * @brief          获取cybergear电机反馈数据
+ * @param[out]     p_motor 电机结构体 
+ * @param[in]      p_dji_motor_measure 电机反馈数据缓存区
+ * @return         none
+ */
+static void GetCybergearFdbData(Motor_s * p_motor, const CybergearMeasure_s * p_cybergear_measure)
+{
+    CybergearRxDecode(p_motor, p_cybergear_measure);
+    RxCanInfoType_2_s * rx_info =
+        (RxCanInfoType_2_s *)(&CAN1_CYBERGEAR_MEASURE[p_motor->id].ext_id);
+    p_motor->fdb.state = rx_info->mode_state;
+}
+
 CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
 {
     if (p_motor->type != CYBERGEAR_MOTOR) return UNDEFINED_MODE;
@@ -283,9 +297,9 @@ void GetMotorMeasure(Motor_s * p_motor)
         } break;
         case CYBERGEAR_MOTOR: {
             if (p_motor->can == 1) {
-                CybergearRxDecode(p_motor, CAN1_CYBERGEAR_MEASURE[p_motor->id].rx_data);
+                GetCybergearFdbData(p_motor, CAN1_CYBERGEAR_MEASURE[p_motor->id].rx_data);
             } else {
-                CybergearRxDecode(p_motor, CAN2_CYBERGEAR_MEASURE[p_motor->id].rx_data);
+                GetCybergearFdbData(p_motor, CAN2_CYBERGEAR_MEASURE[p_motor->id].rx_data);
             }
         } break;
         case DM_8009: {

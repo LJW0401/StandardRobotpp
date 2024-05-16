@@ -13,7 +13,7 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
-#include "can_cmd_cybergear.h"
+#include "CAN_cmd_cybergear.h"
 
 #include "bsp_can.h"
 
