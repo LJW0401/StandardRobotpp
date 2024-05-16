@@ -14,8 +14,9 @@
   *  v2.1.1     Mar-24-2024     LihanChen       1. 简化Append_CRC16_Check_Sum()函数，移除usb_printf()函数
   *  v2.1.2     Mar-25-2024     Penguin         1. 优化了数据接收逻辑，添加了数据指针获取函数
   *                                             2. 通过CRC8_CRC16.c/h文件中的函数实现CRC8校验和CRC16校验
-  *  v2.2.0     Apr-4-2024      Penguin         1. 添加了USB数据发送失败重发功能，保障了发送频率稳定
-  *  v2.3.0     Apr-6-2024      Penguin         1. 添加了不同数据包的USB发送周期控制
+  *  v2.2.0     Apr-04-2024     Penguin         1. 添加了USB数据发送失败重发功能，保障了发送频率稳定
+  *  v2.3.0     Apr-06-2024     Penguin         1. 添加了不同数据包的USB发送周期控制
+  *  v2.3.1     May-16-2024     Penguin         1. 将发送给串口助手的数据整合成数据包
   @verbatim
   =================================================================================
 如果要添加一个新的接收数据包
@@ -97,17 +98,18 @@
 #define OUTPUT_VISION_MODE 0
 #define OUTPUT_PC_MODE 1
 
-#define EXPECTED_INPUT_SCANSTATUS_HEDER 0xA3
-#define EXPECTED_INPUT_NAVIGATION_HEDER 0xA4
-#define EXPECTED_INPUT_VISION_HEDER 0xA5
-#define EXPECTED_INPUT_PC_HEDER 0xA6
-#define SET_OUTPUT_PC_HEDER 0x6A
-#define SET_OUTPUT_VISION_HEDER 0x5A
-#define SET_OUTPUT_AllRobotHP_HEDER 0x5B
-#define SET_OUTPUT_GameStatus_HEDER 0x5C
-#define SET_OUTPUT_RobotStatus_HEDER 0x5D
+// clang-format off
+#define EXPECTED_INPUT_SCANSTATUS_HEDER  0xA3
+#define EXPECTED_INPUT_NAVIGATION_HEDER  0xA4
+#define EXPECTED_INPUT_VISION_HEDER      0xA5
+#define EXPECTED_INPUT_PC_HEDER          0xA6
+#define SET_OUTPUT_PC_HEDER              0x6A
+#define SET_OUTPUT_VISION_HEDER          0x5A
+#define SET_OUTPUT_AllRobotHP_HEDER      0x5B
+#define SET_OUTPUT_GameStatus_HEDER      0x5C
+#define SET_OUTPUT_RobotStatus_HEDER     0x5D
+// clang-format on
 
-#define CRC16_INIT 0xFFFF
 #define USB_STATE_INVALID 0xFF
 #define APP_RX_DATA_SIZE 2048
 #define APP_TX_DATA_SIZE 2048
