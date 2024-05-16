@@ -4,7 +4,7 @@
   * @brief      CAN发送函数，通过CAN信号控制达妙电机 8009.
   * @history
   *  Version    Date            Author          Modification
-  *  V2.0.0     May-15-2024     Penguin         1. 完成。
+  *  V1.0.0     May-15-2024     Penguin         1. 完成。
   *
   @verbatim
   ==============================================================================

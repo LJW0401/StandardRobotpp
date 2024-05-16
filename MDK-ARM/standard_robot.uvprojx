@@ -1104,6 +1104,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\robot_cmd\CAN_cmd_damiao.c</FilePath>
             </File>
+            <File>
+              <FileName>CAN_cmd_lingkong.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\robot_cmd\CAN_cmd_lingkong.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
