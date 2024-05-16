@@ -47,40 +47,40 @@ struct __CanCtrlData
 
 /**
 ************************************************************************
-* @brief:      	ClearErr: 清除电机错误函数
-* @param[in]:   hcan:     指向CAN_HandleTypeDef结构的指针
-* @param[in]:   motor_id: 电机ID，指定目标电机
-* @param[in]:   mode_id:  模式ID，指定要清除错误的模式
-* @retval:     	void
-* @details:    	通过CAN总线向特定电机发送清除错误的命令。
+* @brief      	ClearErr: 清除电机错误函数
+* @param[in]    hcan:     指向CAN_HandleTypeDef结构的指针
+* @param[in]    motor_id: 电机ID，指定目标电机
+* @param[in]    mode_id:  模式ID，指定要清除错误的模式
+* @retval     	void
+* @details    	通过CAN总线向特定电机发送清除错误的命令。
 ************************************************************************
 **/
-static void ClearErr(hcan_t* hcan, uint16_t motor_id, uint16_t mode_id)
+static void ClearErr(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 {
     CAN_CTRL_DATA.hcan = hcan;
 
     CAN_CTRL_DATA.tx_header.StdId = motor_id + mode_id;
-	
-	CAN_CTRL_DATA.tx_data[0] = 0xFF;
-	CAN_CTRL_DATA.tx_data[1] = 0xFF;
-	CAN_CTRL_DATA.tx_data[2] = 0xFF;
-	CAN_CTRL_DATA.tx_data[3] = 0xFF;
-	CAN_CTRL_DATA.tx_data[4] = 0xFF;
-	CAN_CTRL_DATA.tx_data[5] = 0xFF;
-	CAN_CTRL_DATA.tx_data[6] = 0xFF;
-	CAN_CTRL_DATA.tx_data[7] = 0xFB;
-	
+
+    CAN_CTRL_DATA.tx_data[0] = 0xFF;
+    CAN_CTRL_DATA.tx_data[1] = 0xFF;
+    CAN_CTRL_DATA.tx_data[2] = 0xFF;
+    CAN_CTRL_DATA.tx_data[3] = 0xFF;
+    CAN_CTRL_DATA.tx_data[4] = 0xFF;
+    CAN_CTRL_DATA.tx_data[5] = 0xFF;
+    CAN_CTRL_DATA.tx_data[6] = 0xFF;
+    CAN_CTRL_DATA.tx_data[7] = 0xFB;
+
     CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
 }
 
 /**
 ************************************************************************
-* @brief:      	EnableMotorMode: 启用电机模式函数
-* @param[in]:   hcan:     指向CAN_HandleTypeDef结构的指针
-* @param[in]:   motor_id: 电机ID，指定目标电机
-* @param[in]:   mode_id:  模式ID，指定要开启的模式
-* @retval:     	void
-* @details:    	通过CAN总线向特定电机发送启用特定模式的命令
+* @brief      	EnableMotorMode: 启用电机模式函数
+* @param[in]    hcan:     指向CAN_HandleTypeDef结构的指针
+* @param[in]    motor_id: 电机ID，指定目标电机
+* @param[in]    mode_id:  模式ID，指定要开启的模式
+* @retval     	void
+* @details    	通过CAN总线向特定电机发送启用特定模式的命令
 ************************************************************************
 **/
 static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
@@ -106,12 +106,12 @@ static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 
 /**
 ************************************************************************
-* @brief:      	DisableMotorMode: 禁用电机模式函数
-* @param[in]:   hcan:     指向CAN_HandleTypeDef结构的指针
-* @param[in]:   motor_id: 电机ID，指定目标电机
-* @param[in]:   mode_id:  模式ID，指定要禁用的模式
-* @retval:     	void
-* @details:    	通过CAN总线向特定电机发送禁用特定模式的命令
+* @brief      	DisableMotorMode: 禁用电机模式函数
+* @param[in]    hcan:     指向CAN_HandleTypeDef结构的指针
+* @param[in]    motor_id: 电机ID，指定目标电机
+* @param[in]    mode_id:  模式ID，指定要禁用的模式
+* @retval     	void
+* @details    	通过CAN总线向特定电机发送禁用特定模式的命令
 ************************************************************************
 **/
 static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
@@ -134,12 +134,12 @@ static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 
 /**
 ************************************************************************
-* @brief:      	SavePosZero: 保存位置零点函数
-* @param[in]:   hcan:     指向CAN_HandleTypeDef结构的指针
-* @param[in]:   motor_id: 电机ID，指定目标电机
-* @param[in]:   mode_id:  模式ID，指定要保存位置零点的模式
-* @retval:     	void
-* @details:    	通过CAN总线向特定电机发送保存位置零点的命令
+* @brief      	SavePosZero: 保存位置零点函数
+* @param[in]    hcan:     指向CAN_HandleTypeDef结构的指针
+* @param[in]    motor_id: 电机ID，指定目标电机
+* @param[in]    mode_id:  模式ID，指定要保存位置零点的模式
+* @retval     	void
+* @details    	通过CAN总线向特定电机发送保存位置零点的命令
 ************************************************************************
 **/
 void SavePosZero(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
@@ -160,16 +160,16 @@ void SavePosZero(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 
 /**
 ************************************************************************
-* @brief:      	MitCtrl: MIT模式下的电机控制函数
-* @param[in]:   hcan:			指向CAN_HandleTypeDef结构的指针，用于指定CAN总线
-* @param[in]:   motor_id:	    电机ID，指定目标电机
-* @param[in]:   pos:			位置给定值
-* @param[in]:   vel:			速度给定值
-* @param[in]:   kp:				位置比例系数
-* @param[in]:   kd:				位置微分系数
-* @param[in]:   torq:			转矩给定值
-* @retval:     	void
-* @details:    	通过CAN总线向电机发送MIT模式下的控制帧。
+* @brief      	MitCtrl: MIT模式下的电机控制函数
+* @param[in]    hcan:			指向CAN_HandleTypeDef结构的指针，用于指定CAN总线
+* @param[in]    motor_id:	    电机ID，指定目标电机
+* @param[in]    pos:			位置给定值
+* @param[in]    vel:			速度给定值
+* @param[in]    kp:				位置比例系数
+* @param[in]    kd:				位置微分系数
+* @param[in]    torq:			转矩给定值
+* @retval     	void
+* @details    	通过CAN总线向电机发送MIT模式下的控制帧。
 ************************************************************************
 **/
 static void MitCtrl(
@@ -199,7 +199,13 @@ static void MitCtrl(
 
 /*-------------------- User functions --------------------*/
 
-void DmEnable(Motor_s * motor)
+/**
+ * @brief          达妙电机使能
+ * @param[in]      motor 电机结构体
+ * @param[in]      mode_id 模式ID
+ * @retval         none
+ */
+void DmEnable(Motor_s * motor, uint16_t mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -211,10 +217,16 @@ void DmEnable(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    EnableMotorMode(hcan, motor->id, DM_MIT_MODE);
+    EnableMotorMode(hcan, motor->id, mode_id);
 }
 
-void DmDisable(Motor_s * motor)
+/**
+ * @brief          达妙电机失能
+ * @param[in]      motor 电机结构体
+ * @param[in]      mode_id 模式ID
+ * @retval         none
+ */
+void DmDisable(Motor_s * motor, uint16_t mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -226,10 +238,16 @@ void DmDisable(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    DisableMotorMode(hcan, motor->id, DM_MIT_MODE);
+    EnableMotorMode(hcan, motor->id, mode_id);
 }
 
-void DmSavePosZero(Motor_s * motor)
+/**
+ * @brief          达妙电机保存零点
+ * @param[in]      motor 电机结构体
+ * @param[in]      mode_id 模式ID
+ * @retval         none
+ */
+void DmSavePosZero(Motor_s * motor, uint16_t mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -241,9 +259,14 @@ void DmSavePosZero(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    SavePosZero(hcan, motor->id, DM_MIT_MODE);
+    SavePosZero(hcan, motor->id, mode_id);
 }
 
+/**
+ * @brief          达妙电机使用力矩控制
+ * @param[in]      motor 电机结构体
+ * @retval         none
+ */
 void DmMitCtrlTorque(Motor_s * motor)
 {
     if (motor->type != DM_8009) return;
@@ -259,6 +282,11 @@ void DmMitCtrlTorque(Motor_s * motor)
     MitCtrl(hcan, motor->id, 0, 0, 0, 0, motor->set.torque);
 }
 
+/**
+ * @brief          达妙电机使用MIT模式控制速度
+ * @param[in]      motor 电机结构体
+ * @retval         none
+ */
 void DmMitCtrlVelocity(Motor_s * motor, float kd)
 {
     if (motor->type != DM_8009) return;
@@ -274,6 +302,11 @@ void DmMitCtrlVelocity(Motor_s * motor, float kd)
     MitCtrl(hcan, motor->id, 0, motor->set.velocity, 0, kd, 0);
 }
 
+/**
+ * @brief          达妙电机使用MIT模式控制位置
+ * @param[in]      motor 电机结构体
+ * @retval         none
+ */
 void DmMitCtrlPosition(Motor_s * motor, float kp, float kd)
 {
     if (motor->type != DM_8009) return;

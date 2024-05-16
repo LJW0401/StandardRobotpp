@@ -24,16 +24,15 @@
 #define CAN_2 hcan2
 #endif
 
-
-
 /*-------------------- User functions --------------------*/
-void DmEnable(Motor_s * motor);
-void DmDisable(Motor_s * motor);
-void DmSavePosZero(Motor_s * motor);
-void DmMitCtrlTorque(Motor_s * motor);
-void DmMitCtrlVelocity(Motor_s * motor, float kd);
-void DmMitCtrlPosition(Motor_s * motor, float kp, float kd);
 
+extern void DmEnable(Motor_s * motor, uint16_t mode_id);
+extern void DmDisable(Motor_s * motor, uint16_t mode_id);
+extern void DmSavePosZero(Motor_s * motor, uint16_t mode_id);
+
+extern void DmMitCtrlTorque(Motor_s * motor);
+extern void DmMitCtrlVelocity(Motor_s * motor, float kd);
+extern void DmMitCtrlPosition(Motor_s * motor, float kp, float kd);
 
 #endif /* CAN_CMD_DAMIAO_H */
 /************************ END OF FILE ************************/
