@@ -190,6 +190,7 @@ typedef struct __Motor
 /*-------------------- Motor function --------------------*/
 
 extern void MotorInit(
-    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction);
+    Motor_s * p_motor, uint8_t id, uint8_t can, MotorType_e motor_type, int8_t direction,
+    float reduction_ratio, uint16_t mode);
 
 #endif  // MOTOR_H
