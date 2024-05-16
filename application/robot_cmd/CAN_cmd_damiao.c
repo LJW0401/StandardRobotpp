@@ -55,7 +55,7 @@ struct __CanCtrlData
 * @details    	通过CAN总线向特定电机发送清除错误的命令。
 ************************************************************************
 **/
-static void ClearErr(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+static void ClearErr(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.hcan = hcan;
 
@@ -83,7 +83,7 @@ static void ClearErr(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 * @details    	通过CAN总线向特定电机发送启用特定模式的命令
 ************************************************************************
 **/
-static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.hcan = hcan;
 
@@ -111,7 +111,7 @@ static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 * @details    	通过CAN总线向特定电机发送禁用特定模式的命令
 ************************************************************************
 **/
-static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.hcan = hcan;
 
@@ -139,7 +139,7 @@ static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 * @details    	通过CAN总线向特定电机发送保存位置零点的命令
 ************************************************************************
 **/
-void SavePosZero(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
+void SavePosZero(hcan_t * hcan, uint16_t motor_id, DmMode_e mode_id)
 {
     CAN_CTRL_DATA.tx_header.StdId = motor_id + mode_id;
 
@@ -201,7 +201,7 @@ static void MitCtrl(
  * @param[in]      mode_id 模式ID
  * @retval         none
  */
-void DmClearErr(Motor_s * motor)
+void DmClearErr(Motor_s * motor, DmMode_e mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -213,7 +213,7 @@ void DmClearErr(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    ClearErr(hcan, motor->id, motor->mode);
+    ClearErr(hcan, motor->id, mode_id);
 }
 
 /**
@@ -222,7 +222,7 @@ void DmClearErr(Motor_s * motor)
  * @param[in]      mode_id 模式ID
  * @retval         none
  */
-void DmEnable(Motor_s * motor)
+void DmEnable(Motor_s * motor, DmMode_e mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -234,7 +234,7 @@ void DmEnable(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    EnableMotorMode(hcan, motor->id, motor->mode);
+    EnableMotorMode(hcan, motor->id, mode_id);
 }
 
 /**
@@ -243,7 +243,7 @@ void DmEnable(Motor_s * motor)
  * @param[in]      mode_id 模式ID
  * @retval         none
  */
-void DmDisable(Motor_s * motor)
+void DmDisable(Motor_s * motor, DmMode_e mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -255,7 +255,7 @@ void DmDisable(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    DisableMotorMode(hcan, motor->id, motor->mode);
+    DisableMotorMode(hcan, motor->id, mode_id);
 }
 
 /**
@@ -264,7 +264,7 @@ void DmDisable(Motor_s * motor)
  * @param[in]      mode_id 模式ID
  * @retval         none
  */
-void DmSavePosZero(Motor_s * motor)
+void DmSavePosZero(Motor_s * motor, DmMode_e mode_id)
 {
     if (motor->type != DM_8009) return;
 
@@ -276,7 +276,7 @@ void DmSavePosZero(Motor_s * motor)
 
     if (hcan == NULL) return;
 
-    SavePosZero(hcan, motor->id, motor->mode);
+    SavePosZero(hcan, motor->id, mode_id);
 }
 
 /**
