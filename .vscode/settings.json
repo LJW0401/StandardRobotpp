@@ -62,7 +62,8 @@
         "can_cmd_damiao.h": "c",
         "bsp_delay.h": "c",
         "bsp_uart.h": "c",
-        "usart.h": "c"
+        "usart.h": "c",
+        "data_exchange.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

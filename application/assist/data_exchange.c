@@ -13,15 +13,27 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
-
 #include "data_exchange.h"
 
-/**
- * @brief 发布数据
- */
-void Publish(){}
+#include "string.h"
+
+typedef struct {
+    uint8_t data[8];
+} Data_t;
+
+static uint8_t DATA_BUFFER[Data_Exchange_INDEX_NUM * 8] = {0};
 
 /**
- * @brief 订阅数据
+ * @brief          发布数据
+ * @param[in]      index 数据索引
+ * @param[in]      data 发布的数据（统一存储为8个字节）
+ * @retval         none
  */
-void Subscribe(){}
+void Publish(DataExchangeIndex_e index, uint8_t data[8]) { memcpy(&DATA_BUFFER[index], data, 8); }
+
+/**
+ * @brief          订阅数据
+ * @param[in]      index 数据索引
+ * @retval         订阅数据的起始地址，需使用memcpy将值拷贝出来
+ */
+const uint8_t* Subscribe(DataExchangeIndex_e index) {}

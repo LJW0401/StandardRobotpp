@@ -16,5 +16,12 @@
 
 #ifndef __DATA_EXCHANGE_H
 #define __DATA_EXCHANGE_H
+#include "struct_typedef.h"
+
+typedef enum __DataExchangeIndex {
+    TEST_DATA = 0,
+    YAW_ANGLE,
+    Data_Exchange_INDEX_NUM
+} DataExchangeIndex_e;
 
 #endif  // __DATA_EXCHANGE_H
