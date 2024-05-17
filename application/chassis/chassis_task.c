@@ -34,6 +34,7 @@ uint32_t chassis_high_water;
 #endif /* __weak */
 
 __weak void InitChassis(void);
+__weak void HandleException(void);
 __weak void SetChassisMode(void);
 __weak void ChassisObserver(void);
 __weak void ChassisReference(void);
@@ -53,10 +54,12 @@ void chassis_task(void const * pvParameters)
     InitChassis();
 
     while (1) {
-        // 设置底盘模式
-        SetChassisMode();
         // 更新状态量
         ChassisObserver();
+        // 处理异常
+        HandleException();
+        // 设置底盘模式
+        SetChassisMode();
         // 更新目标量
         ChassisReference();
         // 计算控制量
@@ -73,6 +76,12 @@ void chassis_task(void const * pvParameters)
 }
 
 __weak void InitChassis(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+__weak void HandleException(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容

@@ -20,6 +20,7 @@
 #include "CAN_communication.h"
 #include "bsp_delay.h"
 #include "leg_model.h"
+#include "signal_generator.h"
 #include "user_lib.h"
 
 #define LOCATION_CONTROL
@@ -188,9 +189,16 @@ void InitChassis(void)
         MotorInit(&CHASSIS.joint_motor[i], i + 1, 1, DM_8009, 1, 1, DM_MODE_MIT);
     }
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (uint8_t i = 0; i < 2; i++) {
         MotorInit(&CHASSIS.wheel_motor[i], i + 1, 1, MF_9025, 1, 1, DM_MODE_MIT);
     }
+
+    delay_ms(1000);
+
+    for (uint8_t i = 0; i < 4; i++) {
+        DmEnable(&CHASSIS.joint_motor[i]);
+    }
+
     /*-------------------- 初始化底盘PID --------------------*/
     float yaw_angle_pid[3] = {KP_CHASSIS_YAW_ANGLE, KI_CHASSIS_YAW_ANGLE, KD_CHASSIS_YAW_ANGLE};
     float yaw_velocity_pid[3] = {
@@ -234,6 +242,22 @@ void InitChassis(void)
         MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE, MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE);
 }
 
+/*-------------------- Handle exception --------------------*/
+
+/**
+ * @brief          异常处理
+ * @param[in]      none
+ * @retval         none
+ */
+void HandleException(void)
+{
+    for (uint8_t i = 0; i < 4; i++) {
+        if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
+            DmEnable(&CHASSIS.joint_motor[i]);
+        }
+    }
+}
+
 /*-------------------- Set mode --------------------*/
 
 /**
@@ -256,6 +280,7 @@ void SetChassisMode(void)
 
 static void UpdateLegStatus(void);
 static void UpdateImuStatus(void);
+static void UpdateMotorStatus(void);
 
 /**
  * @brief          更新状态量
@@ -268,6 +293,8 @@ void ChassisObserver(void)
     UpdateLegStatus();
     // 更新底盘IMU数据
     UpdateImuStatus();
+    // 更新底盘电机数据
+    UpdateMotorStatus();
 
     // 更新fdb数据
     CHASSIS.feedback.roll = CHASSIS.imu.roll;
@@ -288,6 +315,16 @@ void ChassisObserver(void)
     CHASSIS.feedback.x[5] = CHASSIS.imu.pitch_velocity;
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
+}
+
+/**
+ * @brief  更新底盘电机数据
+ * @param  none
+ */
+static void UpdateMotorStatus(void){
+    for(uint8_t i = 0;i<4;i++){
+        GetMotorMeasure(&CHASSIS.joint_motor[i]);
+    }
 }
 
 /**
@@ -434,20 +471,26 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
  */
 void ChassisConsole(void)
 {
-    switch (CHASSIS.mode) {
-        case CHASSIS_ZERO_FORCE:
-            break;
-        default: {
-            float tp[2], t[2];
-            LocomotionController(tp, t);
-#ifdef LOCATION_CONTROL
-            double joint_pos_l[2], joint_pos_r[2];
-            LegController(joint_pos_l, joint_pos_r);
-#else
-            LegController(float F[2]);
-#endif
-            break;
-        }
+    //     switch (CHASSIS.mode) {
+    //         case CHASSIS_ZERO_FORCE:
+    //             break;
+    //         default: {
+    //             float tp[2], t[2];
+    //             LocomotionController(tp, t);
+    // #ifdef LOCATION_CONTROL
+    //             double joint_pos_l[2], joint_pos_r[2];
+    //             LegController(joint_pos_l, joint_pos_r);
+    // #else
+    //             LegController(float F[2]);
+    // #endif
+    //             break;
+    //         }
+    //     }
+    for (uint8_t i = 0; i < 4; i++) {
+        CHASSIS.joint_motor[i].set.position = GenerateSinWave(1, 0, 2);
+        CHASSIS.joint_motor[i].set.torque = 0;
+        CHASSIS.joint_motor[i].set.velocity = 0;
+        CHASSIS.joint_motor[i].set.current = 0;
     }
 }
 
