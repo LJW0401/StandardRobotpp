@@ -19,6 +19,7 @@
 #if (CHASSIS_TYPE == CHASSIS_BALANCE)
 #include "leg_model.h"
 #include "user_lib.h"
+#include "CAN_communication.h"
 
 #define LOCATION_CONTROL
 
@@ -182,8 +183,13 @@ void InitChassis(void)
 {
     CHASSIS.rc = get_remote_control_point();  // 获取遥控器指针
     /*-------------------- 初始化底盘电机 --------------------*/
-    //TODO:add code here
+    for (uint8_t i = 0; i < 4; i++) {
+        MotorInit(&CHASSIS.joint_motor[i], i + 1, 1, DM_8009, 1, 1, DM_MODE_MIT);
+    }
 
+    for (uint8_t i = 0; i < 4; i++) {
+        MotorInit(&CHASSIS.wheel_motor[i], i + 1, 1, MF_9025, 1, 1, DM_MODE_MIT);
+    }
     /*-------------------- 初始化底盘PID --------------------*/
     float yaw_angle_pid[3] = {KP_CHASSIS_YAW_ANGLE, KI_CHASSIS_YAW_ANGLE, KD_CHASSIS_YAW_ANGLE};
     float yaw_velocity_pid[3] = {
@@ -275,12 +281,12 @@ void ChassisObserver(void)
         CHASSIS.imu.pitch_velocity;
     CHASSIS.feedback.x[2] = 0;
     CHASSIS.feedback.x[3] =
-        (CHASSIS.wheel_motor[0].v + CHASSIS.wheel_motor[1].v) / 2 * WHEEL_RADIUS;
+        (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2 * WHEEL_RADIUS;
     CHASSIS.feedback.x[4] = CHASSIS.imu.pitch;
 
     CHASSIS.feedback.x[5] = CHASSIS.imu.pitch_velocity;
 
-    CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
+    // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
 }
 
 /**
@@ -308,49 +314,49 @@ static void UpdateImuStatus(void)
  */
 static void UpdateLegStatus(void)
 {
-    double leg_pos[2];
-    double leg_speed[2];
-    /*-------------------- 更新左腿 --------------------*/
-    // 更新位置信息
-    LegFKine(CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_pos);
-    CHASSIS.feedback.leg_pos_left.length = leg_pos[0];
-    CHASSIS.feedback.leg_pos_left.angle = leg_pos[1];
+    // double leg_pos[2];
+    // double leg_speed[2];
+    // /*-------------------- 更新左腿 --------------------*/
+    // // 更新位置信息
+    // LegFKine(CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_pos);
+    // CHASSIS.feedback.leg_pos_left.length = leg_pos[0];
+    // CHASSIS.feedback.leg_pos_left.angle = leg_pos[1];
 
-    // 更新速度信息
-    CHASSIS.feedback.leg_pos_left.last_dLength = CHASSIS.feedback.leg_pos_left.dLength;
-    LegSpeed(
-        CHASSIS.left_joint_motor[1].w, CHASSIS.left_joint_motor[0].w,
-        CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_speed);
-    CHASSIS.feedback.leg_pos_left.dLength = leg_speed[0];
-    CHASSIS.feedback.leg_pos_left.dAngle = leg_speed[1];
+    // // 更新速度信息
+    // CHASSIS.feedback.leg_pos_left.last_dLength = CHASSIS.feedback.leg_pos_left.dLength;
+    // LegSpeed(
+    //     CHASSIS.left_joint_motor[1].w, CHASSIS.left_joint_motor[0].w,
+    //     CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_speed);
+    // CHASSIS.feedback.leg_pos_left.dLength = leg_speed[0];
+    // CHASSIS.feedback.leg_pos_left.dAngle = leg_speed[1];
 
-    // 计算腿长加速度
-    CHASSIS.feedback.leg_pos_left.ddLength =
-        ((CHASSIS.feedback.leg_pos_left.dLength - CHASSIS.feedback.leg_pos_left.last_dLength) *
-         1000 / 4) *
-            LEG_DDLENGTH_LPF_RATIO +
-        CHASSIS.feedback.leg_pos_left.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
+    // // 计算腿长加速度
+    // CHASSIS.feedback.leg_pos_left.ddLength =
+    //     ((CHASSIS.feedback.leg_pos_left.dLength - CHASSIS.feedback.leg_pos_left.last_dLength) *
+    //      1000 / 4) *
+    //         LEG_DDLENGTH_LPF_RATIO +
+    //     CHASSIS.feedback.leg_pos_left.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
 
-    /*-------------------- 更新右腿 --------------------*/
-    // 更新位置信息
-    LegFKine(CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_pos);
-    CHASSIS.feedback.leg_pos_right.length = leg_pos[0];
-    CHASSIS.feedback.leg_pos_right.angle = leg_pos[1];
+    // /*-------------------- 更新右腿 --------------------*/
+    // // 更新位置信息
+    // LegFKine(CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_pos);
+    // CHASSIS.feedback.leg_pos_right.length = leg_pos[0];
+    // CHASSIS.feedback.leg_pos_right.angle = leg_pos[1];
 
-    // 更新速度信息
-    CHASSIS.feedback.leg_pos_right.last_dLength = CHASSIS.feedback.leg_pos_right.dLength;
-    LegSpeed(
-        CHASSIS.left_joint_motor[1].w, CHASSIS.left_joint_motor[0].w,
-        CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_speed);
-    CHASSIS.feedback.leg_pos_right.dLength = leg_speed[0];
-    CHASSIS.feedback.leg_pos_right.dAngle = leg_speed[1];
+    // // 更新速度信息
+    // CHASSIS.feedback.leg_pos_right.last_dLength = CHASSIS.feedback.leg_pos_right.dLength;
+    // LegSpeed(
+    //     CHASSIS.left_joint_motor[1].w, CHASSIS.left_joint_motor[0].w,
+    //     CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_speed);
+    // CHASSIS.feedback.leg_pos_right.dLength = leg_speed[0];
+    // CHASSIS.feedback.leg_pos_right.dAngle = leg_speed[1];
 
-    // 计算腿长加速度
-    CHASSIS.feedback.leg_pos_right.ddLength =
-        ((CHASSIS.feedback.leg_pos_right.dLength - CHASSIS.feedback.leg_pos_right.last_dLength) *
-         1000 / 4) *
-            LEG_DDLENGTH_LPF_RATIO +
-        CHASSIS.feedback.leg_pos_right.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
+    // // 计算腿长加速度
+    // CHASSIS.feedback.leg_pos_right.ddLength =
+    //     ((CHASSIS.feedback.leg_pos_right.dLength - CHASSIS.feedback.leg_pos_right.last_dLength) *
+    //      1000 / 4) *
+    //         LEG_DDLENGTH_LPF_RATIO +
+    //     CHASSIS.feedback.leg_pos_right.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
 }
 
 /*-------------------- Reference --------------------*/
@@ -584,7 +590,13 @@ void SendChassisCmd(void)
  * @brief 发送关节电机控制指令
  * @param[in] chassis
  */
-static void SendJointMotorCmd(void) {}
+static void SendJointMotorCmd(void) {
+    DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2,1);
+    DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2,1);
+    DmMitCtrlPosition(&CHASSIS.joint_motor[2], 2,1);
+
+    DmMitCtrlPosition(&CHASSIS.joint_motor[3], 2,1);
+}
 /**
  * @brief 发送驱动轮电机控制指令
  * @param chassis

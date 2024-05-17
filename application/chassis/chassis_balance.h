@@ -111,11 +111,9 @@ typedef struct
     ChassisMode_e mode;    // 底盘模式
 
     /*-------------------- Motors --------------------*/
-    DJI_Motor_s yaw_motor;  // yaw轴电机
     // 平衡底盘有2个驱动轮电机和4个关节电机
-    DM_Motor_s left_joint_motor[2];   // 关节电机 0-前关节，1-后关节
-    DM_Motor_s right_joint_motor[2];  // 关节电机 0-前关节，1-后关节
-    MF_Motor_s wheel_motor[2];        // 驱动轮电机 0-左轮，1-右轮
+    Motor_s joint_motor[4];
+    Motor_s wheel_motor[2];        // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
     Imu_t imu;  // (feedback)底盘使用的IMU数据
 
