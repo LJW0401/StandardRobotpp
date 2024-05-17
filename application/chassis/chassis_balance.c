@@ -17,9 +17,10 @@
 */
 #include "chassis_balance.h"
 #if (CHASSIS_TYPE == CHASSIS_BALANCE)
+#include "CAN_communication.h"
+#include "bsp_delay.h"
 #include "leg_model.h"
 #include "user_lib.h"
-#include "CAN_communication.h"
 
 #define LOCATION_CONTROL
 
@@ -590,12 +591,13 @@ void SendChassisCmd(void)
  * @brief 发送关节电机控制指令
  * @param[in] chassis
  */
-static void SendJointMotorCmd(void) {
-    DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2,1);
-    DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2,1);
-    DmMitCtrlPosition(&CHASSIS.joint_motor[2], 2,1);
-
-    DmMitCtrlPosition(&CHASSIS.joint_motor[3], 2,1);
+static void SendJointMotorCmd(void)
+{
+    DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2, 1);
+    DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2, 1);
+    delay_us(200);
+    DmMitCtrlPosition(&CHASSIS.joint_motor[2], 2, 1);
+    DmMitCtrlPosition(&CHASSIS.joint_motor[3], 2, 1);
 }
 /**
  * @brief 发送驱动轮电机控制指令

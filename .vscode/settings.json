@@ -59,7 +59,8 @@
         "custom_controller_connect.h": "c",
         "protocol.h": "c",
         "signal_generator.h": "c",
-        "can_cmd_damiao.h": "c"
+        "can_cmd_damiao.h": "c",
+        "bsp_delay.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
