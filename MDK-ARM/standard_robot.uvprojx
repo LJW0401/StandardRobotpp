@@ -809,6 +809,11 @@
               <FileType>1</FileType>
               <FilePath>..\bsp\boards\bsp_servo_pwm.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\boards\bsp_uart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
