@@ -23,6 +23,7 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
+#include "robot_param.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */     
@@ -46,17 +47,37 @@
 /* USER CODE BEGIN PTD */
 
 osThreadId calibrate_tast_handle;
-osThreadId chassisTaskHandle;
+
 osThreadId detect_handle;
+
+#if (CHASSIS_TYPE != CHASSIS_NONE)
+osThreadId chassisTaskHandle;
+#endif
+
+#if (GIMBAL_TYPE != GIMBAL_NONE)
 osThreadId gimbalTaskHandle;
+#endif
+
+#if (SHOOT_TYPE != SHOOT_NONE)
 osThreadId shootTaskHandle;
+#endif
+
+#if (MECHANICAL_ARM_TYPE != MECHANICAL_ARM_NONE)
 osThreadId mechanical_armTaskHandle;
+#endif
+
 osThreadId imuTaskHandle;
+
 osThreadId led_RGB_flow_handle;
+
 osThreadId oled_handle;
+
 osThreadId referee_usart_task_handle;
+
 osThreadId usb_task_handle;
+
 osThreadId battery_voltage_handle;
+
 osThreadId servo_task_handle;
 
 
@@ -156,20 +177,28 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(cali, calibrate_task, osPriorityNormal, 0, 512);
     calibrate_tast_handle = osThreadCreate(osThread(cali), NULL);
 
-    osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
-    chassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
-
     osThreadDef(DETECT, detect_task, osPriorityNormal, 0, 256);
     detect_handle = osThreadCreate(osThread(DETECT), NULL);
 
+#if (CHASSIS_TYPE != CHASSIS_NONE)
+    osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
+    chassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
+#endif
+
+#if (GIMBAL_TYPE != GIMBAL_NONE)
     osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
     gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
+#endif
 
+#if (SHOOT_TYPE != SHOOT_NONE)
     osThreadDef(shootTask, shoot_task, osPriorityHigh, 0, 512);
     shootTaskHandle = osThreadCreate(osThread(shootTask), NULL);
+#endif
 
+#if (MECHANICAL_ARM_TYPE != MECHANICAL_ARM_NONE)
     osThreadDef(mechanical_armTask, mechanical_arm_task, osPriorityHigh, 0, 512);
     mechanical_armTaskHandle = osThreadCreate(osThread(mechanical_armTask), NULL);
+#endif
 
     osThreadDef(imuTask, IMU_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
