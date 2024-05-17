@@ -181,7 +181,7 @@ static Chassis_s CHASSIS = {
  * @param[in]      none
  * @retval         none
  */
-void InitChassis(void)
+void ChassisInit(void)
 {
     CHASSIS.rc = get_remote_control_point();  // 获取遥控器指针
     /*-------------------- 初始化底盘电机 --------------------*/
@@ -249,7 +249,7 @@ void InitChassis(void)
  * @param[in]      none
  * @retval         none
  */
-void HandleException(void)
+void ChassisHandleException(void)
 {
     for (uint8_t i = 0; i < 4; i++) {
         if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
@@ -265,7 +265,7 @@ void HandleException(void)
  * @param[in]      none
  * @retval         none
  */
-void SetChassisMode(void)
+void ChassisSetMode(void)
 {
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_AUTO;
@@ -625,7 +625,7 @@ static void SendWheelMotorCmd(void);
  * @param[in]      none
  * @retval         none
  */
-void SendChassisCmd(void)
+void ChassisSendCmd(void)
 {
     SendJointMotorCmd();
     SendWheelMotorCmd();

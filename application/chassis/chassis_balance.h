@@ -130,9 +130,11 @@ typedef struct
     uint16_t yaw_mid;  // (ecd)(preset)云台中值角度
 } Chassis_s;
 
-extern void InitChassis(void);
+extern void ChassisInit(void);
 
-extern void SetChassisMode(void);
+extern void ChassisHandleException(void);
+
+extern void ChassisSetMode(void);
 
 extern void ChassisObserver(void);
 
@@ -140,7 +142,7 @@ extern void ChassisReference(void);
 
 extern void ChassisConsole(void);
 
-extern void SendChassisCmd(void);
+extern void ChassisSendCmd(void);
 
 #endif /* CHASSIS_BALANCE_H */
 #endif /* CHASSIS_BALANCE */
