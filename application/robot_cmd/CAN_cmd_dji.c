@@ -17,88 +17,21 @@
 #include "CAN_cmd_dji.h"
 
 /*-------------------- Global var --------------------*/
-// 发送数据
-DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X200 = {
-    .CAN = &CAN_1,
-    .std_id = DJI_200,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X1FF = {
-    .CAN = &CAN_1,
-    .std_id = DJI_1FF,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN1_0X2FF = {
-    .CAN = &CAN_1,
-    .std_id = DJI_2FF,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN2_0X200 = {
-    .CAN = &CAN_2,
-    .std_id = DJI_200,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN2_0X1FF = {
-    .CAN = &CAN_2,
-    .std_id = DJI_1FF,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_MOTOR_SEND_DATA_CAN2_0X2FF = {
-    .CAN = &CAN_2,
-    .std_id = DJI_2FF,
-    .can_send_data = {0},
-};
 
-/*-------------------- Function --------------------*/
-
-/**
- * @brief          获取发送数据缓冲区指针
- * @param[in]      can 发送数据使用的can口(1/2)
- * @param[in]      std_id 发送数据使用的std_id
- * @return         发送数据缓冲区指针
- */
-static DJI_Motor_Send_Data_s * GetSendDataBufferPoint(uint8_t can, DJI_Std_ID std_id)
+typedef struct __CanCtrlData
 {
-    DJI_Motor_Send_Data_s * dji_motor_send_data = NULL;
-    if (can == 1) {
-        switch (std_id) {
-            case DJI_200: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X200;
-            } break;
-            case DJI_1FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X1FF;
-            } break;
-            case DJI_2FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN1_0X2FF;
-            } break;
-            case DJI_1FE: {
-            } break;
-            case DJI_2FE: {
-            } break;
-            default: {
-            } break;
-        }
-    } else if (can == 2) {
-        switch (std_id) {
-            case DJI_200: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X200;
-            } break;
-            case DJI_1FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X1FF;
-            } break;
-            case DJI_2FF: {
-                dji_motor_send_data = &DJI_MOTOR_SEND_DATA_CAN2_0X2FF;
-            } break;
-            case DJI_1FE: {
-            } break;
-            case DJI_2FE: {
-            } break;
-            default: {
-            } break;
-        }
-    }
-    return dji_motor_send_data;
-}
+    hcan_t * hcan;
+    CAN_TxHeaderTypeDef tx_header;
+    uint8_t tx_data[8];
+} CanCtrlData_s;
+
+static CanCtrlData_s CAN_CTRL_DATA = {
+    .tx_header.IDE = CAN_ID_STD,
+    .tx_header.RTR = CAN_RTR_DATA,
+    .tx_header.DLC = 8,
+};
+
+/*-------------------- User function --------------------*/
 
 /**
  * @brief          通过CAN控制DJI电机(支持GM3508 GM2006 GM6020)
@@ -113,65 +46,27 @@ static DJI_Motor_Send_Data_s * GetSendDataBufferPoint(uint8_t can, DJI_Std_ID st
 void CanCmdDjiMotor(
     uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
 {
-    DJI_Motor_Send_Data_s * dji_motor_send_data = GetSendDataBufferPoint(can, std_id);
-    if (dji_motor_send_data == NULL) return;
+    hcan_t * hcan = NULL;
+    if (can == 1)
+        hcan = &hcan1;
+    else if (can == 2)
+        hcan = &hcan2;
+    if (hcan == NULL) return;
 
-    dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
-    dji_motor_send_data->tx_message.IDE = CAN_ID_STD;
-    dji_motor_send_data->tx_message.RTR = CAN_RTR_DATA;
-    dji_motor_send_data->tx_message.DLC = 0x08;
+    CAN_CTRL_DATA.hcan = hcan;
 
-    dji_motor_send_data->can_send_data[0] = (curr_1 >> 8);
-    dji_motor_send_data->can_send_data[1] = curr_1;
-    dji_motor_send_data->can_send_data[2] = (curr_2 >> 8);
-    dji_motor_send_data->can_send_data[3] = curr_2;
-    dji_motor_send_data->can_send_data[4] = (curr_3 >> 8);
-    dji_motor_send_data->can_send_data[5] = curr_3;
-    dji_motor_send_data->can_send_data[6] = (curr_4 >> 8);
-    dji_motor_send_data->can_send_data[7] = curr_4;
+    CAN_CTRL_DATA.tx_header.StdId = std_id;
 
-    CAN_SendTxMessage(
-        dji_motor_send_data->CAN, &dji_motor_send_data->tx_message,
-        dji_motor_send_data->can_send_data);
-}
+    CAN_CTRL_DATA.tx_data[0] = (curr_1 >> 8);
+    CAN_CTRL_DATA.tx_data[1] = curr_1;
+    CAN_CTRL_DATA.tx_data[2] = (curr_2 >> 8);
+    CAN_CTRL_DATA.tx_data[3] = curr_2;
+    CAN_CTRL_DATA.tx_data[4] = (curr_3 >> 8);
+    CAN_CTRL_DATA.tx_data[5] = curr_3;
+    CAN_CTRL_DATA.tx_data[6] = (curr_4 >> 8);
+    CAN_CTRL_DATA.tx_data[7] = curr_4;
 
-/**
- * @brief 添加信息到发送数据缓冲区
- * @param p_motor 电机结构体
- * @param std_id 电机控制数据标准ID
- */
-void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id)
-{
-    if (p_motor->type == DJI_M2006 || p_motor->type == DJI_M3508 || p_motor->type == DJI_M6020)
-        return;
-
-    DJI_Motor_Send_Data_s * dji_motor_send_data = GetSendDataBufferPoint(p_motor->can, std_id);
-    if (dji_motor_send_data == NULL) return;
-
-    dji_motor_send_data->tx_message.StdId = dji_motor_send_data->std_id;
-    dji_motor_send_data->tx_message.IDE = CAN_ID_STD;
-    dji_motor_send_data->tx_message.RTR = CAN_RTR_DATA;
-    dji_motor_send_data->tx_message.DLC = 0x08;
-
-    uint8_t offset = ((p_motor->id - 1) % 4) * 2;
-    int16_t current_set = p_motor->set.current;
-
-    dji_motor_send_data->can_send_data[offset] = (current_set >> 8);
-    dji_motor_send_data->can_send_data[offset + 1] = current_set;
-}
-
-/**
- * @brief 发送电机控制数据
- * @param can 1/2
- * @param std_id 电机控制数据标准ID
- */
-void SendDjiMotorCmdData(uint8_t can, DJI_Std_ID std_id)
-{
-    DJI_Motor_Send_Data_s * dji_motor_send_data = GetSendDataBufferPoint(can, std_id);
-    if (dji_motor_send_data == NULL) return;
-    CAN_SendTxMessage(
-        dji_motor_send_data->CAN, &dji_motor_send_data->tx_message,
-        dji_motor_send_data->can_send_data);
+    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
 }
 
 /*-------------------- 控制函数 --------------------*/
