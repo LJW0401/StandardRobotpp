@@ -51,7 +51,7 @@ void chassis_task(void const * pvParameters)
     // 空闲一段时间
     vTaskDelay(CHASSIS_TASK_INIT_TIME);
     // 初始化底盘
-    InitChassis();
+    ChassisInit();
 
     while (1) {
         // 更新状态量
