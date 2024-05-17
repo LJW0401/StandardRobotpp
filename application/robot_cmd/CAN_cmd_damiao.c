@@ -142,6 +142,8 @@ static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 **/
 void SavePosZero(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 {
+    CAN_CTRL_DATA.hcan = hcan;
+
     CAN_CTRL_DATA.tx_header.StdId = motor_id + mode_id;
 
     CAN_CTRL_DATA.tx_data[0] = 0xFF;
@@ -175,6 +177,8 @@ static void MitCtrl(
 {
     uint16_t pos_tmp, vel_tmp, kp_tmp, kd_tmp, tor_tmp;
 
+    CAN_CTRL_DATA.hcan = hcan;
+    
     CAN_CTRL_DATA.tx_header.StdId = motor_id + DM_MODE_MIT;
 
     pos_tmp = float_to_uint(pos, DM_P_MIN, DM_P_MAX, 16);
