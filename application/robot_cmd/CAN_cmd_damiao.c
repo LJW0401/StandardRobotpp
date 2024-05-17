@@ -33,12 +33,14 @@ typedef struct __MotorCtrl
     float kd_set;
 } MotorCtrl_t;
 
-struct __CanCtrlData
+typedef struct __CanCtrlData
 {
     hcan_t * hcan;
     CAN_TxHeaderTypeDef tx_header;
     uint8_t tx_data[8];
-} CAN_CTRL_DATA = {
+} CanCtrlData_s;
+
+static CanCtrlData_s CAN_CTRL_DATA = {
     .tx_header.IDE = CAN_ID_STD,
     .tx_header.RTR = CAN_RTR_DATA,
     .tx_header.DLC = 8,
