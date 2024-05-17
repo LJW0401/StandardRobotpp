@@ -15,16 +15,15 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
 */
-#include "robot_param.h"
-
-#if (CHASSIS_TYPE == CHASSIS_BALANCE)
 #ifndef CHASSIS_BALANCE_H
 #define CHASSIS_BALANCE_H
 
-#include <math.h>
+#include "robot_param.h"
 
+#if (CHASSIS_TYPE == CHASSIS_BALANCE)
 #include "IMU_task.h"
 #include "chassis.h"
+#include "math.h"
 #include "motor.h"
 #include "pid.h"
 #include "remote_control.h"
@@ -113,7 +112,7 @@ typedef struct
     /*-------------------- Motors --------------------*/
     // 平衡底盘有2个驱动轮电机和4个关节电机
     Motor_s joint_motor[4];
-    Motor_s wheel_motor[2];        // 驱动轮电机 0-左轮，1-右轮
+    Motor_s wheel_motor[2];  // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
     Imu_t imu;  // (feedback)底盘使用的IMU数据
 
@@ -144,5 +143,5 @@ extern void ChassisConsole(void);
 
 extern void ChassisSendCmd(void);
 
-#endif /* CHASSIS_BALANCE_H */
 #endif /* CHASSIS_BALANCE */
+#endif /* CHASSIS_BALANCE_H */
