@@ -207,11 +207,21 @@ void ChassisInit(void)
  */
 void ChassisHandleException(void)
 {
+    bool joint_error = false;
     for (uint8_t i = 0; i < 4; i++) {
         if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
-            CHASSIS.error_code = CHASSIS.error_code | JOINT_ERROR_OFFSET;
             DmEnable(&CHASSIS.joint_motor[i]);
         }
+
+        // if (CHASSIS.joint_motor[i].off_line) {
+        //     joint_error = true;
+        // }
+    }
+
+    if (joint_error) {
+        CHASSIS.error_code |= JOINT_ERROR_OFFSET;
+    } else {
+        CHASSIS.error_code &= ~JOINT_ERROR_OFFSET;
     }
 
     if (CHASSIS.error_code != 0) {
@@ -415,12 +425,13 @@ void ChassisReference(void)
     float v = sqrtf(
         CHASSIS.ref.speed_vector.vx * CHASSIS.ref.speed_vector.vx +
         CHASSIS.ref.speed_vector.vy * CHASSIS.ref.speed_vector.vy);
-    // CHASSIS.ref.x[0] = 0;
-    // CHASSIS.ref.x[1] = 0;
-    // CHASSIS.ref.x[2] = 0;
-    // CHASSIS.ref.x[3] = v + CHASSIS.ref.speed_integral;
-    // CHASSIS.ref.x[4] = 0;
-    // CHASSIS.ref.x[5] = 0;
+
+    CHASSIS.ref.theta = 0;
+    CHASSIS.ref.theta_dot = 0;
+    CHASSIS.ref.x = 0;
+    CHASSIS.ref.x_dot = v;
+    CHASSIS.ref.phi = 0;
+    CHASSIS.ref.phi_dot = 0;
 
     float length = 0.2f;
     CHASSIS.ref.leg_l.length = length;
