@@ -29,42 +29,51 @@ typedef enum {
     FRIC2 = 1,
 } MotorId_e;
 
+//clang-format off
 /*-------------------- Chassis --------------------*/
 //physical parameters ---------------------
 #define WHEEL_RADIUS 0.106f  //(m)轮子半径
 //upper_limit parameters ---------------------
-#define MAX_SPEED_VECTOR_VX 5.0f
-#define MAX_SPEED_VECTOR_VY 5.0f
-#define MAX_SPEED_VECTOR_WZ 1.0f
-#define MAX_ROLL 1.0f
-#define MAX_YAW M_PI
-#define MAX_LEG_LENGTH 0.35f
-#define MAX_LEG_ANGLE M_PI_2 + 0.1f
-#define MAX_SPEED_INTEGRAL 0.5f
+#define MAX_THETA      1.0f
+#define MAX_THETA_DOT  2.0f
+#define MAX_X          1.0f
+#define MAX_X_DOT      10.0f
+#define MAX_PHI        1.0f
+#define MAX_PHI_DOT    2.0f
 
-#define MAX_X_0 1.0f
-#define MAX_X_1 2.0f
-#define MAX_X_2 1.0f
-#define MAX_X_3 10.0f
-#define MAX_X_4 1.0f
-#define MAX_X_5 2.0f
+#define MAX_SPEED_INTEGRAL  0.5f
+#define MAX_ROLL            1.0f
+#define MAX_ROLL_VELOCITY   1.0f
+#define MAX_YAW             M_PI
+#define MAX_YAW_VELOCITY    3.0f
+
+#define MAX_LEG_LENGTH       0.35f
+#define MAX_LEG_ANGLE        M_PI_2 + 0.1f
+#define MAX_SPEED_VECTOR_VX  5.0f
+#define MAX_SPEED_VECTOR_VY  5.0f
+#define MAX_SPEED_VECTOR_WZ  1.0f
 
 //lower_limit parameters ---------------------
-#define MIN_SPEED_VECTOR_VX -MAX_SPEED_VECTOR_VX
-#define MIN_SPEED_VECTOR_VY -MAX_SPEED_VECTOR_VY
-#define MIN_SPEED_VECTOR_WZ -MAX_SPEED_VECTOR_WZ
-#define MIN_ROLL -MAX_ROLL
-#define MIN_YAW -MAX_YAW
-#define MIN_LEG_LENGTH 0.11f
-#define MIN_LEG_ANGLE M_PI_2 - 0.1f
-#define MIN_SPEED_INTEGRAL -MAX_SPEED_INTEGRAL
+#define MIN_THETA      -MAX_THETA
+#define MIN_THETA_DOT  -MAX_THETA_DOT
+#define MIN_X          -MAX_X
+#define MIN_X_DOT      -MAX_X_DOT
+#define MIN_PHI        -MAX_PHI
+#define MIN_PHI_DOT    -MAX_PHI_DOT
 
-#define MIN_X_0 -MAX_X_0
-#define MIN_X_1 -MAX_X_1
-#define MIN_X_2 -MAX_X_2
-#define MIN_X_3 -MAX_X_3
-#define MIN_X_4 -MAX_X_4
-#define MIN_X_5 -MAX_X_5
+#define MIN_SPEED_INTEGRAL  -MAX_SPEED_INTEGRAL
+#define MIN_ROLL            -MAX_ROLL
+#define MIN_ROLL_VELOCITY   -MAX_ROLL_VELOCITY
+#define MIN_YAW             -MAX_YAW
+#define MIN_YAW_VELOCITY    -MAX_YAW_VELOCITY
+
+#define MIN_LEG_LENGTH        0.11f
+#define MIN_LEG_ANGLE         M_PI_2 - 0.1f
+#define MIN_SPEED_VECTOR_VX  -MAX_SPEED_VECTOR_VX
+#define MIN_SPEED_VECTOR_VY  -MAX_SPEED_VECTOR_VY
+#define MIN_SPEED_VECTOR_WZ  -MAX_SPEED_VECTOR_WZ
+
+
 
 //PID parameters ---------------------
 //yaw轴跟踪角度环PID参数
@@ -131,4 +140,6 @@ typedef enum {
 
 //PID parameters ---------------------
 
+
+//clang-format on
 #endif /* INCLUDED_ROBOT_PARAM_H */

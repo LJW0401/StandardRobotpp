@@ -65,19 +65,19 @@ typedef struct
  */
 typedef struct
 {
-    /* 用于LQR控制器的状态向量
-    * 0-theta
-    * 1-theta_dot
-    * 2-x
-    * 3-x_dot
-    * 4-phi
-    * 5-phi_dot*/
-    float x[6];
+    float theta;
+    float theta_dot;
+    float x;
+    float x_dot;
+    float phi;
+    float phi_dot;
+
     float speed_integral;
     float roll;
     float roll_velocity;
     float yaw;
     float yaw_velocity;
+    
     LegPos_t leg_pos_left;
     LegPos_t leg_pos_right;
     ChassisSpeedVector_t speed_vector;

@@ -28,22 +28,67 @@
 static Chassis_s CHASSIS = {
     .mode = CHASSIS_ZERO_FORCE,
     .yaw_mid = 0,
+
     .upper_limit =
         {
+            .theta = MAX_THETA,
+            .theta_dot = MAX_THETA_DOT,
+            .x = MAX_X,
+            .x_dot = MAX_X_DOT,
+            .phi = MAX_PHI,
+            .phi_dot = MAX_PHI_DOT,
+
+            .speed_integral = MAX_SPEED_INTEGRAL,
+            .roll = MAX_ROLL,
+            .roll_velocity = MAX_ROLL_VELOCITY,
+            .yaw = MAX_YAW,
+            .yaw_velocity = MAX_YAW_VELOCITY,
+
+            .leg_pos_left =
+                {
+                    .length = MAX_LEG_LENGTH,
+                    .angle = MAX_LEG_ANGLE,
+                    .dLength = 0.0f,
+                    .dAngle = 0.0f,
+                    .ddLength = 0.0f,
+                    .last_dLength = 0.0f,
+                },
+            .leg_pos_right =
+                {
+                    .length = MAX_LEG_LENGTH,
+                    .angle = MAX_LEG_ANGLE,
+                    .dLength = 0.0f,
+                    .dAngle = 0.0f,
+                    .ddLength = 0.0f,
+                    .last_dLength = 0.0f,
+                },
             .speed_vector =
                 {
                     .vx = MAX_SPEED_VECTOR_VX,
                     .vy = MAX_SPEED_VECTOR_VY,
                     .wz = MAX_SPEED_VECTOR_WZ,
                 },
-            .roll = MAX_ROLL,
-            .yaw = MAX_YAW,
-            .x = {MAX_X_0, MAX_X_1, MAX_X_2, MAX_X_3, MAX_X_4, MAX_X_5},
-            .speed_integral = MAX_SPEED_INTEGRAL,
+        },
+
+    .lower_limit =
+        {
+            .theta = MIN_THETA,
+            .theta_dot = MIN_THETA_DOT,
+            .x = MIN_X,
+            .x_dot = MIN_X_DOT,
+            .phi = MIN_PHI,
+            .phi_dot = MIN_PHI_DOT,
+
+            .speed_integral = MIN_SPEED_INTEGRAL,
+            .roll = MIN_ROLL,
+            .roll_velocity = MIN_ROLL_VELOCITY,
+            .yaw = MIN_YAW,
+            .yaw_velocity = MIN_YAW_VELOCITY,
+
             .leg_pos_left =
                 {
-                    .length = MAX_LEG_LENGTH,
-                    .angle = MAX_LEG_ANGLE,
+                    .length = MIN_LEG_LENGTH,
+                    .angle = MIN_LEG_ANGLE,
                     .dLength = 0.0f,
                     .dAngle = 0.0f,
                     .ddLength = 0.0f,
@@ -51,122 +96,27 @@ static Chassis_s CHASSIS = {
                 },
             .leg_pos_right =
                 {
-                    .length = MAX_LEG_LENGTH,
-                    .angle = MAX_LEG_ANGLE,
+                    .length = MIN_LEG_LENGTH,
+                    .angle = MIN_LEG_ANGLE,
                     .dLength = 0.0f,
                     .dAngle = 0.0f,
                     .ddLength = 0.0f,
                     .last_dLength = 0.0f,
                 },
-        },
-    .lower_limit =
-        {
             .speed_vector =
                 {
                     .vx = MIN_SPEED_VECTOR_VX,
                     .vy = MIN_SPEED_VECTOR_VY,
                     .wz = MIN_SPEED_VECTOR_WZ,
                 },
-            .roll = MIN_ROLL,
-            .yaw = MIN_YAW,
-            .x = {MIN_X_0, MIN_X_1, MIN_X_2, MIN_X_3, MIN_X_4, MIN_X_5},
-            .speed_integral = MIN_SPEED_INTEGRAL,
-            .leg_pos_left =
-                {
-                    .length = MIN_LEG_LENGTH,
-                    .angle = MIN_LEG_ANGLE,
-                    .dLength = 0.0f,
-                    .dAngle = 0.0f,
-                    .ddLength = 0.0f,
-                    .last_dLength = 0.0f,
-                },
-            .leg_pos_right =
-                {
-                    .length = MIN_LEG_LENGTH,
-                    .angle = MIN_LEG_ANGLE,
-                    .dLength = 0.0f,
-                    .dAngle = 0.0f,
-                    .ddLength = 0.0f,
-                    .last_dLength = 0.0f,
-                },
         },
-    .feedback =
-        {
-            .speed_vector =
-                {
-                    .vx = 0.0f,
-                    .vy = 0.0f,
-                    .wz = 0.0f,
-                },
-            .roll = 0.0f,
-            .yaw = 0.0f,
-            .x = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-            .speed_integral = 0.0f,
-            .leg_pos_left =
-                {
-                    .length = 0.0f,
-                    .angle = 0.0f,
-                    .dLength = 0.0f,
-                    .dAngle = 0.0f,
-                    .ddLength = 0.0f,
-                    .last_dLength = 0.0f,
-                },
-            .leg_pos_right =
-                {
-                    .length = 0.0f,
-                    .angle = 0.0f,
-                    .dLength = 0.0f,
-                    .dAngle = 0.0f,
-                    .ddLength = 0.0f,
-                    .last_dLength = 0.0f,
-                },
-        },
-    .reference =
-        {
-            .speed_vector =
-                {
-                    .vx = 0.0f,
-                    .vy = 0.0f,
-                    .wz = 0.0f,
-                },
-            .roll = 0.0f,
-            .yaw = 0.0f,
-            .x = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-            .speed_integral = 0.0f,
-            .leg_pos_left =
-                {
-                    .length = 0.0f,
-                    .angle = 0.0f,
-                    .dLength = 0.0f,
-                    .dAngle = 0.0f,
-                    .ddLength = 0.0f,
-                    .last_dLength = 0.0f,
-                },
-            .leg_pos_right =
-                {
-                    .length = 0.0f,
-                    .angle = 0.0f,
-                    .dLength = 0.0f,
-                    .dAngle = 0.0f,
-                    .ddLength = 0.0f,
-                    .last_dLength = 0.0f,
-                },
-        },
-    .imu =
-        {
-            .yaw = 0.0f,
-            .pitch = 0.0f,
-            .roll = 0.0f,
-            .pitch_velocity = 0.0f,
-            .roll_velocity = 0.0f,
-            .yaw_velocity = 0.0f,
-            .xAccel = 0.0f,
-            .yAccel = 0.0f,
-            .zAccel = 0.0f,
-        },
+
     .ratio =
         {
-            .k = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}},
+            // clang-format off
+            .k = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}, 
+                  {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}},
+            // clang-format on
             .Tp = 1.0f,
             .T = 1.0f,
             .length = 1.0f,
@@ -198,6 +148,11 @@ void ChassisInit(void)
     for (uint8_t i = 0; i < 4; i++) {
         DmEnable(&CHASSIS.joint_motor[i]);
     }
+
+    /*-------------------- 值归零 --------------------*/
+    memset(&CHASSIS.feedback, 0, sizeof(CHASSIS.feedback));
+    memset(&CHASSIS.reference, 0, sizeof(CHASSIS.reference));
+    memset(&CHASSIS.imu, 0, sizeof(CHASSIS.imu));
 
     /*-------------------- 初始化底盘PID --------------------*/
     float yaw_angle_pid[3] = {KP_CHASSIS_YAW_ANGLE, KI_CHASSIS_YAW_ANGLE, KD_CHASSIS_YAW_ANGLE};
@@ -301,18 +256,18 @@ void ChassisObserver(void)
     CHASSIS.feedback.yaw = CHASSIS.imu.yaw;
 
     // 更新LQR状态向量
-    CHASSIS.feedback.x[0] =
-        (CHASSIS.feedback.leg_pos_left.angle + CHASSIS.feedback.leg_pos_right.angle) / 2 - M_PI_2 -
-        CHASSIS.imu.pitch;
-    CHASSIS.feedback.x[1] =
-        (CHASSIS.feedback.leg_pos_left.dAngle + CHASSIS.feedback.leg_pos_right.dAngle) / 2 -
-        CHASSIS.imu.pitch_velocity;
-    CHASSIS.feedback.x[2] = 0;
-    CHASSIS.feedback.x[3] =
-        (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2 * WHEEL_RADIUS;
-    CHASSIS.feedback.x[4] = CHASSIS.imu.pitch;
+    // CHASSIS.feedback.x[0] =
+    //     (CHASSIS.feedback.leg_pos_left.angle + CHASSIS.feedback.leg_pos_right.angle) / 2 - M_PI_2 -
+    //     CHASSIS.imu.pitch;
+    // CHASSIS.feedback.x[1] =
+    //     (CHASSIS.feedback.leg_pos_left.dAngle + CHASSIS.feedback.leg_pos_right.dAngle) / 2 -
+    //     CHASSIS.imu.pitch_velocity;
+    // CHASSIS.feedback.x[2] = 0;
+    // CHASSIS.feedback.x[3] =
+    //     (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2 * WHEEL_RADIUS;
+    // CHASSIS.feedback.x[4] = CHASSIS.imu.pitch;
 
-    CHASSIS.feedback.x[5] = CHASSIS.imu.pitch_velocity;
+    // CHASSIS.feedback.x[5] = CHASSIS.imu.pitch_velocity;
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
 }
@@ -321,8 +276,9 @@ void ChassisObserver(void)
  * @brief  更新底盘电机数据
  * @param  none
  */
-static void UpdateMotorStatus(void){
-    for(uint8_t i = 0;i<4;i++){
+static void UpdateMotorStatus(void)
+{
+    for (uint8_t i = 0; i < 4; i++) {
         GetMotorMeasure(&CHASSIS.joint_motor[i]);
     }
 }
@@ -441,12 +397,12 @@ void ChassisReference(void)
     float v = sqrtf(
         CHASSIS.reference.speed_vector.vx * CHASSIS.reference.speed_vector.vx +
         CHASSIS.reference.speed_vector.vy * CHASSIS.reference.speed_vector.vy);
-    CHASSIS.reference.x[0] = 0;
-    CHASSIS.reference.x[1] = 0;
-    CHASSIS.reference.x[2] = 0;
-    CHASSIS.reference.x[3] = v + CHASSIS.reference.speed_integral;
-    CHASSIS.reference.x[4] = 0;
-    CHASSIS.reference.x[5] = 0;
+    // CHASSIS.reference.x[0] = 0;
+    // CHASSIS.reference.x[1] = 0;
+    // CHASSIS.reference.x[2] = 0;
+    // CHASSIS.reference.x[3] = v + CHASSIS.reference.speed_integral;
+    // CHASSIS.reference.x[4] = 0;
+    // CHASSIS.reference.x[5] = 0;
 
     float length = 0.2f;
     CHASSIS.reference.leg_pos_left.length = length;
@@ -504,7 +460,7 @@ static void LocomotionController(float Tp[2], float T_w[2])
     float x[6];
     uint8_t i;
     for (i = 0; i < 6; i++) {  //计算状态变量
-        x[i] = CHASSIS.feedback.x[i] - CHASSIS.reference.x[i];
+        // x[i] = CHASSIS.feedback.x[i] - CHASSIS.reference.x[i];
     }
     float leg_length =
         (CHASSIS.feedback.leg_pos_left.length + CHASSIS.feedback.leg_pos_right.length) / 2;
