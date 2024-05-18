@@ -29,7 +29,14 @@
 #include "remote_control.h"
 #include "struct_typedef.h"
 
+// clang-format off
+#define JOINT_ERROR_OFFSET   ((uint8_t)1 << 0)  // 关节电机错误偏移量
+#define WHEEL_ERROR_OFFSET   ((uint8_t)1 << 1)  // 驱动轮电机错误偏移量
+#define DBUS_ERROR_OFFSET          ((uint8_t)1 << 2)  // dbus错误偏移量
+// clang-format on
+
 /*-------------------- Structural definition --------------------*/
+
 typedef struct
 {
     float angle;     // rad
@@ -77,9 +84,9 @@ typedef struct
     float roll_velocity;
     float yaw;
     float yaw_velocity;
-    
-    LegPos_t leg_pos_left;
-    LegPos_t leg_pos_right;
+
+    LegPos_t leg_l;
+    LegPos_t leg_right;
     ChassisSpeedVector_t speed_vector;
 } Values_t;
 
@@ -108,6 +115,8 @@ typedef struct
 {
     const RC_ctrl_t * rc;  // 底盘使用的遥控器指针
     ChassisMode_e mode;    // 底盘模式
+    ChassisState_e state;  // 底盘状态
+    uint8_t error_code;    // 底盘错误代码
 
     /*-------------------- Motors --------------------*/
     // 平衡底盘有2个驱动轮电机和4个关节电机
@@ -116,8 +125,8 @@ typedef struct
     /*-------------------- Values --------------------*/
     Imu_t imu;  // (feedback)底盘使用的IMU数据
 
-    Values_t reference;    // 期望值
-    Values_t feedback;     // 状态值
+    Values_t ref;    // 期望值
+    Values_t fdb;     // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
 

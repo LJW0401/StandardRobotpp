@@ -21,12 +21,15 @@
 #include "bsp_delay.h"
 #include "leg_model.h"
 #include "signal_generator.h"
+#include "stdbool.h"
 #include "user_lib.h"
 
 #define LOCATION_CONTROL
 
 static Chassis_s CHASSIS = {
-    .mode = CHASSIS_ZERO_FORCE,
+    .mode = CHASSIS_OFF,
+    .state = CHASSIS_STATE_ERROR,
+    .error_code = 0,
     .yaw_mid = 0,
 
     .upper_limit =
@@ -44,7 +47,7 @@ static Chassis_s CHASSIS = {
             .yaw = MAX_YAW,
             .yaw_velocity = MAX_YAW_VELOCITY,
 
-            .leg_pos_left =
+            .leg_l =
                 {
                     .length = MAX_LEG_LENGTH,
                     .angle = MAX_LEG_ANGLE,
@@ -53,7 +56,7 @@ static Chassis_s CHASSIS = {
                     .ddLength = 0.0f,
                     .last_dLength = 0.0f,
                 },
-            .leg_pos_right =
+            .leg_right =
                 {
                     .length = MAX_LEG_LENGTH,
                     .angle = MAX_LEG_ANGLE,
@@ -85,7 +88,7 @@ static Chassis_s CHASSIS = {
             .yaw = MIN_YAW,
             .yaw_velocity = MIN_YAW_VELOCITY,
 
-            .leg_pos_left =
+            .leg_l =
                 {
                     .length = MIN_LEG_LENGTH,
                     .angle = MIN_LEG_ANGLE,
@@ -94,7 +97,7 @@ static Chassis_s CHASSIS = {
                     .ddLength = 0.0f,
                     .last_dLength = 0.0f,
                 },
-            .leg_pos_right =
+            .leg_right =
                 {
                     .length = MIN_LEG_LENGTH,
                     .angle = MIN_LEG_ANGLE,
@@ -143,15 +146,13 @@ void ChassisInit(void)
         MotorInit(&CHASSIS.wheel_motor[i], i + 1, 1, MF_9025, 1, 1, DM_MODE_MIT);
     }
 
-    delay_ms(1000);
-
     for (uint8_t i = 0; i < 4; i++) {
         DmEnable(&CHASSIS.joint_motor[i]);
     }
 
     /*-------------------- 值归零 --------------------*/
-    memset(&CHASSIS.feedback, 0, sizeof(CHASSIS.feedback));
-    memset(&CHASSIS.reference, 0, sizeof(CHASSIS.reference));
+    memset(&CHASSIS.fdb, 0, sizeof(CHASSIS.fdb));
+    memset(&CHASSIS.ref, 0, sizeof(CHASSIS.ref));
     memset(&CHASSIS.imu, 0, sizeof(CHASSIS.imu));
 
     /*-------------------- 初始化底盘PID --------------------*/
@@ -208,8 +209,13 @@ void ChassisHandleException(void)
 {
     for (uint8_t i = 0; i < 4; i++) {
         if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
+            CHASSIS.error_code = CHASSIS.error_code | JOINT_ERROR_OFFSET;
             DmEnable(&CHASSIS.joint_motor[i]);
         }
+    }
+
+    if (CHASSIS.error_code != 0) {
+        CHASSIS.state = CHASSIS_STATE_ERROR;
     }
 }
 
@@ -222,6 +228,14 @@ void ChassisHandleException(void)
  */
 void ChassisSetMode(void)
 {
+    if (CHASSIS.state == CHASSIS_STATE_ERROR) {  //底盘出错时的状态处理
+        if ((CHASSIS.error_code | JOINT_ERROR_OFFSET) ||
+            (CHASSIS.error_code | WHEEL_ERROR_OFFSET)) {
+            CHASSIS.mode = CHASSIS_OFF;
+        }
+        return;
+    }
+
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_AUTO;
     } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
@@ -252,22 +266,22 @@ void ChassisObserver(void)
     UpdateMotorStatus();
 
     // 更新fdb数据
-    CHASSIS.feedback.roll = CHASSIS.imu.roll;
-    CHASSIS.feedback.yaw = CHASSIS.imu.yaw;
+    CHASSIS.fdb.roll = CHASSIS.imu.roll;
+    CHASSIS.fdb.roll_velocity = CHASSIS.imu.roll_velocity;
+    CHASSIS.fdb.yaw = CHASSIS.imu.yaw;
+    CHASSIS.fdb.yaw_velocity = CHASSIS.imu.yaw_velocity;
 
     // 更新LQR状态向量
-    // CHASSIS.feedback.x[0] =
-    //     (CHASSIS.feedback.leg_pos_left.angle + CHASSIS.feedback.leg_pos_right.angle) / 2 - M_PI_2 -
-    //     CHASSIS.imu.pitch;
-    // CHASSIS.feedback.x[1] =
-    //     (CHASSIS.feedback.leg_pos_left.dAngle + CHASSIS.feedback.leg_pos_right.dAngle) / 2 -
-    //     CHASSIS.imu.pitch_velocity;
-    // CHASSIS.feedback.x[2] = 0;
-    // CHASSIS.feedback.x[3] =
-    //     (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2 * WHEEL_RADIUS;
-    // CHASSIS.feedback.x[4] = CHASSIS.imu.pitch;
-
-    // CHASSIS.feedback.x[5] = CHASSIS.imu.pitch_velocity;
+    // clang-format off
+    CHASSIS.fdb.theta = (CHASSIS.fdb.leg_l.angle + CHASSIS.fdb.leg_right.angle) / 2 
+                        - M_PI_2 - CHASSIS.imu.pitch;
+    CHASSIS.fdb.theta_dot = (CHASSIS.fdb.leg_l.dAngle + CHASSIS.fdb.leg_right.dAngle) / 2 
+                            - CHASSIS.imu.pitch_velocity;
+    CHASSIS.fdb.x       = 0;
+    CHASSIS.fdb.x_dot   = WHEEL_RADIUS * (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2;
+    CHASSIS.fdb.phi     = CHASSIS.imu.pitch;
+    CHASSIS.fdb.phi_dot = CHASSIS.imu.pitch_velocity;
+    // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
 }
@@ -280,6 +294,10 @@ static void UpdateMotorStatus(void)
 {
     for (uint8_t i = 0; i < 4; i++) {
         GetMotorMeasure(&CHASSIS.joint_motor[i]);
+    }
+
+    for (uint8_t i = 0; i < 2; i++) {
+        GetMotorMeasure(&CHASSIS.wheel_motor[i]);
     }
 }
 
@@ -313,44 +331,44 @@ static void UpdateLegStatus(void)
     // /*-------------------- 更新左腿 --------------------*/
     // // 更新位置信息
     // LegFKine(CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_pos);
-    // CHASSIS.feedback.leg_pos_left.length = leg_pos[0];
-    // CHASSIS.feedback.leg_pos_left.angle = leg_pos[1];
+    // CHASSIS.fdb.leg_l.length = leg_pos[0];
+    // CHASSIS.fdb.leg_l.angle = leg_pos[1];
 
     // // 更新速度信息
-    // CHASSIS.feedback.leg_pos_left.last_dLength = CHASSIS.feedback.leg_pos_left.dLength;
+    // CHASSIS.fdb.leg_l.last_dLength = CHASSIS.fdb.leg_l.dLength;
     // LegSpeed(
     //     CHASSIS.left_joint_motor[1].w, CHASSIS.left_joint_motor[0].w,
     //     CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_speed);
-    // CHASSIS.feedback.leg_pos_left.dLength = leg_speed[0];
-    // CHASSIS.feedback.leg_pos_left.dAngle = leg_speed[1];
+    // CHASSIS.fdb.leg_l.dLength = leg_speed[0];
+    // CHASSIS.fdb.leg_l.dAngle = leg_speed[1];
 
     // // 计算腿长加速度
-    // CHASSIS.feedback.leg_pos_left.ddLength =
-    //     ((CHASSIS.feedback.leg_pos_left.dLength - CHASSIS.feedback.leg_pos_left.last_dLength) *
+    // CHASSIS.fdb.leg_l.ddLength =
+    //     ((CHASSIS.fdb.leg_l.dLength - CHASSIS.fdb.leg_l.last_dLength) *
     //      1000 / 4) *
     //         LEG_DDLENGTH_LPF_RATIO +
-    //     CHASSIS.feedback.leg_pos_left.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
+    //     CHASSIS.fdb.leg_l.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
 
     // /*-------------------- 更新右腿 --------------------*/
     // // 更新位置信息
     // LegFKine(CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_pos);
-    // CHASSIS.feedback.leg_pos_right.length = leg_pos[0];
-    // CHASSIS.feedback.leg_pos_right.angle = leg_pos[1];
+    // CHASSIS.fdb.leg_right.length = leg_pos[0];
+    // CHASSIS.fdb.leg_right.angle = leg_pos[1];
 
     // // 更新速度信息
-    // CHASSIS.feedback.leg_pos_right.last_dLength = CHASSIS.feedback.leg_pos_right.dLength;
+    // CHASSIS.fdb.leg_right.last_dLength = CHASSIS.fdb.leg_right.dLength;
     // LegSpeed(
     //     CHASSIS.left_joint_motor[1].w, CHASSIS.left_joint_motor[0].w,
     //     CHASSIS.left_joint_motor[1].position, CHASSIS.left_joint_motor[0].position, leg_speed);
-    // CHASSIS.feedback.leg_pos_right.dLength = leg_speed[0];
-    // CHASSIS.feedback.leg_pos_right.dAngle = leg_speed[1];
+    // CHASSIS.fdb.leg_right.dLength = leg_speed[0];
+    // CHASSIS.fdb.leg_right.dAngle = leg_speed[1];
 
     // // 计算腿长加速度
-    // CHASSIS.feedback.leg_pos_right.ddLength =
-    //     ((CHASSIS.feedback.leg_pos_right.dLength - CHASSIS.feedback.leg_pos_right.last_dLength) *
+    // CHASSIS.fdb.leg_right.ddLength =
+    //     ((CHASSIS.fdb.leg_right.dLength - CHASSIS.fdb.leg_right.last_dLength) *
     //      1000 / 4) *
     //         LEG_DDLENGTH_LPF_RATIO +
-    //     CHASSIS.feedback.leg_pos_right.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
+    //     CHASSIS.fdb.leg_right.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
 }
 
 /*-------------------- Reference --------------------*/
@@ -390,23 +408,23 @@ void ChassisReference(void)
             break;
     }
 
-    CHASSIS.reference.speed_vector.vx = v_set.vx;
-    CHASSIS.reference.speed_vector.vy = v_set.vy;
-    CHASSIS.reference.speed_vector.wz = v_set.wz;
+    CHASSIS.ref.speed_vector.vx = v_set.vx;
+    CHASSIS.ref.speed_vector.vy = v_set.vy;
+    CHASSIS.ref.speed_vector.wz = v_set.wz;
 
     float v = sqrtf(
-        CHASSIS.reference.speed_vector.vx * CHASSIS.reference.speed_vector.vx +
-        CHASSIS.reference.speed_vector.vy * CHASSIS.reference.speed_vector.vy);
-    // CHASSIS.reference.x[0] = 0;
-    // CHASSIS.reference.x[1] = 0;
-    // CHASSIS.reference.x[2] = 0;
-    // CHASSIS.reference.x[3] = v + CHASSIS.reference.speed_integral;
-    // CHASSIS.reference.x[4] = 0;
-    // CHASSIS.reference.x[5] = 0;
+        CHASSIS.ref.speed_vector.vx * CHASSIS.ref.speed_vector.vx +
+        CHASSIS.ref.speed_vector.vy * CHASSIS.ref.speed_vector.vy);
+    // CHASSIS.ref.x[0] = 0;
+    // CHASSIS.ref.x[1] = 0;
+    // CHASSIS.ref.x[2] = 0;
+    // CHASSIS.ref.x[3] = v + CHASSIS.ref.speed_integral;
+    // CHASSIS.ref.x[4] = 0;
+    // CHASSIS.ref.x[5] = 0;
 
     float length = 0.2f;
-    CHASSIS.reference.leg_pos_left.length = length;
-    CHASSIS.reference.leg_pos_right.length = length;
+    CHASSIS.ref.leg_l.length = length;
+    CHASSIS.ref.leg_right.length = length;
 }
 
 /*-------------------- Console --------------------*/
@@ -460,10 +478,9 @@ static void LocomotionController(float Tp[2], float T_w[2])
     float x[6];
     uint8_t i;
     for (i = 0; i < 6; i++) {  //计算状态变量
-        // x[i] = CHASSIS.feedback.x[i] - CHASSIS.reference.x[i];
+        // x[i] = CHASSIS.fdb.x[i] - CHASSIS.ref.x[i];
     }
-    float leg_length =
-        (CHASSIS.feedback.leg_pos_left.length + CHASSIS.feedback.leg_pos_right.length) / 2;
+    float leg_length = (CHASSIS.fdb.leg_l.length + CHASSIS.fdb.leg_right.length) / 2;
     float k[2][6];
     SetK(leg_length, k);
     float t_tp[2];
@@ -478,15 +495,15 @@ static void LocomotionController(float Tp[2], float T_w[2])
             break;
         }
         default: {
-            dyaw = CHASSIS.reference.yaw - CHASSIS.feedback.yaw;
+            dyaw = CHASSIS.ref.yaw - CHASSIS.fdb.yaw;
             break;
         }
     }
     dyaw = theta_format(dyaw);
     PID_calc(&CHASSIS.pid.yaw_angle, dyaw, 0);
-    PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.feedback.yaw_velocity, CHASSIS.pid.yaw_angle.out);
+    PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
 
-    float dangle = CHASSIS.feedback.leg_pos_left.angle - CHASSIS.feedback.leg_pos_right.angle;
+    float dangle = CHASSIS.fdb.leg_l.angle - CHASSIS.fdb.leg_right.angle;
     PID_calc(&CHASSIS.pid.leg_angle_angle, dangle, 0);
 
     T_w[0] = t + CHASSIS.pid.yaw_velocity.out;
@@ -536,12 +553,11 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
-    LegIKine(
-        CHASSIS.reference.leg_pos_left.length, CHASSIS.reference.leg_pos_left.angle,
-        joint_pos_l);  // 计算左关节摆角
+    LegIKine(CHASSIS.ref.leg_l.length, CHASSIS.ref.leg_l.angle,
+             joint_pos_l);  // 计算左关节摆角
 
     LegIKine(
-        CHASSIS.reference.leg_pos_right.length, CHASSIS.reference.leg_pos_right.angle,
+        CHASSIS.ref.leg_right.length, CHASSIS.ref.leg_right.angle,
         joint_pos_r);  // 计算右关节摆角
 }
 #else
@@ -552,20 +568,18 @@ static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 static void LegController(float F[2])
 {
     PID_calc(
-        &CHASSIS.pid.leg_length_left_length, CHASSIS.feedback.leg_pos_left.length,
-        CHASSIS.reference.leg_pos_left.length);
-    float theta_l = CHASSIS.feedback.leg_pos_left.angle - M_PI_2 - CHASSIS.imu.pitch;
-    float fdf_left = LegFeedforward(CHASSIS.feedback.x[0]);
+        &CHASSIS.pid.leg_length_left_length, CHASSIS.fdb.leg_l.length, CHASSIS.ref.leg_l.length);
+    float theta_l = CHASSIS.fdb.leg_l.angle - M_PI_2 - CHASSIS.imu.pitch;
+    float fdf_left = LegFeedforward(CHASSIS.fdb.x[0]);
 
     PID_calc(
-        &CHASSIS.pid.leg_length_right_length, CHASSIS.feedback.leg_pos_right.length,
-        CHASSIS.reference.leg_pos_right.length);
-    float theta_r = CHASSIS.feedback.leg_pos_right.angle - M_PI_2 - CHASSIS.imu.pitch;
-    float fdf_right = LegFeedforward(CHASSIS.feedback.x[1]);
+        &CHASSIS.pid.leg_length_right_length, CHASSIS.fdb.leg_right.length,
+        CHASSIS.ref.leg_right.length);
+    float theta_r = CHASSIS.fdb.leg_right.angle - M_PI_2 - CHASSIS.imu.pitch;
+    float fdf_right = LegFeedforward(CHASSIS.fdb.x[1]);
 
-    PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.feedback.roll, CHASSIS.reference.roll);
-    PID_calc(
-        &CHASSIS.pid.roll_velocity, CHASSIS.feedback.roll_velocity, CHASSIS.pid.roll_angle.out);
+    PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);
+    PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, CHASSIS.pid.roll_angle.out);
 
     F[0] = CHASSIS.pid.leg_length_left_length.out + fdf_left + CHASSIS.pid.roll_velocity.out;
     F[1] = CHASSIS.pid.leg_length_right_length.out + fdf_right - CHASSIS.pid.roll_velocity.out;
