@@ -16,7 +16,6 @@
 #include "CAN_cmd_lingkong.h"
 
 #include "bsp_can.h"
-#include "motor.h"
 #include "stm32f4xx_hal.h"
 
 #define STDID_OFFESET 0x140
@@ -132,14 +131,13 @@ static void SingleTorqueControl(hcan_t * hcan, uint16_t motor_id, int16_t iqCont
 /**
  * @brief        多电机转矩闭环控制命令
  * @param[in]    hcan        指向CAN_HandleTypeDef结构的指针
- * @param[in]    motor_id    电机ID，指定目标电机
- * @param[in]    iqControl_1 转矩电流 -2000~2000
- * @param[in]    iqControl_2 转矩电流 -2000~2000
- * @param[in]    iqControl_3 转矩电流 -2000~2000
- * @param[in]    iqControl_4 转矩电流 -2000~2000
+ * @param[in]    iqControl_1 转矩电流 -2000\\~2000
+ * @param[in]    iqControl_2 转矩电流 -2000\\~2000
+ * @param[in]    iqControl_3 转矩电流 -2000\\~2000
+ * @param[in]    iqControl_4 转矩电流 -2000\\~2000
  */
 static void MultipleTorqueControl(
-    hcan_t * hcan, uint16_t motor_id, int16_t iqControl_1, int16_t iqControl_2, int16_t iqControl_3,
+    hcan_t * hcan, int16_t iqControl_1, int16_t iqControl_2, int16_t iqControl_3,
     int16_t iqControl_4)
 {
     CAN_CTRL_DATA.hcan = hcan;
@@ -158,6 +156,68 @@ static void MultipleTorqueControl(
     CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
 }
 
+/*-------------------- Check functions --------------------*/
+
+/**
+ * @brief      获取can总线句柄
+ * @param[in]  motor 电机结构体
+ * @return     can总线句柄
+ * @note       获取电机结构体中的can号，返回对应的can总线句柄，同时检测电机类型是否为达妙电机
+ */
+static hcan_t * GetHcanPoint(Motor_s * motor)
+{
+    if (motor->type != MF_9025) return NULL;
+
+    if (motor->can == 1)
+        return &hcan1;
+    else if (motor->can == 2)
+        return &hcan2;
+
+    return NULL;
+}
+
 /*-------------------- User functions --------------------*/
 
+void LkDisableMotor(Motor_s * p_motor)
+{
+    hcan_t * hcan = GetHcanPoint(p_motor);
+    if (hcan == NULL) return;
+
+    DisableMotor(hcan, p_motor->id);
+}
+
+void LkStopMotor(Motor_s * p_motor)
+{
+    hcan_t * hcan = GetHcanPoint(p_motor);
+    if (hcan == NULL) return;
+
+    StopMotor(hcan, p_motor->id);
+}
+
+void LkEnableMotor(Motor_s * p_motor)
+{
+    hcan_t * hcan = GetHcanPoint(p_motor);
+    if (hcan == NULL) return;
+
+    EnableMotor(hcan, p_motor->id);
+}
+
+void LkSingleTorqueControl(Motor_s * p_motor)
+{
+    hcan_t * hcan = GetHcanPoint(p_motor);
+    if (hcan == NULL) return;
+
+    SingleTorqueControl(hcan, p_motor->id, p_motor->set.current);
+}
+
+void LkMultipleTorqueControl(
+    Motor_s * p_motor_1, Motor_s * p_motor_2, Motor_s * p_motor_3, Motor_s * p_motor_4)
+{
+    hcan_t * hcan = GetHcanPoint(p_motor_1);
+    if (hcan == NULL) return;
+
+    MultipleTorqueControl(
+        hcan, p_motor_1->set.current, p_motor_2->set.current, p_motor_3->set.current,
+        p_motor_4->set.current);
+}
 /************************ END OF FILE ************************/
