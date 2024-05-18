@@ -1,7 +1,7 @@
 #ifndef ROBOT_TYPEDEF_H
 #define ROBOT_TYPEDEF_H
 
-//clang-format off
+// clang-format off
 // 可用底盘类型
 #define CHASSIS_NONE            0  // 无底盘
 #define CHASSIS_MECANUM_WHEEL   1  // 麦克纳姆轮底盘
@@ -46,7 +46,7 @@
 #define TUNING_CHASSIS  1
 #define TUNING_GIMBAL   2
 #define TUNING_SHOOT    3
-//clang-format on
+// clang-format on
 
 // 可用电机类型
 typedef enum __MotorType {

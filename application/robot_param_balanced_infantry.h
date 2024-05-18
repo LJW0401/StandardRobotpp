@@ -29,7 +29,7 @@ typedef enum {
     FRIC2 = 1,
 } MotorId_e;
 
-//clang-format off
+// clang-format off
 /*-------------------- Chassis --------------------*/
 //physical parameters ---------------------
 #define WHEEL_RADIUS 0.106f  //(m)轮子半径
@@ -140,6 +140,5 @@ typedef enum {
 
 //PID parameters ---------------------
 
-
-//clang-format on
+// clang-format on
 #endif /* INCLUDED_ROBOT_PARAM_H */
