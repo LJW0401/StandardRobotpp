@@ -86,7 +86,7 @@ typedef struct
     float yaw_velocity;
 
     LegPos_t leg_l;
-    LegPos_t leg_right;
+    LegPos_t leg_r;
     ChassisSpeedVector_t speed_vector;
 } Values_t;
 
