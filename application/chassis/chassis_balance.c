@@ -399,11 +399,11 @@ void ChassisReference(void)
 
     ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
 
+    v_set.vx = rc_x * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vx;
+    v_set.vy = rc_y * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vy;
+    v_set.wz = rc_wz * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.wz;
     switch (CHASSIS.mode) {
         case CHASSIS_FREE: {  // 底盘自由模式下，控制量为底盘坐标系下的速度
-            v_set.vx = rc_x * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vx;
-            v_set.vy = rc_y * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vy;
-            v_set.wz = rc_wz * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.wz;
             break;
         }
         case CHASSIS_FOLLOW_GIMBAL_YAW: {  // 云台跟随模式下，控制量为云台坐标系下的速度，需要进行坐标转换
@@ -460,21 +460,21 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
  */
 void ChassisConsole(void)
 {
-    //     switch (CHASSIS.mode) {
-    //         case CHASSIS_ZERO_FORCE:
-    //             break;
-    //         default: {
-    //             float tp[2], t[2];
-    //             LocomotionController(tp, t);
-    // #ifdef LOCATION_CONTROL
-    //             double joint_pos_l[2], joint_pos_r[2];
-    //             LegController(joint_pos_l, joint_pos_r);
-    // #else
-    //             LegController(float F[2]);
-    // #endif
-    //             break;
-    //         }
-    //     }
+    switch (CHASSIS.mode) {
+        case CHASSIS_ZERO_FORCE:
+            break;
+        default: {
+            float tp[2], t[2];
+            LocomotionController(tp, t);
+#ifdef LOCATION_CONTROL
+            double joint_pos_l[2], joint_pos_r[2];
+            LegController(joint_pos_l, joint_pos_r);
+#else
+            LegController(float F[2]);
+#endif
+            break;
+        }
+    }
     for (uint8_t i = 0; i < 4; i++) {
         CHASSIS.joint_motor[i].set.position = GenerateSinWave(1, 0, 2);
         CHASSIS.joint_motor[i].set.torque = 0;
@@ -491,10 +491,14 @@ void ChassisConsole(void)
 static void LocomotionController(float Tp[2], float T_w[2])
 {
     float x[6];
-    uint8_t i;
-    for (i = 0; i < 6; i++) {  //计算状态变量
-        // x[i] = CHASSIS.fdb.x[i] - CHASSIS.ref.x[i];
-    }
+
+    x[0] = CHASSIS.fdb.theta - CHASSIS.ref.theta;
+    x[1] = CHASSIS.fdb.theta_dot - CHASSIS.ref.theta_dot;
+    x[2] = CHASSIS.fdb.x - CHASSIS.ref.x;
+    x[3] = CHASSIS.fdb.x_dot - CHASSIS.ref.x_dot;
+    x[4] = CHASSIS.fdb.phi - CHASSIS.ref.phi;
+    x[5] = CHASSIS.fdb.phi_dot - CHASSIS.ref.phi_dot;
+
     float leg_length = (CHASSIS.fdb.leg_l.length + CHASSIS.fdb.leg_r.length) / 2;
     float k[2][6];
     SetK(leg_length, k);
