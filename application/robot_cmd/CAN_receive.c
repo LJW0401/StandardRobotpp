@@ -25,6 +25,7 @@
 #include "cmsis_os.h"
 #include "detect_task.h"
 #include "user_lib.h"
+#include "usb_task.h"
 
 // motor data read
 #define get_dji_motor_measure(ptr, data)                               \
@@ -70,6 +71,8 @@ void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
     dm_measure->tor = uint_to_float(dm_measure->t_int, DM_T_MIN, DM_T_MAX, 12);  // (-18.0,18.0)
     dm_measure->t_mos = (float)(rx_data[6]);
     dm_measure->t_rotor = (float)(rx_data[7]);
+
+    dm_measure->last_fdb_time = HAL_GetTick();
 }
 
 /**
@@ -274,6 +277,15 @@ static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
     motor->fdb.T = dm_measure->tor;
     motor->fdb.temperature = dm_measure->t_mos;
     motor->fdb.state = dm_measure->state;
+
+    uint32_t now = HAL_GetTick();
+    if (now - dm_measure->last_fdb_time > MOTOR_STABLE_RUNNING_TIME) {
+        motor->offline = true;
+    }else{
+        motor->offline = false;
+    }
+
+    OutputPCData.packets[motor->id + 8].data = motor->offline;
 }
 
 /**

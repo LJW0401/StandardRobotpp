@@ -66,7 +66,8 @@
         "data_exchange.h": "c",
         "can_cmd_lingkong.h": "c",
         "usb_task.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "string": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

@@ -282,19 +282,21 @@ void ChassisObserver(void)
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
-    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.T;
-    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.T;
-    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.T;
-    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.T;
+    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.state;
+    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.state;
+    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.state;
+    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.state;
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.position;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
     OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
-    OutputPCData.packets[9].data = CHASSIS.joint_motor[0].fdb.w;
-    OutputPCData.packets[10].data = CHASSIS.joint_motor[1].fdb.w;
-    OutputPCData.packets[11].data = CHASSIS.joint_motor[2].fdb.w;
-    OutputPCData.packets[12].data = CHASSIS.joint_motor[3].fdb.w;
+    // OutputPCData.packets[9].data = CHASSIS.joint_motor[0].offline;
+    // OutputPCData.packets[10].data = CHASSIS.joint_motor[1].offline;
+    // OutputPCData.packets[11].data = CHASSIS.joint_motor[2].offline;
+    // OutputPCData.packets[12].data = CHASSIS.joint_motor[3].offline;
+
+
 }
 
 /**

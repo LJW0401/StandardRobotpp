@@ -23,6 +23,8 @@
 
 #define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
 
+#define MOTOR_STABLE_RUNNING_TIME 10 // (ms)电机稳定运行时间
+
 /*-------------------- DJI Motor --------------------*/
 
 // 电机编码值规整 0—8191
@@ -143,6 +145,8 @@ typedef struct
 
     float t_mos;
     float t_rotor;
+
+    uint32_t last_fdb_time;//上次反馈时间
 } DmMeasure_s;
 
 /*-------------------- MF Motor --------------------*/
@@ -162,7 +166,7 @@ typedef struct __Motor
     float reduction_ratio;  // 电机减速比
     int8_t direction;       // 电机旋转方向（1或-1）
     uint16_t mode;          // 电机模式
-    bool off_line;          // 电机是否离线
+    bool offline;          // 电机是否离线
 
     /*状态量*/
     struct __fdb
