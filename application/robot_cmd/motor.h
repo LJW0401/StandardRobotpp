@@ -18,10 +18,8 @@
 
 #include "pid.h"
 #include "robot_typedef.h"
-#include "stdbool.h"
 #include "struct_typedef.h"
-
-#define MOTOR_STABLE_TIME 10  // (ms)电机稳定时间
+#include "stdbool.h"
 
 #define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
 
@@ -164,7 +162,7 @@ typedef struct __Motor
     float reduction_ratio;  // 电机减速比
     int8_t direction;       // 电机旋转方向（1或-1）
     uint16_t mode;          // 电机模式
-    bool offline;          // 电机是否离线
+    bool off_line;          // 电机是否离线
 
     /*状态量*/
     struct __fdb

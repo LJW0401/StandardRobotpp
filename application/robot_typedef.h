@@ -50,21 +50,12 @@
 
 // 可用电机类型
 typedef enum __MotorType {
-    NONE_MOTOR_TYPE = 0,
-    
-    DJI_M2006,
+    DJI_M2006 = 0,
     DJI_M3508,
     DJI_M6020,
-    DJI_MOTOR_TYPE,
-
     CYBERGEAR_MOTOR,
-    CYBERGEAR_MOTOR_TYPE,
-
     DM_8009,
-    DM_MOTOR_TYPE,
-
     MF_9025,
-    LK_MOTOR_TYPE,
 } MotorType_e;
 
 #endif /* ROBOT_TYPEDEF_H */

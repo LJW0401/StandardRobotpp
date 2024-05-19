@@ -282,19 +282,19 @@ void ChassisObserver(void)
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
-    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].offline;
-    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].offline;
-    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].offline;
-    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].offline;
+    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.T;
+    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.T;
+    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.T;
+    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.T;
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.position;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
     OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
-    OutputPCData.packets[9].data = CHASSIS.joint_motor[0].fdb.state;
-    OutputPCData.packets[10].data = CHASSIS.joint_motor[1].fdb.state;
-    OutputPCData.packets[11].data = CHASSIS.joint_motor[2].fdb.state;
-    OutputPCData.packets[12].data = CHASSIS.joint_motor[3].fdb.state;
+    OutputPCData.packets[9].data = CHASSIS.joint_motor[0].fdb.w;
+    OutputPCData.packets[10].data = CHASSIS.joint_motor[1].fdb.w;
+    OutputPCData.packets[11].data = CHASSIS.joint_motor[2].fdb.w;
+    OutputPCData.packets[12].data = CHASSIS.joint_motor[3].fdb.w;
 }
 
 /**
@@ -629,20 +629,12 @@ static void SendJointMotorCmd(void)
         for (uint8_t i = 0; i < 4; i++) {
             if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_DISABLE) {
                 DmDisable(&CHASSIS.joint_motor[i]);
-                if (i == 1) {
-                    delay_us(200);
-                }
             }
         }
     } else {
-        uint8_t enable_cnt = 0;
         for (uint8_t i = 0; i < 4; i++) {
-            if (enable_cnt == 2) {
-                delay_us(200);
-            }
-            if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_ENABLE) {
+            if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
                 DmEnable(&CHASSIS.joint_motor[i]);
-                enable_cnt++;
             }
         }
         DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2, 1);
