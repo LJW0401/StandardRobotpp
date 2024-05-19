@@ -18,13 +18,6 @@
 
 /*-------------------- Global var --------------------*/
 
-typedef struct __CanCtrlData
-{
-    hcan_t * hcan;
-    CAN_TxHeaderTypeDef tx_header;
-    uint8_t tx_data[8];
-} CanCtrlData_s;
-
 static CanCtrlData_s CAN_CTRL_DATA = {
     .tx_header.IDE = CAN_ID_STD,
     .tx_header.RTR = CAN_RTR_DATA,
@@ -66,7 +59,7 @@ void CanCmdDjiMotor(
     CAN_CTRL_DATA.tx_data[6] = (curr_4 >> 8);
     CAN_CTRL_DATA.tx_data[7] = curr_4;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /*-------------------- 控制函数 --------------------*/

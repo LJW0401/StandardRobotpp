@@ -20,13 +20,6 @@
 
 #define STDID_OFFESET 0x140
 
-typedef struct __CanCtrlData
-{
-    hcan_t * hcan;
-    CAN_TxHeaderTypeDef tx_header;
-    uint8_t tx_data[8];
-} CanCtrlData_s;
-
 static CanCtrlData_s CAN_CTRL_DATA = {
     .tx_header.IDE = CAN_ID_STD,
     .tx_header.RTR = CAN_RTR_DATA,
@@ -55,7 +48,7 @@ static void DisableMotor(hcan_t * hcan, uint16_t motor_id)
     CAN_CTRL_DATA.tx_data[6] = 0x00;
     CAN_CTRL_DATA.tx_data[7] = 0x00;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -78,7 +71,7 @@ static void StopMotor(hcan_t * hcan, uint16_t motor_id)
     CAN_CTRL_DATA.tx_data[6] = 0x00;
     CAN_CTRL_DATA.tx_data[7] = 0x00;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -101,7 +94,7 @@ static void EnableMotor(hcan_t * hcan, uint16_t motor_id)
     CAN_CTRL_DATA.tx_data[6] = 0x00;
     CAN_CTRL_DATA.tx_data[7] = 0x00;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -125,7 +118,7 @@ static void SingleTorqueControl(hcan_t * hcan, uint16_t motor_id, int16_t iqCont
     CAN_CTRL_DATA.tx_data[6] = 0x00;
     CAN_CTRL_DATA.tx_data[7] = 0x00;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -153,7 +146,7 @@ static void MultipleTorqueControl(
     CAN_CTRL_DATA.tx_data[6] = *(uint8_t *)(&iqControl_4);
     CAN_CTRL_DATA.tx_data[7] = *((uint8_t *)(&iqControl_4) + 1);
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /*-------------------- Check functions --------------------*/

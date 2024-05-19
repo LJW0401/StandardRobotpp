@@ -30,15 +30,16 @@ void can_filter_init(void)
  * @param[in]      tx_data    发送数据
  * @return         none
  */
-void CAN_SendTxMessage(
-    hcan_t * can_handle, CAN_TxHeaderTypeDef * tx_header, uint8_t * tx_data)
+void CAN_SendTxMessage(CanCtrlData_s * can_ctrl_data)
 {
     uint32_t send_mail_box;
-    uint8_t cnt = 20;// 重复检测次数
+    uint8_t cnt = 20;  // 重复检测次数
 
-    uint32_t free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);  // 检测是否有空闲邮箱
-    while (free_TxMailbox < 3 && cnt--) {  // 等待空闲邮箱数达到3
-        free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);
+    uint32_t free_TxMailbox =
+        HAL_CAN_GetTxMailboxesFreeLevel(can_ctrl_data->hcan);  // 检测是否有空闲邮箱
+    while (free_TxMailbox < 3 && cnt--) {                      // 等待空闲邮箱数达到3
+        free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_ctrl_data->hcan);
     }
-    HAL_CAN_AddTxMessage(can_handle, tx_header, tx_data, &send_mail_box);
+    HAL_CAN_AddTxMessage(
+        can_ctrl_data->hcan, &can_ctrl_data->tx_header, can_ctrl_data->tx_data, &send_mail_box);
 }
