@@ -157,6 +157,9 @@ void usb_task(void const * argument)
 {
     MX_USB_DEVICE_Init();
     memset(&usb_send_duration, 0, sizeof(usb_send_duration_t));
+    for (uint8_t i = 0; i < PC_PACKET_NUM; i++) {
+        OutputPCData.packets[i].type = 1;
+    }
     USB_SEND_MODE = OUTPUT_VISION_MODE;
 
     while (1) {
@@ -380,15 +383,21 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.packets[1].name, "ref_pos");
-    OutputPCData.packets[1].type = 1;
-
-    char_to_uint(OutputPCData.packets[2].name, "fdb_pos");
-    OutputPCData.packets[2].type = 1;
-
-    char_to_uint(OutputPCData.packets[3].name, "rc.ch");
-    OutputPCData.packets[3].type = 1;
-    OutputPCData.packets[3].data = rc_ctrl->rc.ch[0];
+    char_to_uint(OutputPCData.packets[0].name, "T fdb[0]");
+    char_to_uint(OutputPCData.packets[1].name, "T fdb[1]");
+    char_to_uint(OutputPCData.packets[2].name, "T fdb[2]");
+    char_to_uint(OutputPCData.packets[3].name, "T fdb[3]");
+    char_to_uint(OutputPCData.packets[4].name, "ref");
+    char_to_uint(OutputPCData.packets[5].name, "P fdb[0]");
+    char_to_uint(OutputPCData.packets[6].name, "P fdb[1]");
+    char_to_uint(OutputPCData.packets[7].name, "P fdb[2]");
+    char_to_uint(OutputPCData.packets[8].name, "P fdb[3]");
+    char_to_uint(OutputPCData.packets[9].name, "W fdb[0]");
+    char_to_uint(OutputPCData.packets[10].name, "W fdb[1]");
+    char_to_uint(OutputPCData.packets[11].name, "W fdb[2]");
+    char_to_uint(OutputPCData.packets[12].name, "W fdb[3]");
+    // char_to_uint(OutputPCData.packets[13].name, "");
+    // char_to_uint(OutputPCData.packets[14].name, "");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));

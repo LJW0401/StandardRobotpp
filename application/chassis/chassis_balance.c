@@ -19,9 +19,11 @@
 #if (CHASSIS_TYPE == CHASSIS_BALANCE)
 #include "CAN_communication.h"
 #include "bsp_delay.h"
+#include "detect_task.h"
 #include "leg_model.h"
 #include "signal_generator.h"
 #include "stdbool.h"
+#include "usb_task.h"
 #include "user_lib.h"
 
 #define LOCATION_CONTROL
@@ -143,11 +145,7 @@ void ChassisInit(void)
     }
 
     for (uint8_t i = 0; i < 2; i++) {
-        MotorInit(&CHASSIS.wheel_motor[i], i + 1, 1, MF_9025, 1, 1, DM_MODE_MIT);
-    }
-
-    for (uint8_t i = 0; i < 4; i++) {
-        DmEnable(&CHASSIS.joint_motor[i]);
+        MotorInit(&CHASSIS.wheel_motor[i], i + 1, 2, MF_9025, 1, 1, DM_MODE_MIT);
     }
 
     /*-------------------- 值归零 --------------------*/
@@ -207,26 +205,26 @@ void ChassisInit(void)
  */
 void ChassisHandleException(void)
 {
-    bool joint_error = false;
-    for (uint8_t i = 0; i < 4; i++) {
-        if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
-            DmEnable(&CHASSIS.joint_motor[i]);
-        }
+    // bool joint_error = false;
+    // // for (uint8_t i = 0; i < 4; i++) {
+    // //     if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
+    // //         DmEnable(&CHASSIS.joint_motor[i]);
+    // //     }
 
-        // if (CHASSIS.joint_motor[i].off_line) {
-        //     joint_error = true;
-        // }
-    }
+    // //     // if (CHASSIS.joint_motor[i].off_line) {
+    // //     //     joint_error = true;
+    // //     // }
+    // // }
 
-    if (joint_error) {
-        CHASSIS.error_code |= JOINT_ERROR_OFFSET;
-    } else {
-        CHASSIS.error_code &= ~JOINT_ERROR_OFFSET;
-    }
+    // if (joint_error) {
+    //     CHASSIS.error_code |= JOINT_ERROR_OFFSET;
+    // } else {
+    //     CHASSIS.error_code &= ~JOINT_ERROR_OFFSET;
+    // }
 
-    if (CHASSIS.error_code != 0) {
-        CHASSIS.state = CHASSIS_STATE_ERROR;
-    }
+    // if (CHASSIS.error_code != 0) {
+    //     CHASSIS.state = CHASSIS_STATE_ERROR;
+    // }
 }
 
 /*-------------------- Set mode --------------------*/
@@ -238,13 +236,18 @@ void ChassisHandleException(void)
  */
 void ChassisSetMode(void)
 {
-    if (CHASSIS.state == CHASSIS_STATE_ERROR) {  //底盘出错时的状态处理
-        if ((CHASSIS.error_code | JOINT_ERROR_OFFSET) ||
-            (CHASSIS.error_code | WHEEL_ERROR_OFFSET)) {
-            CHASSIS.mode = CHASSIS_OFF;
-        }
+    if (toe_is_error(DBUS_TOE)) {  // 遥控器出错时的状态处理
+        CHASSIS.mode = CHASSIS_OFF;
         return;
     }
+
+    // if (CHASSIS.state == CHASSIS_STATE_ERROR) {  //底盘出错时的状态处理
+    //     if ((CHASSIS.error_code | JOINT_ERROR_OFFSET) ||
+    //         (CHASSIS.error_code | WHEEL_ERROR_OFFSET)) {
+    //         CHASSIS.mode = CHASSIS_OFF;
+    //     }
+    //     return;
+    // }
 
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_AUTO;
@@ -294,6 +297,19 @@ void ChassisObserver(void)
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
+    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.T;
+    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.T;
+    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.T;
+    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.T;
+    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.position;
+    OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
+    OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
+    OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
+    OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
+    OutputPCData.packets[9].data = CHASSIS.joint_motor[0].fdb.w;
+    OutputPCData.packets[10].data = CHASSIS.joint_motor[1].fdb.w;
+    OutputPCData.packets[11].data = CHASSIS.joint_motor[2].fdb.w;
+    OutputPCData.packets[12].data = CHASSIS.joint_motor[3].fdb.w;
 }
 
 /**
@@ -617,18 +633,33 @@ void ChassisSendCmd(void)
     SendJointMotorCmd();
     SendWheelMotorCmd();
 }
+
 /**
  * @brief 发送关节电机控制指令
  * @param[in] chassis
  */
 static void SendJointMotorCmd(void)
 {
-    DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2, 1);
-    DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2, 1);
-    delay_us(200);
-    DmMitCtrlPosition(&CHASSIS.joint_motor[2], 2, 1);
-    DmMitCtrlPosition(&CHASSIS.joint_motor[3], 2, 1);
+    if (CHASSIS.mode == CHASSIS_OFF) {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_DISABLE) {
+                DmDisable(&CHASSIS.joint_motor[i]);
+            }
+        }
+    } else {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
+                DmEnable(&CHASSIS.joint_motor[i]);
+            }
+        }
+        DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2, 1);
+        DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2, 1);
+        delay_us(200);
+        DmMitCtrlPosition(&CHASSIS.joint_motor[2], 2, 1);
+        DmMitCtrlPosition(&CHASSIS.joint_motor[3], 2, 1);
+    }
 }
+
 /**
  * @brief 发送驱动轮电机控制指令
  * @param chassis
