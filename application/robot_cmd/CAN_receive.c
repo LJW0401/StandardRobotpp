@@ -24,18 +24,8 @@
 #include "bsp_can.h"
 #include "cmsis_os.h"
 #include "detect_task.h"
-#include "user_lib.h"
 #include "usb_task.h"
-
-// motor data read
-#define get_dji_motor_measure(ptr, data)                               \
-    {                                                                  \
-        (ptr)->last_ecd = (ptr)->ecd;                                  \
-        (ptr)->ecd = (uint16_t)((data)[0] << 8 | (data)[1]);           \
-        (ptr)->speed_rpm = (uint16_t)((data)[2] << 8 | (data)[3]);     \
-        (ptr)->given_current = (uint16_t)((data)[4] << 8 | (data)[5]); \
-        (ptr)->temperate = (data)[6];                                  \
-    }
+#include "user_lib.h"
 
 // 接收数据
 static DjiMotorMeasure_t CAN1_DJI_MEASURE[11];
@@ -51,14 +41,20 @@ static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
 
 /**
 ************************************************************************
-* @brief:      	DmFdbData: 获取DM电机反馈数据函数
-* @param[in]:   motor:    指向motor_t结构的指针，包含电机相关信息和反馈数据
+* @brief:      	
+* @param[in]:   dm_measure:    指向motor_t结构的指针，包含电机相关信息和反馈数据
 * @param[in]:   rx_data:  指向包含反馈数据的数组指针
 * @retval:     	void
 * @details:    	从接收到的数据中提取DM4310电机的反馈信息，包括电机ID、
 *               状态、位置、速度、扭矩以及相关温度参数
 ************************************************************************
 **/
+
+/**
+ * @brief        DmFdbData: 获取DM电机反馈数据函数
+ * @param[out]   dm_measure 达妙电机数据缓存
+ * @param[in]    rx_data 反馈数据
+ */
 void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
 {
     dm_measure->id = (rx_data[0]) & 0x0F;
@@ -73,6 +69,22 @@ void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
     dm_measure->t_rotor = (float)(rx_data[7]);
 
     dm_measure->last_fdb_time = HAL_GetTick();
+}
+
+/**
+ * @brief        DjiFdbData: 获取DJI电机反馈数据函数
+ * @param[out]   dji_measure dji电机数据缓存
+ * @param[in]    rx_data 反馈数据
+ */
+void DjiFdbData(DjiMotorMeasure_t * dji_measure, uint8_t * rx_data)
+{
+    dji_measure->last_ecd = dji_measure->ecd;
+    dji_measure->ecd = (uint16_t)((rx_data)[0] << 8 | (rx_data)[1]);
+    dji_measure->speed_rpm = (uint16_t)((rx_data)[2] << 8 | (rx_data)[3]);
+    dji_measure->given_current = (uint16_t)((rx_data)[4] << 8 | (rx_data)[5]);
+    dji_measure->temperate = (rx_data)[6];
+
+    dji_measure->last_fdb_time = HAL_GetTick();
 }
 
 /**
@@ -100,10 +112,10 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             i = rx_header->StdId - DJI_M1_ID;
             if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
             {
-                get_dji_motor_measure(&CAN1_DJI_MEASURE[i], rx_data);
+                DjiFdbData(&CAN1_DJI_MEASURE[i], rx_data);
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
-                get_dji_motor_measure(&CAN2_DJI_MEASURE[i], rx_data);
+                DjiFdbData(&CAN2_DJI_MEASURE[i], rx_data);
             }
             break;
         }
@@ -281,7 +293,7 @@ static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
     uint32_t now = HAL_GetTick();
     if (now - dm_measure->last_fdb_time > MOTOR_STABLE_RUNNING_TIME) {
         motor->offline = true;
-    }else{
+    } else {
         motor->offline = false;
     }
 

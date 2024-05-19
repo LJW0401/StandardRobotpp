@@ -18,12 +18,12 @@
 
 #include "pid.h"
 #include "robot_typedef.h"
-#include "struct_typedef.h"
 #include "stdbool.h"
+#include "struct_typedef.h"
 
 #define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
 
-#define MOTOR_STABLE_RUNNING_TIME 10 // (ms)电机稳定运行时间
+#define MOTOR_STABLE_RUNNING_TIME 10  // (ms)电机稳定运行时间
 
 /*-------------------- DJI Motor --------------------*/
 
@@ -47,6 +47,8 @@ typedef struct _DjiMotorMeasure
     int16_t given_current;
     uint8_t temperate;
     int16_t last_ecd;
+
+    uint32_t last_fdb_time;  //上次反馈时间
 } DjiMotorMeasure_t;
 
 /*-------------------- CyberGear --------------------*/
@@ -94,6 +96,8 @@ typedef struct
 {
     RxCanInfo_s ext_id;
     uint8_t rx_data[8];
+
+    uint32_t last_fdb_time;  //上次反馈时间
 } CybergearMeasure_s;
 
 /*-------------------- DM Motor --------------------*/
@@ -146,7 +150,7 @@ typedef struct
     float t_mos;
     float t_rotor;
 
-    uint32_t last_fdb_time;//上次反馈时间
+    uint32_t last_fdb_time;  //上次反馈时间
 } DmMeasure_s;
 
 /*-------------------- MF Motor --------------------*/
@@ -166,7 +170,7 @@ typedef struct __Motor
     float reduction_ratio;  // 电机减速比
     int8_t direction;       // 电机旋转方向（1或-1）
     uint16_t mode;          // 电机模式
-    bool offline;          // 电机是否离线
+    bool offline;           // 电机是否离线
 
     /*状态量*/
     struct __fdb
