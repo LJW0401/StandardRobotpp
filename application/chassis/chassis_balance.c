@@ -205,26 +205,11 @@ void ChassisInit(void)
  */
 void ChassisHandleException(void)
 {
-    // bool joint_error = false;
-    // // for (uint8_t i = 0; i < 4; i++) {
-    // //     if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
-    // //         DmEnable(&CHASSIS.joint_motor[i]);
-    // //     }
-
-    // //     // if (CHASSIS.joint_motor[i].off_line) {
-    // //     //     joint_error = true;
-    // //     // }
-    // // }
-
-    // if (joint_error) {
-    //     CHASSIS.error_code |= JOINT_ERROR_OFFSET;
-    // } else {
-    //     CHASSIS.error_code &= ~JOINT_ERROR_OFFSET;
-    // }
-
-    // if (CHASSIS.error_code != 0) {
-    //     CHASSIS.state = CHASSIS_STATE_ERROR;
-    // }
+    if (toe_is_error(DBUS_TOE)) {
+        CHASSIS.error_code |= DBUS_ERROR_OFFSET;
+    } else {
+        CHASSIS.error_code &= ~DBUS_ERROR_OFFSET;
+    }
 }
 
 /*-------------------- Set mode --------------------*/
@@ -236,7 +221,7 @@ void ChassisHandleException(void)
  */
 void ChassisSetMode(void)
 {
-    if (toe_is_error(DBUS_TOE)) {  // 遥控器出错时的状态处理
+    if (CHASSIS.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
         CHASSIS.mode = CHASSIS_OFF;
         return;
     }

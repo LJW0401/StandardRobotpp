@@ -32,7 +32,7 @@
 // clang-format off
 #define JOINT_ERROR_OFFSET   ((uint8_t)1 << 0)  // 关节电机错误偏移量
 #define WHEEL_ERROR_OFFSET   ((uint8_t)1 << 1)  // 驱动轮电机错误偏移量
-#define DBUS_ERROR_OFFSET          ((uint8_t)1 << 2)  // dbus错误偏移量
+#define DBUS_ERROR_OFFSET    ((uint8_t)1 << 2)  // dbus错误偏移量
 // clang-format on
 
 /*-------------------- Structural definition --------------------*/
