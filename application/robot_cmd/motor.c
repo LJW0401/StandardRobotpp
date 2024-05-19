@@ -41,6 +41,6 @@ void MotorInit(
     p_motor->reduction_ratio = reduction_ratio;
     p_motor->mode = mode;
 
-    p_motor->off_line = true;
+    p_motor->offline = true;
 }
 

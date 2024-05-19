@@ -383,19 +383,19 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.packets[0].name, "T fdb[0]");
-    char_to_uint(OutputPCData.packets[1].name, "T fdb[1]");
-    char_to_uint(OutputPCData.packets[2].name, "T fdb[2]");
-    char_to_uint(OutputPCData.packets[3].name, "T fdb[3]");
+    char_to_uint(OutputPCData.packets[0].name, "off[0]");
+    char_to_uint(OutputPCData.packets[1].name, "off[1]");
+    char_to_uint(OutputPCData.packets[2].name, "off[2]");
+    char_to_uint(OutputPCData.packets[3].name, "off[3]");
     char_to_uint(OutputPCData.packets[4].name, "ref");
     char_to_uint(OutputPCData.packets[5].name, "P fdb[0]");
     char_to_uint(OutputPCData.packets[6].name, "P fdb[1]");
     char_to_uint(OutputPCData.packets[7].name, "P fdb[2]");
     char_to_uint(OutputPCData.packets[8].name, "P fdb[3]");
-    char_to_uint(OutputPCData.packets[9].name, "W fdb[0]");
-    char_to_uint(OutputPCData.packets[10].name, "W fdb[1]");
-    char_to_uint(OutputPCData.packets[11].name, "W fdb[2]");
-    char_to_uint(OutputPCData.packets[12].name, "W fdb[3]");
+    char_to_uint(OutputPCData.packets[9].name, "state[0]");
+    char_to_uint(OutputPCData.packets[10].name, "state[1]");
+    char_to_uint(OutputPCData.packets[11].name, "state[2]");
+    char_to_uint(OutputPCData.packets[12].name, "state[3]");
     // char_to_uint(OutputPCData.packets[13].name, "");
     // char_to_uint(OutputPCData.packets[14].name, "");
 

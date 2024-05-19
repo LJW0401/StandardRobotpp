@@ -3,8 +3,8 @@
   * @file       can_receive.c/h
   * @brief      CAN中断接收函数，接收电机数据.
   * @note       支持DJI电机 GM3508 GM2006 GM6020
-  *         未来支持小米电机 Cybergear
-  *         未来支持达妙电机 DM8009
+  *             支持小米电机 Cybergear
+  *             支持达妙电机 DM8009
   * @history
   *  Version    Date            Author          Modification
   *  V2.0.0     Mar-27-2024     Penguin         1. 添加CAN发送函数和新的电机控制函数，解码中将CAN1 CAN2分开。
@@ -36,15 +36,75 @@
         (ptr)->temperate = (data)[6];                                  \
     }
 
+typedef struct __MotorOnlineData
+{
+    uint32_t last_online_time;  //电机上次在线时间
+
+    bool is_online;  //电机是否在线
+} MotorOnlineData_t;
+
 // 接收数据
 static DjiMotorMeasure_t CAN1_DJI_MEASURE[11];
 static DjiMotorMeasure_t CAN2_DJI_MEASURE[11];
+static MotorOnlineData_t CAN1_DJI_ONLINE[11];
+static MotorOnlineData_t CAN2_DJI_ONLINE[11];
 
 static CybergearMeasure_s CAN1_CYBERGEAR_MEASURE[CYBERGEAR_NUM + 1];
 static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM + 1];
+static MotorOnlineData_t CAN1_CYBERGEAR_ONLINE[CYBERGEAR_NUM + 1];
+static MotorOnlineData_t CAN2_CYBERGEAR_ONLINE[CYBERGEAR_NUM + 1];
 
 static DmMeasure_s CAN1_DM_MEASURE[DM_NUM];
 static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
+static MotorOnlineData_t CAN1_DM_ONLINE[DM_NUM];
+static MotorOnlineData_t CAN2_DM_ONLINE[DM_NUM];
+
+/*-------------------- Online detect --------------------*/
+
+static MotorOnlineData_t * GetMotorOnlineDataPoint(uint8_t can, MotorType_e type, uint8_t index)
+{
+    MotorOnlineData_t * res = NULL;
+
+    if (can == 1) {
+        switch (type) {
+            case DJI_MOTOR_TYPE: {
+                res = &CAN1_DJI_ONLINE[index];
+            } break;
+            case CYBERGEAR_MOTOR_TYPE: {
+                res = &CAN1_CYBERGEAR_ONLINE[index];
+            } break;
+            case DM_MOTOR_TYPE: {
+                res = &CAN1_DM_ONLINE[index];
+            } break;
+            case LK_MOTOR_TYPE: {
+            } break;
+        }
+    } else if (can == 2) {
+        switch (type) {
+            case DJI_MOTOR_TYPE: {
+                res = &CAN2_DJI_ONLINE[index];
+            } break;
+            case CYBERGEAR_MOTOR_TYPE: {
+                res = &CAN2_CYBERGEAR_ONLINE[index];
+            } break;
+            case DM_MOTOR_TYPE: {
+                res = &CAN2_DM_ONLINE[index];
+            } break;
+            case LK_MOTOR_TYPE: {
+            } break;
+        }
+    }
+    return res;
+}
+
+// static void UpdateMotorOnlineData(uint8_t can, MotorType_e type, uint8_t index)
+// {
+//     MotorOnlineData_t * p_online_data = GetMotorOnlineDataPoint(can, type, index);
+//     if (p_online_data == NULL) return;
+
+//     uint32_t now = HAL_GetTick();
+//     p_online_data->last_online_time = now;
+// }
 
 /*-------------------- Decode --------------------*/
 
@@ -98,9 +158,11 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
             {
                 get_dji_motor_measure(&CAN1_DJI_MEASURE[i], rx_data);
+                // UpdateMotorOnlineData(1, DJI_MOTOR_TYPE, i);
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
                 get_dji_motor_measure(&CAN2_DJI_MEASURE[i], rx_data);
+                // UpdateMotorOnlineData(2, DJI_MOTOR_TYPE, i);
             }
             break;
         }
@@ -115,9 +177,11 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
             {
                 DmFdbData(&CAN1_DM_MEASURE[i], rx_data);
+                // UpdateMotorOnlineData(1, DM_MOTOR_TYPE, i);
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
                 DmFdbData(&CAN2_DM_MEASURE[i], rx_data);
+                // UpdateMotorOnlineData(2, DM_MOTOR_TYPE, i);
             }
         } break;
         default: {
@@ -196,6 +260,47 @@ void HAL_CAN_RxFifo0MsgPendingCallback(hcan_t * hcan)
         DecodeExtIdData(hcan, &rx_header, rx_data);
     }
 }
+
+/*-------------------- User function --------------------*/
+
+/*-------------------- Online detect --------------------*/
+
+bool MotorOnlineDetect(Motor_s * p_motor, uint8_t index)
+{
+    MotorType_e type = NONE_MOTOR_TYPE;
+    switch (p_motor->type) {
+        case DJI_M2006:
+        case DJI_M3508:
+        case DJI_M6020: {
+            type = DJI_MOTOR_TYPE;
+        } break;
+        case CYBERGEAR_MOTOR: {
+            type = CYBERGEAR_MOTOR_TYPE;
+        } break;
+        case DM_8009: {
+            type = DM_MOTOR_TYPE;
+        } break;
+        case MF_9025: {
+            type = LK_MOTOR_TYPE;
+        } break;
+    }
+
+    MotorOnlineData_t * p_online_data = GetMotorOnlineDataPoint(p_motor->can, type, index);
+    if (p_online_data == NULL) return false;
+
+    uint32_t now = HAL_GetTick();
+    uint32_t lost_time = now - p_online_data->last_online_time;
+
+    if (lost_time > MOTOR_STABLE_TIME) {
+        p_online_data->is_online = false;
+    } else {
+        p_online_data->is_online = true;
+    }
+
+    p_motor->offline = !p_online_data->is_online;
+    return p_online_data->is_online;
+}
+
 
 /*-------------------- Get data --------------------*/
 
@@ -286,27 +391,47 @@ void GetMotorMeasure(Motor_s * p_motor)
     switch (p_motor->type) {
         case DJI_M2006:
         case DJI_M3508: {
+            uint8_t index = p_motor->id - 1;
+
             const DjiMotorMeasure_t * p_dji_motor_measure =
-                GetDjiMotorMeasurePoint(p_motor->can, p_motor->id - 1);
+                GetDjiMotorMeasurePoint(p_motor->can, index);
+
             GetDjiFdbData(p_motor, p_dji_motor_measure);
+            // MotorOnlineDetect(p_motor, index);
         } break;
         case DJI_M6020: {
+            uint8_t index = p_motor->id + 3;
+
             const DjiMotorMeasure_t * p_dji_motor_measure =
-                GetDjiMotorMeasurePoint(p_motor->can, p_motor->id + 3);
+                GetDjiMotorMeasurePoint(p_motor->can, index);
+
             GetDjiFdbData(p_motor, p_dji_motor_measure);
+            // MotorOnlineDetect(p_motor, index);
         } break;
         case CYBERGEAR_MOTOR: {
             if (p_motor->can == 1) {
-                GetCybergearFdbData(p_motor, &CAN1_CYBERGEAR_MEASURE[p_motor->id]);
+                uint8_t index = p_motor->id;
+
+                GetCybergearFdbData(p_motor, &CAN1_CYBERGEAR_MEASURE[index]);
+                // MotorOnlineDetect(p_motor, index);
             } else {
-                GetCybergearFdbData(p_motor, &CAN2_CYBERGEAR_MEASURE[p_motor->id]);
+                uint8_t index = p_motor->id;
+
+                GetCybergearFdbData(p_motor, &CAN2_CYBERGEAR_MEASURE[index]);
+                // MotorOnlineDetect(p_motor, index);
             }
         } break;
         case DM_8009: {
             if (p_motor->can == 1) {
-                GetDmFdbData(p_motor, &CAN1_DM_MEASURE[p_motor->id - 1]);
+                uint8_t index = p_motor->id;
+
+                GetDmFdbData(p_motor, &CAN1_DM_MEASURE[index]);
+                // MotorOnlineDetect(p_motor, index);
             } else {
-                GetDmFdbData(p_motor, &CAN2_DM_MEASURE[p_motor->id - 1]);
+                uint8_t index = p_motor->id;
+
+                GetDmFdbData(p_motor, &CAN2_DM_MEASURE[index]);
+                // MotorOnlineDetect(p_motor, index);
             }
         } break;
         case MF_9025: {
@@ -315,3 +440,4 @@ void GetMotorMeasure(Motor_s * p_motor)
             break;
     }
 }
+
