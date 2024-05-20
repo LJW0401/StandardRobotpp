@@ -33,12 +33,14 @@ void MusicYouPlay(void)
             start_time = now;
         }
 
-        // buzzer_note(Notes[play_id].note);
+        buzzer_note(Notes[play_id].note,0.5);
     }
 }
 
 void MusicYouInit(void)
 {
+    Notes[0].end = 0;
+
     float t = 0.2;
 
     WriteNote(note_5B, 1);  //前奏
