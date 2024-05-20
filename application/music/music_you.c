@@ -15,7 +15,7 @@ static uint32_t play_id = 1;       // Index of the note to be played
 static uint32_t start_time = 0;  // Start time of the music
 static uint32_t now = 0;
 
-void WriteNote(int note, float Long)
+static void WriteNote(int note, float Long)
 {
     Notes[write_id].note = note;
     Notes[write_id].Long = Long;
@@ -33,7 +33,7 @@ void MusicYouPlay(void)
             start_time = now;
         }
 
-        buzzer_note(Notes[play_id].note,0.5);
+        buzzer_note(Notes[play_id].note,0.02);
     }
 }
 

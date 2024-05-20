@@ -70,7 +70,8 @@
         "string": "c",
         "bsp_buzzer.h": "c",
         "initializer_list": "c",
-        "music_you.h": "c"
+        "music_you.h": "c",
+        "music_1.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

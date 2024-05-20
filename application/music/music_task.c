@@ -3,6 +3,7 @@
 #include "music_task.h"
 
 #include "music_you.h"
+#include "music_1.h"
 #include "cmsis_os.h"
 #include "music.h"
 
@@ -33,6 +34,7 @@ __weak void MusicInit(void)
      NOTE : 在其他文件中定义具体内容
     */
     MusicYouInit();
+    // Music1Init();
 }
 __weak void MusicPlay(void)
 {
@@ -40,4 +42,5 @@ __weak void MusicPlay(void)
      NOTE : 在其他文件中定义具体内容
     */
     MusicYouPlay();
+    // Music1Play();
 }

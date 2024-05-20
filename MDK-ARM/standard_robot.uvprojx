@@ -1049,6 +1049,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\music\music_you.c</FilePath>
             </File>
+            <File>
+              <FileName>music_1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\music\music_1.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
