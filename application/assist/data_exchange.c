@@ -21,7 +21,7 @@ typedef struct {
     uint8_t data[8];
 } Data_t;
 
-static uint8_t DATA_BUFFER[Data_Exchange_INDEX_NUM * 8] = {0};
+static Data_t DATA_BUFFER[Data_Exchange_INDEX_NUM] = {0};
 
 /**
  * @brief          发布数据
