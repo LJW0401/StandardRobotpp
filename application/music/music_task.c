@@ -1,15 +1,17 @@
 
 
-
 #include "music_task.h"
-#include "music.h"
+
+#include "music_you.h"
 #include "cmsis_os.h"
+#include "music.h"
 
 #ifndef __weak
 #define __weak __attribute__((weak))
 #endif /* __weak */
 
 __weak void MusicInit(void);
+__weak void MusicPlay(void);
 
 void music_task(void const * pvParameters)
 {
@@ -19,7 +21,7 @@ void music_task(void const * pvParameters)
     MusicInit();
 
     while (1) {
-
+        MusicPlay();
         // 系统延时
         vTaskDelay(MUSIC_TASK_TIME_MS);
     }
@@ -30,4 +32,12 @@ __weak void MusicInit(void)
     /* 
      NOTE : 在其他文件中定义具体内容
     */
+    MusicYouInit();
+}
+__weak void MusicPlay(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+    MusicYouPlay();
 }

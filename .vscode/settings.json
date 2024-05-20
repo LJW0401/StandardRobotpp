@@ -68,7 +68,9 @@
         "usb_task.h": "c",
         "stdio.h": "c",
         "string": "c",
-        "bsp_buzzer.h": "c"
+        "bsp_buzzer.h": "c",
+        "initializer_list": "c",
+        "music_you.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
