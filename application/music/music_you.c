@@ -33,7 +33,7 @@ void MusicYouPlay(void)
             start_time = now;
         }
 
-        buzzer_note(Notes[play_id].note,0.02);
+        buzzer_note(Notes[play_id].note,0.05);
     }
 }
 
