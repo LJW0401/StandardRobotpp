@@ -18,7 +18,11 @@
 #include "bsp_can.h"
 #include "stm32f4xx_hal.h"
 
-#define STDID_OFFESET 0x140
+#define STDID_OFFESET ((uint16_t)0x140)
+
+#define TORQUE_COEFFICIENT 0.32f                  // (N*m/A)转矩系数
+#define CURRENT_TO_MULTICONTROL 62.5f             // (2000/32)(1/A)电流转换为控制量
+#define CURRENT_TO_MF_CONTROL 124.1212121212121f  // (2048/16.5)(1/A)电流转换为控制量
 
 static CanCtrlData_s CAN_CTRL_DATA = {
     .tx_header.IDE = CAN_ID_STD,
@@ -171,7 +175,7 @@ static hcan_t * GetHcanPoint(Motor_s * motor)
 
 /*-------------------- User functions --------------------*/
 
-void LkDisableMotor(Motor_s * p_motor)
+void LkDisable(Motor_s * p_motor)
 {
     hcan_t * hcan = GetHcanPoint(p_motor);
     if (hcan == NULL) return;
@@ -179,7 +183,7 @@ void LkDisableMotor(Motor_s * p_motor)
     DisableMotor(hcan, p_motor->id);
 }
 
-void LkStopMotor(Motor_s * p_motor)
+void LkStop(Motor_s * p_motor)
 {
     hcan_t * hcan = GetHcanPoint(p_motor);
     if (hcan == NULL) return;
@@ -187,7 +191,7 @@ void LkStopMotor(Motor_s * p_motor)
     StopMotor(hcan, p_motor->id);
 }
 
-void LkEnableMotor(Motor_s * p_motor)
+void LkEnable(Motor_s * p_motor)
 {
     hcan_t * hcan = GetHcanPoint(p_motor);
     if (hcan == NULL) return;
@@ -200,17 +204,29 @@ void LkSingleTorqueControl(Motor_s * p_motor)
     hcan_t * hcan = GetHcanPoint(p_motor);
     if (hcan == NULL) return;
 
-    SingleTorqueControl(hcan, p_motor->id, p_motor->set.current);
+    SingleTorqueControl(
+        hcan, p_motor->id, p_motor->set.torque / TORQUE_COEFFICIENT * CURRENT_TO_MF_CONTROL);
 }
 
 void LkMultipleTorqueControl(
-    Motor_s * p_motor_1, Motor_s * p_motor_2, Motor_s * p_motor_3, Motor_s * p_motor_4)
+    uint8_t can, float torque_1, float torque_2, float torque_3, float torque_4)
 {
-    hcan_t * hcan = GetHcanPoint(p_motor_1);
+    hcan_t * hcan = NULL;
+    if (can == 1)
+        hcan = &hcan1;
+    else if (can == 2)
+        hcan = &hcan2;
+
     if (hcan == NULL) return;
 
+    float current[4];
+    current[0] = torque_1 / TORQUE_COEFFICIENT;
+    current[1] = torque_2 / TORQUE_COEFFICIENT;
+    current[2] = torque_3 / TORQUE_COEFFICIENT;
+    current[3] = torque_4 / TORQUE_COEFFICIENT;
+
     MultipleTorqueControl(
-        hcan, p_motor_1->set.current, p_motor_2->set.current, p_motor_3->set.current,
-        p_motor_4->set.current);
+        hcan, current[0] * CURRENT_TO_MULTICONTROL, current[1] * CURRENT_TO_MULTICONTROL,
+        current[2] * CURRENT_TO_MULTICONTROL, current[3] * CURRENT_TO_MULTICONTROL);
 }
 /************************ END OF FILE ************************/

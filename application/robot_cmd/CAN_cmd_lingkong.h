@@ -18,12 +18,12 @@
 
 #include "motor.h"
 
-void LkDisableMotor(Motor_s * p_motor);
-void LkStopMotor(Motor_s * p_motor);
-void LkEnableMotor(Motor_s * p_motor);
-void LkSingleTorqueControl(Motor_s * p_motor);
-void LkMultipleTorqueControl(
-    Motor_s * p_motor_1, Motor_s * p_motor_2, Motor_s * p_motor_3, Motor_s * p_motor_4);
+extern void LkDisable(Motor_s * p_motor);
+extern void LkStop(Motor_s * p_motor);
+extern void LkEnable(Motor_s * p_motor);
+extern void LkSingleTorqueControl(Motor_s * p_motor);
+extern void LkMultipleTorqueControl(
+    uint8_t can, float torque_1, float torque_2, float torque_3, float torque_4);
 
 #endif /* CAN_CMD_LINGKONG_H */
 /************************ END OF FILE ************************/

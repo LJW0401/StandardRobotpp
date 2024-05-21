@@ -141,11 +141,11 @@ void ChassisInit(void)
     CHASSIS.rc = get_remote_control_point();  // 获取遥控器指针
     /*-------------------- 初始化底盘电机 --------------------*/
     for (uint8_t i = 0; i < 4; i++) {
-        MotorInit(&CHASSIS.joint_motor[i], i + 1, 1, DM_8009, 1, 1, DM_MODE_MIT);
+        MotorInit(&CHASSIS.joint_motor[i], i + 1, JOINT_CAN, DM_8009, 1, 1, DM_MODE_MIT);
     }
 
     for (uint8_t i = 0; i < 2; i++) {
-        MotorInit(&CHASSIS.wheel_motor[i], i + 1, 2, MF_9025, 1, 1, DM_MODE_MIT);
+        MotorInit(&CHASSIS.wheel_motor[i], i + 1, WHEEL_CAN, MF_9025, 1, 1, 0);
     }
 
     /*-------------------- 值归零 --------------------*/
@@ -295,8 +295,6 @@ void ChassisObserver(void)
     // OutputPCData.packets[10].data = CHASSIS.joint_motor[1].offline;
     // OutputPCData.packets[11].data = CHASSIS.joint_motor[2].offline;
     // OutputPCData.packets[12].data = CHASSIS.joint_motor[3].offline;
-
-
 }
 
 /**
@@ -478,11 +476,19 @@ void ChassisConsole(void)
             break;
         }
     }
+
     for (uint8_t i = 0; i < 4; i++) {
         CHASSIS.joint_motor[i].set.position = GenerateSinWave(1, 0, 2);
         CHASSIS.joint_motor[i].set.torque = 0;
         CHASSIS.joint_motor[i].set.velocity = 0;
         CHASSIS.joint_motor[i].set.current = 0;
+    }
+
+    for (uint8_t i = 0; i < 2; i++) {
+        CHASSIS.wheel_motor[i].set.position = 0;
+        CHASSIS.wheel_motor[i].set.torque = GenerateSinWave(0.5, 0, 2);
+        CHASSIS.wheel_motor[i].set.velocity = 0;
+        CHASSIS.wheel_motor[i].set.current = 0;
     }
 }
 
@@ -654,7 +660,7 @@ static void SendJointMotorCmd(void)
         if (flag) {
             delay_us(200);
         }
-        
+
         DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2, 1);
         DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2, 1);
         delay_us(200);
@@ -667,6 +673,36 @@ static void SendJointMotorCmd(void)
  * @brief 发送驱动轮电机控制指令
  * @param chassis
  */
-static void SendWheelMotorCmd(void) {}
+static void SendWheelMotorCmd(void)
+{
+    // delay_us(100);
+    // LkDisable(&CHASSIS.wheel_motor[0]);
+    // delay_us(100);
+    // LkDisable(&CHASSIS.wheel_motor[1]);
+
+    // if (CHASSIS.mode == CHASSIS_OFF) {
+    //     for (uint8_t i = 0; i < 2; i++) {
+    //         // if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_DISABLE) {
+    //             LkDisable(&CHASSIS.wheel_motor[i]);
+    //         // }
+    //     }
+    // } else {
+    //     for (uint8_t i = 0; i < 2; i++) {
+    //         // if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
+    //         // LkEnable(&CHASSIS.wheel_motor[i]);
+    //         LkDisable(&CHASSIS.wheel_motor[i]);
+    //         // }
+    //     }
+    //     // clang-format off
+    //     // LkMultipleTorqueControl(CHASSIS.wheel_motor[0].can,
+    //     //     CHASSIS.wheel_motor[0].set.torque, CHASSIS.wheel_motor[1].set.torque, 0, 0);
+    //     // clang-format on
+    // }
+
+    // clang-format off
+    LkMultipleTorqueControl(WHEEL_CAN,
+        CHASSIS.wheel_motor[0].set.torque, CHASSIS.wheel_motor[1].set.torque, 0, 0);
+    // clang-format on
+}
 
 #endif /* CHASSIS_BALANCE */

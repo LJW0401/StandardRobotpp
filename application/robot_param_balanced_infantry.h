@@ -8,8 +8,8 @@
 #include "robot_typedef.h"
 
 #define CHASSIS_TYPE CHASSIS_BALANCE     // 选择底盘类型
-#define GIMBAL_TYPE GIMBAL_YAW_PITCH     // 选择云台类型
-#define SHOOT_TYPE SHOOT_FRIC            // 选择发射机构类型
+#define GIMBAL_TYPE GIMBAL_NONE          // 选择云台类型
+#define SHOOT_TYPE SHOOT_NONE            // 选择发射机构类型
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL  // 选择控制类型
 
 // 机器人物理参数
@@ -31,6 +31,10 @@ typedef enum {
 
 // clang-format off
 /*-------------------- Chassis --------------------*/
+// motor parameters ---------------------
+#define JOINT_CAN 1
+#define WHEEL_CAN 2
+
 //physical parameters ---------------------
 #define WHEEL_RADIUS 0.106f  //(m)轮子半径
 //upper_limit parameters ---------------------

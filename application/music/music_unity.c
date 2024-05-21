@@ -77,7 +77,7 @@ void MusicUnityPlay(void)
             start_time = now;
         }
 
-        buzzer_note(Notes[play_id].note, 0.1);
+        buzzer_note(Notes[play_id].note, 0.05);
     }
 }
 
