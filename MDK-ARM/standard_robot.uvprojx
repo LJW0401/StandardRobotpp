@@ -1050,9 +1050,19 @@
               <FilePath>..\application\music\music_you.c</FilePath>
             </File>
             <File>
-              <FileName>music_1.c</FileName>
+              <FileName>music_unity.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\application\music\music_1.c</FilePath>
+              <FilePath>..\application\music\music_unity.c</FilePath>
+            </File>
+            <File>
+              <FileName>music_canon.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\music\music_canon.c</FilePath>
+            </File>
+            <File>
+              <FileName>music_castle_in_the_sky.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\music\music_castle_in_the_sky.c</FilePath>
             </File>
           </Files>
         </Group>
