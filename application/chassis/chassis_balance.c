@@ -627,18 +627,34 @@ void ChassisSendCmd(void)
  */
 static void SendJointMotorCmd(void)
 {
+    uint8_t cnt;
     if (CHASSIS.mode == CHASSIS_OFF) {
         for (uint8_t i = 0; i < 4; i++) {
+            if (cnt % 2 == 0) {
+                delay_us(200);
+            }
             if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_DISABLE) {
                 DmDisable(&CHASSIS.joint_motor[i]);
+                cnt++;
             }
         }
     } else {
+        bool flag = false;
         for (uint8_t i = 0; i < 4; i++) {
+            if (cnt % 2 == 0) {
+                delay_us(200);
+            }
             if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
                 DmEnable(&CHASSIS.joint_motor[i]);
+                flag = true;
+                cnt++;
             }
         }
+
+        if (flag) {
+            delay_us(200);
+        }
+        
         DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2, 1);
         DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2, 1);
         delay_us(200);
