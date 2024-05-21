@@ -33,14 +33,14 @@ __weak void MusicInit(void)
     /* 
      NOTE : 在其他文件中定义具体内容
     */
-    MusicYouInit();
-    // Music1Init();
+    // MusicYouInit();
+    MusicUnityInit();
 }
 __weak void MusicPlay(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容
     */
-    MusicYouPlay();
-    // Music1Play();
+    // MusicYouPlay();
+    MusicUnityPlay();
 }

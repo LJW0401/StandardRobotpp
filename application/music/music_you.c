@@ -42,6 +42,7 @@ static uint32_t play_id = 1;       // Index of the note to be played
 static uint32_t start_time = 0;  // Start time of the music
 static uint32_t now = 0;
 
+/*-------------------- Private functions --------------------*/
 static void WriteNote(int note, float Long)
 {
     Notes[write_id].note = note;
@@ -50,6 +51,8 @@ static void WriteNote(int note, float Long)
     write_id++;
 }
 
+
+/*-------------------- User functions --------------------*/
 void MusicYouPlay(void)
 {
     now = HAL_GetTick();
