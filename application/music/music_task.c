@@ -4,6 +4,7 @@
 
 #include "music_you.h"
 #include "music_unity.h"
+#include "music_canon.h"
 #include "cmsis_os.h"
 #include "music.h"
 
@@ -34,7 +35,8 @@ __weak void MusicInit(void)
      NOTE : 在其他文件中定义具体内容
     */
     // MusicYouInit();
-    MusicUnityInit();
+    // MusicUnityInit();
+    MusicCanonInit();
 }
 __weak void MusicPlay(void)
 {
@@ -42,5 +44,6 @@ __weak void MusicPlay(void)
      NOTE : 在其他文件中定义具体内容
     */
     // MusicYouPlay();
-    MusicUnityPlay();
+    // MusicUnityPlay();
+    MusicCanonPlay();
 }

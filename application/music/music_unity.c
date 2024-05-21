@@ -47,7 +47,7 @@
 #define HalfBeat  100
 // clang-format on
 
-#define NOTE_NUM 570
+#define NOTE_NUM 300
 static Note Notes[NOTE_NUM];  // Array of notes
 
 static uint32_t last_note_id = 0;  // Index of the last note
