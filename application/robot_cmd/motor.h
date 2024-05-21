@@ -153,7 +153,19 @@ typedef struct
     uint32_t last_fdb_time;  //上次反馈时间
 } DmMeasure_s;
 
-/*-------------------- MF Motor --------------------*/
+/*-------------------- LK Motor --------------------*/
+#define LK_NUM 4
+
+typedef struct
+{
+    int8_t ctrl_id;
+    int8_t temprature;
+    int16_t iq;
+    int16_t speed;
+    int16_t encoder;
+
+    uint32_t last_fdb_time;  //上次反馈时间
+} LkMeasure_s;
 
 /*-------------------- Motor struct --------------------*/
 

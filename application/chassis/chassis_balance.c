@@ -282,8 +282,8 @@ void ChassisObserver(void)
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
-    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.state;
-    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.state;
+    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.w;
+    OutputPCData.packets[1].data = CHASSIS.wheel_motor[1].fdb.w;
     OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.state;
     OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.state;
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.position;
@@ -675,11 +675,6 @@ static void SendJointMotorCmd(void)
  */
 static void SendWheelMotorCmd(void)
 {
-    // delay_us(100);
-    // LkDisable(&CHASSIS.wheel_motor[0]);
-    // delay_us(100);
-    // LkDisable(&CHASSIS.wheel_motor[1]);
-
     // if (CHASSIS.mode == CHASSIS_OFF) {
     //     for (uint8_t i = 0; i < 2; i++) {
     //         // if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_DISABLE) {
