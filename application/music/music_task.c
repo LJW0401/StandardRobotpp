@@ -5,6 +5,7 @@
 #include "music_you.h"
 #include "music_unity.h"
 #include "music_canon.h"
+#include "music_castle_in_the_sky.h"
 #include "cmsis_os.h"
 #include "music.h"
 
@@ -36,7 +37,8 @@ __weak void MusicInit(void)
     */
     // MusicYouInit();
     // MusicUnityInit();
-    MusicCanonInit();
+    // MusicCanonInit();
+    MusicCastleInTheSkyInit();
 }
 __weak void MusicPlay(void)
 {
@@ -45,5 +47,6 @@ __weak void MusicPlay(void)
     */
     // MusicYouPlay();
     // MusicUnityPlay();
-    MusicCanonPlay();
+    // MusicCanonPlay();
+    MusicCastleInTheSkyPlay();
 }

@@ -72,7 +72,10 @@
         "initializer_list": "c",
         "music_you.h": "c",
         "music_1.h": "c",
-        "music_unity.h": "c"
+        "music_unity.h": "c",
+        "music_canon.h": "c",
+        "music_castle_in_the_sky.h": "c",
+        "music.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
