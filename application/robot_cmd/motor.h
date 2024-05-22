@@ -22,6 +22,7 @@
 #include "struct_typedef.h"
 
 #define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
+#define DEGREE_TO_RAD 0.0174532925f  // (pi/180) (degree)->(rad)
 
 #define MOTOR_STABLE_RUNNING_TIME 10  // (ms)电机稳定运行时间
 
@@ -168,6 +169,8 @@ typedef struct
 
 #define LK_MAX_MF_TORQUE  2.41f
 #define LK_MIN_MF_TORQUE -2.41f
+
+#define MF_CONTROL_TO_CURRENT 0.008056640625f  // (16.5/2048)(A)控制量转换为电流
 // clang-format on
 
 typedef struct
@@ -176,7 +179,7 @@ typedef struct
     int8_t temprature;
     int16_t iq;
     int16_t speed;
-    int16_t encoder;
+    uint16_t encoder;
 
     uint32_t last_fdb_time;  //上次反馈时间
 } LkMeasure_s;

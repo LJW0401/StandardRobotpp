@@ -283,9 +283,9 @@ void ChassisObserver(void)
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
     OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.w;
-    OutputPCData.packets[1].data = CHASSIS.wheel_motor[1].fdb.w;
-    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.state;
-    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.state;
+    OutputPCData.packets[1].data = CHASSIS.wheel_motor[0].fdb.pos;
+    OutputPCData.packets[2].data = CHASSIS.wheel_motor[0].fdb.current;
+    OutputPCData.packets[3].data = CHASSIS.wheel_motor[0].fdb.temperature;
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.position;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
@@ -486,7 +486,7 @@ void ChassisConsole(void)
 
     for (uint8_t i = 0; i < 2; i++) {
         CHASSIS.wheel_motor[i].set.position = 0;
-        CHASSIS.wheel_motor[i].set.torque = GenerateSinWave(0.5, 0, 2);
+        CHASSIS.wheel_motor[i].set.torque = 0.0;//GenerateSinWave(0.3, 0, 2);
         CHASSIS.wheel_motor[i].set.velocity = 0;
         CHASSIS.wheel_motor[i].set.current = 0;
     }

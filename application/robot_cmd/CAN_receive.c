@@ -329,10 +329,12 @@ static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
  */
 static void GetLkFdbData(Motor_s * motor, const LkMeasure_s * lk_measure)
 {
-    motor->fdb.pos = lk_measure->encoder;
-    motor->fdb.w = lk_measure->speed;
+    // clang-format off
+    motor->fdb.pos     = uint_to_float(lk_measure->encoder, -M_PI, M_PI, 16);
+    motor->fdb.w       = lk_measure->speed * DEGREE_TO_RAD;
+    motor->fdb.current = lk_measure->iq * MF_CONTROL_TO_CURRENT;
     motor->fdb.temperature = lk_measure->temprature;
-    motor->fdb.current = lk_measure->iq;
+    // clang-format on
 
     uint32_t now = HAL_GetTick();
     if (now - lk_measure->last_fdb_time > MOTOR_STABLE_RUNNING_TIME) {
