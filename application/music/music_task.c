@@ -35,9 +35,9 @@ __weak void MusicInit(void)
     /* 
      NOTE : 在其他文件中定义具体内容
     */
-    // MusicYouInit();
-    // MusicUnityInit();
-    // MusicCanonInit();
+    MusicYouInit();
+    MusicUnityInit();
+    MusicCanonInit();
     MusicCastleInTheSkyInit();
 }
 __weak void MusicPlay(void)
@@ -46,7 +46,7 @@ __weak void MusicPlay(void)
      NOTE : 在其他文件中定义具体内容
     */
     // MusicYouPlay();
-    // MusicUnityPlay();
+    MusicUnityPlay();
     // MusicCanonPlay();
-    MusicCastleInTheSkyPlay();
+    // MusicCastleInTheSkyPlay();
 }

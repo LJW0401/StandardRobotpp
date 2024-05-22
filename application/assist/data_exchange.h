@@ -24,4 +24,18 @@ typedef enum __DataExchangeIndex {
     Data_Exchange_INDEX_NUM
 } DataExchangeIndex_e;
 
+typedef enum __Data_Type {
+    DE_INT8 = 0,
+    DE_UINT8,
+    DE_INT16,
+    DE_UINT16,
+    DE_INT32,
+    DE_UINT32,
+    DE_FLOAT,
+    Data_Type_NUM
+} DataType_e;
+
+extern void Publish(DataExchangeIndex_e index, uint8_t* data, DataType_e data_type);
+extern void Subscribe(DataExchangeIndex_e index, uint8_t * out);
+
 #endif  // __DATA_EXCHANGE_H
