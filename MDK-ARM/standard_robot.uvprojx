@@ -995,9 +995,9 @@
               <FilePath>..\application\gimbal\gimbal_task.c</FilePath>
             </File>
             <File>
-              <FileName>gimbal_yaw_pitch.c</FileName>
+              <FileName>gimbal_yaw_pitch_direct.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\application\gimbal\gimbal_yaw_pitch.c</FilePath>
+              <FilePath>..\application\gimbal\gimbal_yaw_pitch_direct.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1020,14 +1020,14 @@
               <FilePath>..\application\mechanical_arm\mechanical_arm.c</FilePath>
             </File>
             <File>
-              <FileName>mechanical_arm_5_axis.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\application\mechanical_arm\mechanical_arm_5_axis.c</FilePath>
-            </File>
-            <File>
               <FileName>mechanical_arm_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\application\mechanical_arm\mechanical_arm_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>mechanical_arm_penguin_mini.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\mechanical_arm\mechanical_arm_penguin_mini.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1165,9 +1165,9 @@
               <FilePath>..\application\shoot\shoot_task.c</FilePath>
             </File>
             <File>
-              <FileName>shoot_fric.c</FileName>
+              <FileName>shoot_fric_trigger.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\application\shoot\shoot_fric.c</FilePath>
+              <FilePath>..\application\shoot\shoot_fric_trigger.c</FilePath>
             </File>
           </Files>
         </Group>
