@@ -3,11 +3,14 @@
   * @file       can_receive.c/h
   * @brief      CAN中断接收函数，接收电机数据.
   * @note       支持DJI电机 GM3508 GM2006 GM6020
-  *         未来支持小米电机 Cybergear
-  *         未来支持达妙电机 DM8009
+  *             支持小米电机 Cybergear
+  *             支持达妙电机 DM8009
+  *             支持瓴控电机 MF9025
   * @history
   *  Version    Date            Author          Modification
   *  V2.0.0     Mar-27-2024     Penguin         1. 添加CAN发送函数和新的电机控制函数，解码中将CAN1 CAN2分开。
+  *  V2.1.0     Mar-20-2024     Penguin         1. 添加DM电机的适配
+  *  V2.2.0     May-22-2024     Penguin         1. 添加LK电机的适配
   *
   @verbatim
   ==============================================================================
@@ -53,6 +56,13 @@ typedef enum __DmMotorType{
     DM_M5_ID,
     DM_M6_ID,
 } DmMotorType_e;
+
+typedef enum __LkMotorType{
+    LK_M1_ID = 0x141,
+    LK_M2_ID,
+    LK_M3_ID,
+    LK_M4_ID,
+} LkMotorType_e;
 // clang-format on
 
 extern const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i);

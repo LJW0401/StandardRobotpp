@@ -21,7 +21,7 @@
 
 #include "cmsis_os.h"
 #include "gimbal.h"
-#include "gimbal_yaw_pitch.h"
+#include "gimbal_yaw_pitch_direct.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t gimbal_high_water;

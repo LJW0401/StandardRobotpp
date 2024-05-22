@@ -17,7 +17,7 @@
 */
 
 #include "robot_param.h"
-#if (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
+#if (GIMBAL_TYPE == GIMBAL_YAW_PITCH_DIRECT)
 #ifndef GIMBAL_YAW_PITCH_H
 #define GIMBAL_YAW_PITCH_H
 #include "IMU_task.h"

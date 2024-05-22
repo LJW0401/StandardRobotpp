@@ -3,11 +3,14 @@
   * @file       can_receive.c/h
   * @brief      CAN中断接收函数，接收电机数据.
   * @note       支持DJI电机 GM3508 GM2006 GM6020
-  *         未来支持小米电机 Cybergear
-  *         未来支持达妙电机 DM8009
+  *             支持小米电机 Cybergear
+  *             支持达妙电机 DM8009
+  *             支持瓴控电机 MF9025
   * @history
   *  Version    Date            Author          Modification
   *  V2.0.0     Mar-27-2024     Penguin         1. 添加CAN发送函数和新的电机控制函数，解码中将CAN1 CAN2分开。
+  *  V2.1.0     Mar-20-2024     Penguin         1. 添加DM电机的适配
+  *  V2.2.0     May-22-2024     Penguin         1. 添加LK电机的适配
   *
   @verbatim
   ==============================================================================
@@ -24,17 +27,8 @@
 #include "bsp_can.h"
 #include "cmsis_os.h"
 #include "detect_task.h"
+#include "usb_task.h"
 #include "user_lib.h"
-
-// motor data read
-#define get_dji_motor_measure(ptr, data)                               \
-    {                                                                  \
-        (ptr)->last_ecd = (ptr)->ecd;                                  \
-        (ptr)->ecd = (uint16_t)((data)[0] << 8 | (data)[1]);           \
-        (ptr)->speed_rpm = (uint16_t)((data)[2] << 8 | (data)[3]);     \
-        (ptr)->given_current = (uint16_t)((data)[4] << 8 | (data)[5]); \
-        (ptr)->temperate = (data)[6];                                  \
-    }
 
 // 接收数据
 static DjiMotorMeasure_t CAN1_DJI_MEASURE[11];
@@ -46,18 +40,16 @@ static CybergearMeasure_s CAN2_CYBERGEAR_MEASURE[CYBERGEAR_NUM + 1];
 static DmMeasure_s CAN1_DM_MEASURE[DM_NUM];
 static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
 
+static LkMeasure_s CAN1_LK_MEASURE[LK_NUM];
+static LkMeasure_s CAN2_LK_MEASURE[LK_NUM];
 /*-------------------- Decode --------------------*/
 
 /**
-************************************************************************
-* @brief:      	DmFdbData: 获取DM电机反馈数据函数
-* @param[in]:   motor:    指向motor_t结构的指针，包含电机相关信息和反馈数据
-* @param[in]:   rx_data:  指向包含反馈数据的数组指针
-* @retval:     	void
-* @details:    	从接收到的数据中提取DM4310电机的反馈信息，包括电机ID、
-*               状态、位置、速度、扭矩以及相关温度参数
-************************************************************************
-**/
+ * @brief        DmFdbData: 获取DM电机反馈数据函数
+ * @param[out]   dm_measure 达妙电机数据缓存
+ * @param[in]    rx_data 指向包含反馈数据的数组指针
+ * @note         从接收到的数据中提取DM电机的反馈信息，包括电机ID、状态、位置、速度、扭矩以及相关温度参数
+ */
 void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
 {
     dm_measure->id = (rx_data[0]) & 0x0F;
@@ -70,6 +62,41 @@ void DmFdbData(DmMeasure_s * dm_measure, uint8_t * rx_data)
     dm_measure->tor = uint_to_float(dm_measure->t_int, DM_T_MIN, DM_T_MAX, 12);  // (-18.0,18.0)
     dm_measure->t_mos = (float)(rx_data[6]);
     dm_measure->t_rotor = (float)(rx_data[7]);
+
+    dm_measure->last_fdb_time = HAL_GetTick();
+}
+
+/**
+ * @brief        DjiFdbData: 获取DJI电机反馈数据函数
+ * @param[out]   dji_measure dji电机数据缓存
+ * @param[in]    rx_data 反馈数据
+ */
+void DjiFdbData(DjiMotorMeasure_t * dji_measure, uint8_t * rx_data)
+{
+    dji_measure->last_ecd = dji_measure->ecd;
+    dji_measure->ecd = (uint16_t)((rx_data)[0] << 8 | (rx_data)[1]);
+    dji_measure->speed_rpm = (uint16_t)((rx_data)[2] << 8 | (rx_data)[3]);
+    dji_measure->given_current = (uint16_t)((rx_data)[4] << 8 | (rx_data)[5]);
+    dji_measure->temperate = (rx_data)[6];
+
+    dji_measure->last_fdb_time = HAL_GetTick();
+}
+
+/**
+ * @brief        LkFdbData: 获取LK电机反馈数据函数
+ * @param[out]   dm_measure 电机数据缓存
+ * @param[in]    rx_data 指向包含反馈数据的数组指针
+ * @note         从接收到的数据中提取LK电机的反馈信息
+ */
+void LkFdbData(LkMeasure_s * lk_measure, uint8_t * rx_data)
+{
+    lk_measure->ctrl_id = rx_data[0];
+    lk_measure->temprature = rx_data[1];
+    lk_measure->iq = (uint16_t)(rx_data[3] << 8 | rx_data[2]);
+    lk_measure->speed = (uint16_t)(rx_data[5] << 8 | rx_data[4]);
+    lk_measure->encoder = (uint16_t)(rx_data[7] << 8 | rx_data[6]);
+
+    lk_measure->last_fdb_time = HAL_GetTick();
 }
 
 /**
@@ -97,10 +124,10 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             i = rx_header->StdId - DJI_M1_ID;
             if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
             {
-                get_dji_motor_measure(&CAN1_DJI_MEASURE[i], rx_data);
+                DjiFdbData(&CAN1_DJI_MEASURE[i], rx_data);
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
-                get_dji_motor_measure(&CAN2_DJI_MEASURE[i], rx_data);
+                DjiFdbData(&CAN2_DJI_MEASURE[i], rx_data);
             }
             break;
         }
@@ -118,6 +145,20 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
             {
                 DmFdbData(&CAN2_DM_MEASURE[i], rx_data);
+            }
+        } break;
+        case LK_M1_ID:
+        case LK_M2_ID:
+        case LK_M3_ID:
+        case LK_M4_ID: {  // 以上ID为LK电机标识符
+            static uint8_t i = 0;
+            i = rx_header->StdId - LK_M1_ID;
+            if (CAN == &hcan1)  // 接收到的数据是通过 CAN1 接收的
+            {
+                LkFdbData(&CAN1_LK_MEASURE[i], rx_data);
+            } else if (CAN == &hcan2)  // 接收到的数据是通过 CAN2 接收的
+            {
+                LkFdbData(&CAN2_LK_MEASURE[i], rx_data);
             }
         } break;
         default: {
@@ -274,6 +315,36 @@ static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
     motor->fdb.T = dm_measure->tor;
     motor->fdb.temperature = dm_measure->t_mos;
     motor->fdb.state = dm_measure->state;
+
+    uint32_t now = HAL_GetTick();
+    if (now - dm_measure->last_fdb_time > MOTOR_STABLE_RUNNING_TIME) {
+        motor->offline = true;
+    } else {
+        motor->offline = false;
+    }
+}
+
+/**
+ * @brief          获取LK电机反馈数据
+ * @param[out]     motor 电机结构体 
+ * @param[in]      lk_measure 电机反馈数据缓存区
+ * @return         none
+ */
+static void GetLkFdbData(Motor_s * motor, const LkMeasure_s * lk_measure)
+{
+    // clang-format off
+    motor->fdb.pos     = uint_to_float(lk_measure->encoder, -M_PI, M_PI, 16);
+    motor->fdb.w       = lk_measure->speed * DEGREE_TO_RAD;
+    motor->fdb.current = lk_measure->iq * MF_CONTROL_TO_CURRENT;
+    motor->fdb.temperature = lk_measure->temprature;
+    // clang-format on
+
+    uint32_t now = HAL_GetTick();
+    if (now - lk_measure->last_fdb_time > MOTOR_STABLE_RUNNING_TIME) {
+        motor->offline = true;
+    } else {
+        motor->offline = false;
+    }
 }
 
 /**
@@ -310,6 +381,11 @@ void GetMotorMeasure(Motor_s * p_motor)
             }
         } break;
         case MF_9025: {
+            if (p_motor->can == 1) {
+                GetLkFdbData(p_motor, &CAN1_LK_MEASURE[p_motor->id - 1]);
+            } else {
+                GetLkFdbData(p_motor, &CAN2_LK_MEASURE[p_motor->id - 1]);
+            }
         } break;
         default:
             break;

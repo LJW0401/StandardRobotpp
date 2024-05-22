@@ -16,8 +16,8 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
 */
 
-#include "shoot_fric.h"
-#if (SHOOT_TYPE == SHOOT_FRIC)
+#include "shoot_fric_trigger.h"
+#if (SHOOT_TYPE == SHOOT_FRIC_TRIGGER)
 
 static Shoot_s SHOOT = {
   .mode = LOAD_STOP,

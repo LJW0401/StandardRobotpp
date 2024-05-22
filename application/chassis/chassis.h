@@ -40,6 +40,7 @@
     }
 
 typedef enum {
+    CHASSIS_OFF,  // 底盘关闭
     CHASSIS_ZERO_FORCE,  // 底盘无力，所有控制量置0
     CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
     CHASSIS_STOP,  // 底盘停止运动(速度为0)
@@ -48,6 +49,12 @@ typedef enum {
     CHASSIS_AUTO,  // 底盘自动模式
     CHASSIS_OPEN   // 遥控器的值乘以比例成电流值开环控制
 } ChassisMode_e;
+
+typedef enum __ChassisState
+{
+    CHASSIS_STATE_NORNAL,  // 底盘正常状态
+    CHASSIS_STATE_ERROR    // 底盘错误状态
+} ChassisState_e;
 
 typedef struct  // 底盘速度向量结构体
 {
