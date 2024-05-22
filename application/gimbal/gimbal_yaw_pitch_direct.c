@@ -16,8 +16,8 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
 */
 
-#include "gimbal_yaw_pitch.h"
-#if (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
+#include "gimbal_yaw_pitch_direct.h"
+#if (GIMBAL_TYPE == GIMBAL_YAW_PITCH_DIRECT)
 static Gimbal_s GIMBAL = {
   .mode = GIMBAL_ZERO_FORCE,
 

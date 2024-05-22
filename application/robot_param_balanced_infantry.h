@@ -7,27 +7,11 @@
 #define INCLUDED_ROBOT_PARAM_H
 #include "robot_typedef.h"
 
-#define CHASSIS_TYPE CHASSIS_BALANCE     // 选择底盘类型
-#define GIMBAL_TYPE GIMBAL_NONE          // 选择云台类型
-#define SHOOT_TYPE SHOOT_NONE            // 选择发射机构类型
-#define CONTROL_TYPE CHASSIS_AND_GIMBAL  // 选择控制类型
-
-// 机器人物理参数
-typedef enum {
-    // 底盘CAN1
-    WHEEL1 = 0,
-    WHEEL2 = 1,
-    JOINT1 = 1,
-    JOINT2 = 2,
-    JOINT3 = 3,
-    JOINT4 = 4,
-    // 云台CAN2
-    YAW = 1,
-    PITCH = 2,
-    TRIGGER = 7,
-    FRIC1 = 0,
-    FRIC2 = 1,
-} MotorId_e;
+#define CHASSIS_TYPE CHASSIS_BALANCE             // 选择底盘类型
+#define GIMBAL_TYPE GIMBAL_NONE                  // 选择云台类型
+#define SHOOT_TYPE SHOOT_NONE                    // 选择发射机构类型
+#define MECHANICAL_ARM_TYPE MECHANICAL_ARM_NONE  // 选择机械臂类型
+#define CONTROL_TYPE CHASSIS_AND_GIMBAL          // 选择控制类型
 
 // clang-format off
 /*-------------------- Chassis --------------------*/
