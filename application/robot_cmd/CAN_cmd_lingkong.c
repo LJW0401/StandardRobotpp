@@ -127,6 +127,30 @@ static void SingleTorqueControl(hcan_t * hcan, uint16_t motor_id, int16_t iqCont
 }
 
 /**
+ * @brief        单电机速度闭环控制命令
+ * @param[in]    hcan      指向CAN_HandleTypeDef结构的指针
+ * @param[in]    motor_id  电机ID，指定目标电机
+ * @param[in]    speedControl 
+ */
+static void SingleSpeedControl(hcan_t * hcan, uint16_t motor_id, int32_t speedControl)
+{
+    CAN_CTRL_DATA.hcan = hcan;
+
+    CAN_CTRL_DATA.tx_header.StdId = motor_id + STDID_OFFESET;
+
+    CAN_CTRL_DATA.tx_data[0] = 0xA2;
+    CAN_CTRL_DATA.tx_data[1] = 0x00;
+    CAN_CTRL_DATA.tx_data[2] = 0x00;
+    CAN_CTRL_DATA.tx_data[3] = 0x00;
+    CAN_CTRL_DATA.tx_data[4] = *(uint8_t *)(&speedControl);
+    CAN_CTRL_DATA.tx_data[5] = *((uint8_t *)(&speedControl) + 1);
+    CAN_CTRL_DATA.tx_data[6] = *((uint8_t *)(&speedControl) + 2);
+    CAN_CTRL_DATA.tx_data[7] = *((uint8_t *)(&speedControl) + 3);
+
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
+}
+
+/**
  * @brief        多电机转矩闭环控制命令
  * @param[in]    hcan        指向CAN_HandleTypeDef结构的指针
  * @param[in]    iqControl_1 转矩电流 -2000\\~2000
@@ -209,6 +233,14 @@ void LkSingleTorqueControl(Motor_s * p_motor)
         hcan, p_motor->id,
         fp32_constrain(p_motor->set.torque, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) /
             TORQUE_COEFFICIENT * CURRENT_TO_MF_CONTROL);
+}
+
+void LkSingleSpeedControl(Motor_s * p_motor)
+{
+    hcan_t * hcan = GetHcanPoint(p_motor);
+    if (hcan == NULL) return;
+
+    SingleSpeedControl(hcan, p_motor->id, p_motor->set.velocity * RAD_TO_DEGREE * 100);
 }
 
 void LkMultipleTorqueControl(

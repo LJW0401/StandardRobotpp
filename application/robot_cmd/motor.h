@@ -23,6 +23,7 @@
 
 #define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
 #define DEGREE_TO_RAD 0.0174532925f  // (pi/180) (degree)->(rad)
+#define RAD_TO_DEGREE 57.2957795131f  // (180/pi) (rad)->(degree)
 
 #define MOTOR_STABLE_RUNNING_TIME 10  // (ms)电机稳定运行时间
 
