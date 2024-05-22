@@ -30,6 +30,7 @@ extern void DmEnable(Motor_s * motor);
 extern void DmDisable(Motor_s * motor);
 extern void DmSavePosZero(Motor_s * motor);
 
+extern void DmMitStop(Motor_s * motor);
 extern void DmMitCtrlTorque(Motor_s * motor);
 extern void DmMitCtrlVelocity(Motor_s * motor, float kd);
 extern void DmMitCtrlPosition(Motor_s * motor, float kp, float kd);

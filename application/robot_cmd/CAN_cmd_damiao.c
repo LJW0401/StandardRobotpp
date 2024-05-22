@@ -325,6 +325,19 @@ void DmSavePosZero(Motor_s * motor)
 }
 
 /**
+ * @brief          达妙电机停止，直接发送0力矩
+ * @param[in]      motor 电机结构体
+ * @retval         none
+ */
+void DmMitStop(Motor_s * motor)
+{
+    hcan_t * hcan = GetHcanPoint(motor);
+    if (hcan == NULL) return;
+
+    MitCtrl(hcan, motor->id, 0, 0, 0, 0, 0);
+}
+
+/**
  * @brief          达妙电机使用力矩控制
  * @param[in]      motor 电机结构体
  * @retval         none

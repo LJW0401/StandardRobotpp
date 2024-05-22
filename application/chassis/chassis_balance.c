@@ -486,7 +486,7 @@ void ChassisConsole(void)
 
     for (uint8_t i = 0; i < 2; i++) {
         CHASSIS.wheel_motor[i].set.position = 0;
-        CHASSIS.wheel_motor[i].set.torque = 0.0;//GenerateSinWave(0.3, 0, 2);
+        CHASSIS.wheel_motor[i].set.torque = GenerateSinWave(0.3, 0, 2);
         CHASSIS.wheel_motor[i].set.velocity = 0;
         CHASSIS.wheel_motor[i].set.current = 0;
     }
@@ -635,15 +635,11 @@ static void SendJointMotorCmd(void)
 {
     uint8_t cnt;
     if (CHASSIS.mode == CHASSIS_OFF) {
-        for (uint8_t i = 0; i < 4; i++) {
-            if (cnt % 2 == 0) {
-                delay_us(200);
-            }
-            if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_DISABLE) {
-                DmDisable(&CHASSIS.joint_motor[i]);
-                cnt++;
-            }
-        }
+        DmMitStop(&CHASSIS.joint_motor[0]);
+        DmMitStop(&CHASSIS.joint_motor[1]);
+        delay_us(200);
+        DmMitStop(&CHASSIS.joint_motor[2]);
+        DmMitStop(&CHASSIS.joint_motor[3]);
     } else {
         bool flag = false;
         for (uint8_t i = 0; i < 4; i++) {
@@ -675,29 +671,14 @@ static void SendJointMotorCmd(void)
  */
 static void SendWheelMotorCmd(void)
 {
-    // if (CHASSIS.mode == CHASSIS_OFF) {
-    //     for (uint8_t i = 0; i < 2; i++) {
-    //         // if (CHASSIS.joint_motor[i].fdb.state != DM_STATE_DISABLE) {
-    //             LkDisable(&CHASSIS.wheel_motor[i]);
-    //         // }
-    //     }
-    // } else {
-    //     for (uint8_t i = 0; i < 2; i++) {
-    //         // if (CHASSIS.joint_motor[i].fdb.state == DM_STATE_DISABLE) {
-    //         // LkEnable(&CHASSIS.wheel_motor[i]);
-    //         LkDisable(&CHASSIS.wheel_motor[i]);
-    //         // }
-    //     }
-    //     // clang-format off
-    //     // LkMultipleTorqueControl(CHASSIS.wheel_motor[0].can,
-    //     //     CHASSIS.wheel_motor[0].set.torque, CHASSIS.wheel_motor[1].set.torque, 0, 0);
-    //     // clang-format on
-    // }
-
-    // clang-format off
-    LkMultipleTorqueControl(WHEEL_CAN,
-        CHASSIS.wheel_motor[0].set.torque, CHASSIS.wheel_motor[1].set.torque, 0, 0);
-    // clang-format on
+    if (CHASSIS.mode == CHASSIS_OFF) {
+        LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
+    } else {
+        // clang-format off
+        LkMultipleTorqueControl(WHEEL_CAN,
+            CHASSIS.wheel_motor[0].set.torque, CHASSIS.wheel_motor[1].set.torque, 0, 0);
+        // clang-format on
+    }
 }
 
 #endif /* CHASSIS_BALANCE */
