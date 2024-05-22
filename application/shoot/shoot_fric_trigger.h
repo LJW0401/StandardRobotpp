@@ -17,13 +17,13 @@
 */
 #include "robot_param.h"
 
-#if (SHOOT_TYPE == SHOOT_FRIC)
+#if (SHOOT_TYPE == SHOOT_FRIC_TRIGGER)
 #ifndef SHOOT_FRIC_H
 #define SHOOT_FRIC_H
 #include "motor.h"
 #include "pid.h"
-#include "shoot.h"
 #include "remote_control.h"
+#include "shoot.h"
 
 typedef struct
 {

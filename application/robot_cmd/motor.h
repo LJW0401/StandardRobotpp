@@ -18,9 +18,14 @@
 
 #include "pid.h"
 #include "robot_typedef.h"
+#include "stdbool.h"
 #include "struct_typedef.h"
 
 #define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
+#define DEGREE_TO_RAD 0.0174532925f  // (pi/180) (degree)->(rad)
+#define RAD_TO_DEGREE 57.2957795131f  // (180/pi) (rad)->(degree)
+
+#define MOTOR_STABLE_RUNNING_TIME 10  // (ms)电机稳定运行时间
 
 /*-------------------- DJI Motor --------------------*/
 
@@ -44,6 +49,8 @@ typedef struct _DjiMotorMeasure
     int16_t given_current;
     uint8_t temperate;
     int16_t last_ecd;
+
+    uint32_t last_fdb_time;  //上次反馈时间
 } DjiMotorMeasure_t;
 
 /*-------------------- CyberGear --------------------*/
@@ -91,6 +98,8 @@ typedef struct
 {
     RxCanInfo_s ext_id;
     uint8_t rx_data[8];
+
+    uint32_t last_fdb_time;  //上次反馈时间
 } CybergearMeasure_s;
 
 /*-------------------- DM Motor --------------------*/
@@ -142,9 +151,39 @@ typedef struct
 
     float t_mos;
     float t_rotor;
+
+    uint32_t last_fdb_time;  //上次反馈时间
 } DmMeasure_s;
 
-/*-------------------- MF Motor --------------------*/
+/*-------------------- LK Motor --------------------*/
+#define LK_NUM 4
+
+// clang-format off
+#define LK_MAX_MULTICONTROL_IQ  2000
+#define LK_MIN_MULTICONTROL_IQ -2000
+#define LK_MAX_MF_CONTROL_IQ    2048
+#define LK_MIN_MF_CONTROL_IQ   -2048
+#define LK_MAX_MULTICONTROL_CURRENT  32.0f
+#define LK_MIN_MULTICONTROL_CURRENT -32.0f
+#define LK_MAX_MF_CONTROL_CURRENT  16.5f
+#define LK_MIN_MF_CONTROL_CURRENT -16.5f
+
+#define LK_MAX_MF_TORQUE  2.41f
+#define LK_MIN_MF_TORQUE -2.41f
+
+#define MF_CONTROL_TO_CURRENT 0.008056640625f  // (16.5/2048)(A)控制量转换为电流
+// clang-format on
+
+typedef struct
+{
+    int8_t ctrl_id;
+    int8_t temprature;
+    int16_t iq;
+    int16_t speed;
+    uint16_t encoder;
+
+    uint32_t last_fdb_time;  //上次反馈时间
+} LkMeasure_s;
 
 /*-------------------- Motor struct --------------------*/
 
@@ -161,6 +200,7 @@ typedef struct __Motor
     float reduction_ratio;  // 电机减速比
     int8_t direction;       // 电机旋转方向（1或-1）
     uint16_t mode;          // 电机模式
+    bool offline;           // 电机是否离线
 
     /*状态量*/
     struct __fdb

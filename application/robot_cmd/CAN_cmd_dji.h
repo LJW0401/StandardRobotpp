@@ -37,18 +37,8 @@ typedef enum {
     DJI_2FE = 0x2FE,  // 用于6020的电流控制(ID 5-7)
 } DJI_Std_ID;
 
-typedef struct  // DJI电机发送数据结构体
-{
-    hcan_t * CAN;
-    DJI_Std_ID std_id;
-    CAN_TxHeaderTypeDef tx_message;
-    uint8_t can_send_data[8];
-} DJI_Motor_Send_Data_s;
-
 extern void CanCmdDjiMotor(
     uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
-
-extern void AddDjiMotorSendData(Motor_s * p_motor, DJI_Std_ID std_id);
 
 extern void DjiMotorVelocityControl(
     Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward);

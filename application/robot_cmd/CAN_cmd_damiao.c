@@ -4,7 +4,7 @@
   * @brief      CAN发送函数，通过CAN信号控制达妙电机 8009.
   * @history
   *  Version    Date            Author          Modification
-  *  V2.0.0     May-16-2024     Penguin         1. 完成。
+  *  V1.0.0     May-16-2024     Penguin         1. 完成。
   *
   @verbatim
   ==============================================================================
@@ -23,22 +23,8 @@
 #include "user_lib.h"
 
 // 电机参数设置结构体
-typedef struct __MotorCtrl
-{
-    int8_t mode;
-    float pos_set;
-    float vel_set;
-    float tor_set;
-    float kp_set;
-    float kd_set;
-} MotorCtrl_t;
 
-struct __CanCtrlData
-{
-    hcan_t * hcan;
-    CAN_TxHeaderTypeDef tx_header;
-    uint8_t tx_data[8];
-} CAN_CTRL_DATA = {
+static CanCtrlData_s CAN_CTRL_DATA = {
     .tx_header.IDE = CAN_ID_STD,
     .tx_header.RTR = CAN_RTR_DATA,
     .tx_header.DLC = 8,
@@ -71,7 +57,7 @@ static void ClearErr(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
     CAN_CTRL_DATA.tx_data[6] = 0xFF;
     CAN_CTRL_DATA.tx_data[7] = 0xFB;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -99,7 +85,7 @@ static void EnableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
     CAN_CTRL_DATA.tx_data[6] = 0xFF;
     CAN_CTRL_DATA.tx_data[7] = 0xFC;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -127,7 +113,7 @@ static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
     CAN_CTRL_DATA.tx_data[6] = 0xFF;
     CAN_CTRL_DATA.tx_data[7] = 0xFD;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -142,6 +128,8 @@ static void DisableMotorMode(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 **/
 void SavePosZero(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
 {
+    CAN_CTRL_DATA.hcan = hcan;
+
     CAN_CTRL_DATA.tx_header.StdId = motor_id + mode_id;
 
     CAN_CTRL_DATA.tx_data[0] = 0xFF;
@@ -153,7 +141,7 @@ void SavePosZero(hcan_t * hcan, uint16_t motor_id, uint16_t mode_id)
     CAN_CTRL_DATA.tx_data[6] = 0xFF;
     CAN_CTRL_DATA.tx_data[7] = 0xFE;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -175,6 +163,8 @@ static void MitCtrl(
 {
     uint16_t pos_tmp, vel_tmp, kp_tmp, kd_tmp, tor_tmp;
 
+    CAN_CTRL_DATA.hcan = hcan;
+    
     CAN_CTRL_DATA.tx_header.StdId = motor_id + DM_MODE_MIT;
 
     pos_tmp = float_to_uint(pos, DM_P_MIN, DM_P_MAX, 16);
@@ -192,7 +182,7 @@ static void MitCtrl(
     CAN_CTRL_DATA.tx_data[6] = ((kd_tmp & 0xF) << 4) | (tor_tmp >> 8);
     CAN_CTRL_DATA.tx_data[7] = tor_tmp;
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -226,7 +216,7 @@ static void PosSpeedCtrl(hcan_t * hcan, uint16_t motor_id, float pos, float vel)
     CAN_CTRL_DATA.tx_data[6] = *(vbuf + 2);
     CAN_CTRL_DATA.tx_data[7] = *(vbuf + 3);
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
@@ -254,7 +244,7 @@ static void SpeedCtrl(hcan_t * hcan, uint16_t motor_id, float vel)
     CAN_CTRL_DATA.tx_data[2] = *(vbuf + 2);
     CAN_CTRL_DATA.tx_data[3] = *(vbuf + 3);
 
-    CAN_SendTxMessage(CAN_CTRL_DATA.hcan, &CAN_CTRL_DATA.tx_header, CAN_CTRL_DATA.tx_data);
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /*-------------------- Check functions --------------------*/
@@ -332,6 +322,19 @@ void DmSavePosZero(Motor_s * motor)
     if (hcan == NULL) return;
 
     SavePosZero(hcan, motor->id, motor->mode);
+}
+
+/**
+ * @brief          达妙电机停止，直接发送0力矩
+ * @param[in]      motor 电机结构体
+ * @retval         none
+ */
+void DmMitStop(Motor_s * motor)
+{
+    hcan_t * hcan = GetHcanPoint(motor);
+    if (hcan == NULL) return;
+
+    MitCtrl(hcan, motor->id, 0, 0, 0, 0, 0);
 }
 
 /**

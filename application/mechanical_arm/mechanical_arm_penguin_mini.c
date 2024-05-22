@@ -15,9 +15,9 @@
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   */
 
-#include "mechanical_arm_5_axis.h"
+#include "mechanical_arm_penguin_mini.h"
 
-#if (MECHANICAL_ARM_TYPE == MECHANICAL_ARM_5_AXIS)
+#if (MECHANICAL_ARM_TYPE == PENGUIN_MINI_ARM)
 #include <stdbool.h>
 
 #include "CAN_communication.h"

@@ -15,22 +15,28 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
 */
-#include "robot_param.h"
-
-#if (CHASSIS_TYPE == CHASSIS_BALANCE)
 #ifndef CHASSIS_BALANCE_H
 #define CHASSIS_BALANCE_H
 
-#include <math.h>
+#include "robot_param.h"
 
+#if (CHASSIS_TYPE == CHASSIS_BALANCE)
 #include "IMU_task.h"
 #include "chassis.h"
+#include "math.h"
 #include "motor.h"
 #include "pid.h"
 #include "remote_control.h"
 #include "struct_typedef.h"
 
+// clang-format off
+#define JOINT_ERROR_OFFSET   ((uint8_t)1 << 0)  // 关节电机错误偏移量
+#define WHEEL_ERROR_OFFSET   ((uint8_t)1 << 1)  // 驱动轮电机错误偏移量
+#define DBUS_ERROR_OFFSET    ((uint8_t)1 << 2)  // dbus错误偏移量
+// clang-format on
+
 /*-------------------- Structural definition --------------------*/
+
 typedef struct
 {
     float angle;     // rad
@@ -66,21 +72,21 @@ typedef struct
  */
 typedef struct
 {
-    /* 用于LQR控制器的状态向量
-    * 0-theta
-    * 1-theta_dot
-    * 2-x
-    * 3-x_dot
-    * 4-phi
-    * 5-phi_dot*/
-    float x[6];
+    float theta;
+    float theta_dot;
+    float x;
+    float x_dot;
+    float phi;
+    float phi_dot;
+
     float speed_integral;
     float roll;
     float roll_velocity;
     float yaw;
     float yaw_velocity;
-    LegPos_t leg_pos_left;
-    LegPos_t leg_pos_right;
+
+    LegPos_t leg_l;
+    LegPos_t leg_r;
     ChassisSpeedVector_t speed_vector;
 } Values_t;
 
@@ -109,18 +115,18 @@ typedef struct
 {
     const RC_ctrl_t * rc;  // 底盘使用的遥控器指针
     ChassisMode_e mode;    // 底盘模式
+    ChassisState_e state;  // 底盘状态
+    uint8_t error_code;    // 底盘错误代码
 
     /*-------------------- Motors --------------------*/
-    DJI_Motor_s yaw_motor;  // yaw轴电机
     // 平衡底盘有2个驱动轮电机和4个关节电机
-    DM_Motor_s left_joint_motor[2];   // 关节电机 0-前关节，1-后关节
-    DM_Motor_s right_joint_motor[2];  // 关节电机 0-前关节，1-后关节
-    MF_Motor_s wheel_motor[2];        // 驱动轮电机 0-左轮，1-右轮
+    Motor_s joint_motor[4];
+    Motor_s wheel_motor[2];  // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
     Imu_t imu;  // (feedback)底盘使用的IMU数据
 
-    Values_t reference;    // 期望值
-    Values_t feedback;     // 状态值
+    Values_t ref;    // 期望值
+    Values_t fdb;     // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
 
@@ -132,9 +138,11 @@ typedef struct
     uint16_t yaw_mid;  // (ecd)(preset)云台中值角度
 } Chassis_s;
 
-extern void InitChassis(void);
+extern void ChassisInit(void);
 
-extern void SetChassisMode(void);
+extern void ChassisHandleException(void);
+
+extern void ChassisSetMode(void);
 
 extern void ChassisObserver(void);
 
@@ -142,7 +150,7 @@ extern void ChassisReference(void);
 
 extern void ChassisConsole(void);
 
-extern void SendChassisCmd(void);
+extern void ChassisSendCmd(void);
 
-#endif /* CHASSIS_BALANCE_H */
 #endif /* CHASSIS_BALANCE */
+#endif /* CHASSIS_BALANCE_H */

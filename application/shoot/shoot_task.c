@@ -20,7 +20,7 @@
 
 #include "cmsis_os.h"
 #include "shoot.h"
-#include "shoot_fric.h"
+#include "shoot_fric_trigger.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t shoot_high_water;
