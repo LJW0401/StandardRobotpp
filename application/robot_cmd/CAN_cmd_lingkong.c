@@ -1,7 +1,7 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       can_cmd_lingkong.c/h
-  * @brief      CAN发送函数，通过CAN信号控制瓴控电机 9025.
+  * @brief      CAN发送函数，通过CAN信号控制瓴控电机 MF9025.
   * @history
   *  Version    Date            Author          Modification
   *  V1.0.0     May-16-2024     Penguin         1. 完成。
@@ -17,6 +17,7 @@
 
 #include "bsp_can.h"
 #include "stm32f4xx_hal.h"
+#include "user_lib.h"
 
 #define STDID_OFFESET ((uint16_t)0x140)
 
@@ -205,7 +206,9 @@ void LkSingleTorqueControl(Motor_s * p_motor)
     if (hcan == NULL) return;
 
     SingleTorqueControl(
-        hcan, p_motor->id, p_motor->set.torque / TORQUE_COEFFICIENT * CURRENT_TO_MF_CONTROL);
+        hcan, p_motor->id,
+        fp32_constrain(p_motor->set.torque, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) /
+            TORQUE_COEFFICIENT * CURRENT_TO_MF_CONTROL);
 }
 
 void LkMultipleTorqueControl(
@@ -220,10 +223,10 @@ void LkMultipleTorqueControl(
     if (hcan == NULL) return;
 
     float current[4];
-    current[0] = torque_1 / TORQUE_COEFFICIENT;
-    current[1] = torque_2 / TORQUE_COEFFICIENT;
-    current[2] = torque_3 / TORQUE_COEFFICIENT;
-    current[3] = torque_4 / TORQUE_COEFFICIENT;
+    current[0] = fp32_constrain(torque_1, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT;
+    current[1] = fp32_constrain(torque_2, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT;
+    current[2] = fp32_constrain(torque_3, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT;
+    current[3] = fp32_constrain(torque_4, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT;
 
     MultipleTorqueControl(
         hcan, current[0] * CURRENT_TO_MULTICONTROL, current[1] * CURRENT_TO_MULTICONTROL,

@@ -156,6 +156,20 @@ typedef struct
 /*-------------------- LK Motor --------------------*/
 #define LK_NUM 4
 
+// clang-format off
+#define LK_MAX_MULTICONTROL_IQ  2000
+#define LK_MIN_MULTICONTROL_IQ -2000
+#define LK_MAX_MF_CONTROL_IQ    2048
+#define LK_MIN_MF_CONTROL_IQ   -2048
+#define LK_MAX_MULTICONTROL_CURRENT  32.0f
+#define LK_MIN_MULTICONTROL_CURRENT -32.0f
+#define LK_MAX_MF_CONTROL_CURRENT  16.5f
+#define LK_MIN_MF_CONTROL_CURRENT -16.5f
+
+#define LK_MAX_MF_TORQUE  2.41f
+#define LK_MIN_MF_TORQUE -2.41f
+// clang-format on
+
 typedef struct
 {
     int8_t ctrl_id;

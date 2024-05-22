@@ -129,7 +129,7 @@ void MusicCanonPlay(void)
             start_time = now;
         }
 
-        buzzer_note(Notes[play_id].note, 0.3);
+        buzzer_note(Notes[play_id].note, 0.07);
     }
 }
 
