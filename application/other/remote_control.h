@@ -59,27 +59,27 @@
 #define KEY_PRESSED_OFFSET_B            ((uint16_t)1 << 15)
 
 /* ----------------------- Data Struct ------------------------------------- */
-typedef __packed struct
+typedef struct __RC_ctrl
 {
-        __packed struct
+        struct __rc
         {
                 int16_t ch[5];
                 char s[2];
-        } rc;
-        __packed struct
+        } __attribute__((packed)) rc;
+        struct __mouse
         {
                 int16_t x;
                 int16_t y;
                 int16_t z;
                 uint8_t press_l;
                 uint8_t press_r;
-        } mouse;
-        __packed struct
+        } __attribute__((packed)) mouse;
+        struct __key
         {
                 uint16_t v;
-        } key;
+        } __attribute__((packed)) key;
 
-} RC_ctrl_t;
+} __attribute__((packed)) RC_ctrl_t;
 // clang-format on
 
 /* ----------------------- Internal Data ----------------------------------- */

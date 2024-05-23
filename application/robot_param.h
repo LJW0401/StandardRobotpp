@@ -29,7 +29,7 @@
 // 选择机器人的各种类型
 #define __DEBUG 0                  // 调试模式
 #define __TUNING 0                 // 调参模式
-#define __MUSIC_ON 1               // 开启音乐
+#define __MUSIC_ON 0               // 开启音乐
 #define __TUNING_MODE TUNING_NONE  // 调参模式
 
 #endif /* ROBOT_PARAM_H */
