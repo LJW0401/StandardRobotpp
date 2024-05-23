@@ -37,6 +37,17 @@
 
 /*-------------------- Structural definition --------------------*/
 
+typedef enum {
+    CHASSIS_OFF,         // 底盘关闭
+    CHASSIS_ZERO_FORCE,  // 底盘无力，所有控制量置0
+    CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
+    CHASSIS_STOP,  // 底盘停止运动(速度为0)
+    CHASSIS_FREE,  // 底盘不跟随云台
+    CHASSIS_SPIN,  // 底盘小陀螺模式
+    CHASSIS_AUTO,  // 底盘自动模式
+    CHASSIS_OPEN   // 遥控器的值乘以比例成电流值开环控制
+} ChassisMode_e;
+
 typedef struct
 {
     float angle;     // rad
@@ -125,8 +136,8 @@ typedef struct
     /*-------------------- Values --------------------*/
     Imu_t imu;  // (feedback)底盘使用的IMU数据
 
-    Values_t ref;    // 期望值
-    Values_t fdb;     // 状态值
+    Values_t ref;          // 期望值
+    Values_t fdb;          // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
 

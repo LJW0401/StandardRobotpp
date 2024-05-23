@@ -30,6 +30,12 @@
 #include "struct_typedef.h"
 /*-------------------- Structural definition --------------------*/
 
+typedef enum {
+    MECHANICAL_ARM_ZERO_FORCE,
+    MECHANICAL_ARM_INIT,
+    MECHANICAL_ARM_FOLLOW,
+} MechanicalArmMode_e;
+
 /**
  * @brief 状态、期望和限制值
  */

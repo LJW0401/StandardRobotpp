@@ -40,10 +40,10 @@
   详细信息请参考 [ARM_README](./application/arm/ARM_README.md) -->
 
 ## 开发工具
-使用VSCode作为IDE，Keil5作为编译器。
+使用VSCode作为代码编辑器，Keil5作为IDE。
 > 虽然keil5老，但其对stm系列芯片的适配是非常友好的，但千万不要用keil5来编辑代码。
 
-> VSCode作为现代化 IDE ，通过各种插件即可实现各种提高效率的开发方式，**尤其是Github Copilot**
+> VSCode作为现代化代码编辑器 ，通过各种插件即可实现各种提高效率的开发方式，**尤其是Github Copilot**
 
 `.vscode` 文件夹已经提供了很多非常好用的插件，在`扩展`页面输入 `@recommended` 即可获取这些插件，点击安装即可。
 
