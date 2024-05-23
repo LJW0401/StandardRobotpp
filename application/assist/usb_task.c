@@ -392,12 +392,13 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[6].name, "P fdb[1]");
     char_to_uint(OutputPCData.packets[7].name, "P fdb[2]");
     char_to_uint(OutputPCData.packets[8].name, "P fdb[3]");
-    // char_to_uint(OutputPCData.packets[9].name, "offline[0]");
-    // char_to_uint(OutputPCData.packets[10].name, "offline[1]");
-    // char_to_uint(OutputPCData.packets[11].name, "offline[2]");
-    // char_to_uint(OutputPCData.packets[12].name, "offline[3]");
-    // char_to_uint(OutputPCData.packets[13].name, "");
-    // char_to_uint(OutputPCData.packets[14].name, "");
+    char_to_uint(OutputPCData.packets[9].name, "s[0]");
+    char_to_uint(OutputPCData.packets[10].name, "s[1]");
+    char_to_uint(OutputPCData.packets[11].name, "ch[0]");
+    char_to_uint(OutputPCData.packets[12].name, "ch[1]");
+    char_to_uint(OutputPCData.packets[13].name, "ch[2]");
+    char_to_uint(OutputPCData.packets[14].name, "ch[3]");
+    char_to_uint(OutputPCData.packets[15].name, "ch[4]");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));

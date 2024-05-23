@@ -291,10 +291,14 @@ void ChassisObserver(void)
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
     OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
-    // OutputPCData.packets[9].data = CHASSIS.joint_motor[0].offline;
-    // OutputPCData.packets[10].data = CHASSIS.joint_motor[1].offline;
-    // OutputPCData.packets[11].data = CHASSIS.joint_motor[2].offline;
-    // OutputPCData.packets[12].data = CHASSIS.joint_motor[3].offline;
+    OutputPCData.packets[9].data = CHASSIS.rc->rc.s[0];
+    OutputPCData.packets[10].data = CHASSIS.rc->rc.s[1];
+    OutputPCData.packets[11].data = CHASSIS.rc->rc.ch[0];
+    OutputPCData.packets[12].data = CHASSIS.rc->rc.ch[1];
+    OutputPCData.packets[13].data = CHASSIS.rc->rc.ch[2];
+    OutputPCData.packets[14].data = CHASSIS.rc->rc.ch[3];
+    OutputPCData.packets[15].data = CHASSIS.rc->rc.ch[4];
+
 }
 
 /**
