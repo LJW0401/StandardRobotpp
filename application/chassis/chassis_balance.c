@@ -25,6 +25,7 @@
 #include "stdbool.h"
 #include "usb_task.h"
 #include "user_lib.h"
+#include "string.h"
 
 #define LOCATION_CONTROL
 
@@ -291,13 +292,15 @@ void ChassisObserver(void)
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
     OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
-    OutputPCData.packets[9].data = CHASSIS.rc->rc.s[0];
-    OutputPCData.packets[10].data = CHASSIS.rc->rc.s[1];
-    OutputPCData.packets[11].data = CHASSIS.rc->rc.ch[0];
-    OutputPCData.packets[12].data = CHASSIS.rc->rc.ch[1];
-    OutputPCData.packets[13].data = CHASSIS.rc->rc.ch[2];
-    OutputPCData.packets[14].data = CHASSIS.rc->rc.ch[3];
-    OutputPCData.packets[15].data = CHASSIS.rc->rc.ch[4];
+    OutputPCData.packets[9].data = CHASSIS.imu.pitch;
+    OutputPCData.packets[10].data = CHASSIS.imu.pitch_velocity;
+    OutputPCData.packets[11].data = CHASSIS.imu.roll;
+    OutputPCData.packets[12].data = CHASSIS.imu.roll_velocity;
+    OutputPCData.packets[13].data = CHASSIS.imu.yaw;
+    OutputPCData.packets[14].data = CHASSIS.imu.yaw_velocity;
+    OutputPCData.packets[15].data = CHASSIS.imu.xAccel;
+    OutputPCData.packets[16].data = CHASSIS.imu.yAccel;
+    OutputPCData.packets[17].data = CHASSIS.imu.zAccel;
 
 }
 

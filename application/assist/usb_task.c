@@ -376,10 +376,6 @@ static void usb_send_outputPC(uint8_t t)
     // const fp32 *gimbal_INT_gyro_angle_point = get_INS_angle_point();
     const RC_ctrl_t * rc_ctrl = get_remote_control_point();
 
-    const Angle_t * angle = GetAnglePoint();
-    const Accel_t * accel = GetAccelPoint();
-    const Velocity_t * velocity = GetVelocityPoint();
-
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
@@ -392,13 +388,15 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[6].name, "P fdb[1]");
     char_to_uint(OutputPCData.packets[7].name, "P fdb[2]");
     char_to_uint(OutputPCData.packets[8].name, "P fdb[3]");
-    char_to_uint(OutputPCData.packets[9].name, "s[0]");
-    char_to_uint(OutputPCData.packets[10].name, "s[1]");
-    char_to_uint(OutputPCData.packets[11].name, "ch[0]");
-    char_to_uint(OutputPCData.packets[12].name, "ch[1]");
-    char_to_uint(OutputPCData.packets[13].name, "ch[2]");
-    char_to_uint(OutputPCData.packets[14].name, "ch[3]");
-    char_to_uint(OutputPCData.packets[15].name, "ch[4]");
+    char_to_uint(OutputPCData.packets[9].name, "pitch");
+    char_to_uint(OutputPCData.packets[10].name, "pitch_v");
+    char_to_uint(OutputPCData.packets[11].name, "roll");
+    char_to_uint(OutputPCData.packets[12].name, "roll_v");
+    char_to_uint(OutputPCData.packets[13].name, "yaw");
+    char_to_uint(OutputPCData.packets[14].name, "yaw_v");
+    char_to_uint(OutputPCData.packets[15].name, "xAccel");
+    char_to_uint(OutputPCData.packets[16].name, "yAccel");
+    char_to_uint(OutputPCData.packets[17].name, "zAccel");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));
