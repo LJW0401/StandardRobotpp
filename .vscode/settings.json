@@ -77,7 +77,9 @@
         "music_castle_in_the_sky.h": "c",
         "music.h": "c",
         "mechanical_arm_penguin_mini.h": "c",
-        "gimbal_yaw_pitch_direct.h": "c"
+        "gimbal_yaw_pitch_direct.h": "c",
+        "stdint.h": "c",
+        "ahrs.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {

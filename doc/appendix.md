@@ -7,6 +7,8 @@
     - [1.3 编辑代码](#13-编辑代码)
   - [2 科学调参](#2-科学调参)
     - [2.1 信号发生器的使用](#21-信号发生器的使用)
+  - [3 部分问题及解决方案](#3-部分问题及解决方案)
+    - [3.1 Cortex\_M4 报错](#31-cortex_m4-报错)
 
 
 ## 1 代码编写
@@ -45,3 +47,21 @@
 <!-- ## 3 部分代码解释
 ### data_exchange
 数据交换中心的作用是为了方便在各个模块之间交换数据， -->
+
+## 3 部分问题及解决方案
+### 3.1 Cortex_M4 报错
+如在烧录代码时出现 Cortex_M4 的报错
+
+![Cortex_M4](./pic/Cortex_M4.png)
+
+请在魔术棒中
+
+![magic_bar](./pic/magic_bar.png)
+
+打开 `Utilities` 选项卡，点击 `Settings` 按钮
+
+![magic_bar_Utilities](./pic/magic_bar_Utilities.png)
+
+勾选 `reset and run` 选项
+
+![magic_bar](./pic/magic_bar_Utilities_setting.png)

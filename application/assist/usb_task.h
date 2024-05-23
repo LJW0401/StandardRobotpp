@@ -85,7 +85,7 @@
 #include <stdbool.h>
 
 #define PRESET_SELF_COLOR 1
-#define PC_PACKET_NUM 15
+#define PC_PACKET_NUM 20
 
 typedef struct {
     uint8_t vision;

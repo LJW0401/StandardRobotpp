@@ -37,6 +37,17 @@
 
 /*-------------------- Structural definition --------------------*/
 
+typedef enum {
+    CHASSIS_OFF,         // 底盘关闭
+    CHASSIS_ZERO_FORCE,  // 底盘无力，所有控制量置0
+    CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
+    CHASSIS_STOP,  // 底盘停止运动(速度为0)
+    CHASSIS_FREE,  // 底盘不跟随云台
+    CHASSIS_SPIN,  // 底盘小陀螺模式
+    CHASSIS_AUTO,  // 底盘自动模式
+    CHASSIS_OPEN   // 遥控器的值乘以比例成电流值开环控制
+} ChassisMode_e;
+
 typedef struct
 {
     float angle;     // rad
@@ -47,13 +58,6 @@ typedef struct
 
     float last_dLength;  // m/s
 } LegPos_t;
-
-typedef struct
-{
-    float yaw, pitch, roll;                             // rad
-    float yaw_velocity, pitch_velocity, roll_velocity;  // rad/s
-    float xAccel, yAccel, zAccel;                       // m/s^2
-} Imu_t;
 
 /**
  * @brief      比例系数结构体
@@ -114,6 +118,7 @@ typedef struct
 typedef struct
 {
     const RC_ctrl_t * rc;  // 底盘使用的遥控器指针
+    const Imu_t * imu;     // imu数据
     ChassisMode_e mode;    // 底盘模式
     ChassisState_e state;  // 底盘状态
     uint8_t error_code;    // 底盘错误代码
@@ -123,10 +128,9 @@ typedef struct
     Motor_s joint_motor[4];
     Motor_s wheel_motor[2];  // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
-    Imu_t imu;  // (feedback)底盘使用的IMU数据
 
-    Values_t ref;    // 期望值
-    Values_t fdb;     // 状态值
+    Values_t ref;          // 期望值
+    Values_t fdb;          // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
 
