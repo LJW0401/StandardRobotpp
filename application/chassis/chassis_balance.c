@@ -23,9 +23,9 @@
 #include "leg_model.h"
 #include "signal_generator.h"
 #include "stdbool.h"
+#include "string.h"
 #include "usb_task.h"
 #include "user_lib.h"
-#include "string.h"
 
 #define LOCATION_CONTROL
 
@@ -140,6 +140,7 @@ static Chassis_s CHASSIS = {
 void ChassisInit(void)
 {
     CHASSIS.rc = get_remote_control_point();  // 获取遥控器指针
+    CHASSIS.imu = GetImuDataPoint();          // 获取IMU指针
     /*-------------------- 初始化底盘电机 --------------------*/
     for (uint8_t i = 0; i < 4; i++) {
         MotorInit(&CHASSIS.joint_motor[i], i + 1, JOINT_CAN, DM_8009, 1, 1, DM_MODE_MIT);
@@ -152,7 +153,6 @@ void ChassisInit(void)
     /*-------------------- 值归零 --------------------*/
     memset(&CHASSIS.fdb, 0, sizeof(CHASSIS.fdb));
     memset(&CHASSIS.ref, 0, sizeof(CHASSIS.ref));
-    memset(&CHASSIS.imu, 0, sizeof(CHASSIS.imu));
 
     /*-------------------- 初始化底盘PID --------------------*/
     float yaw_angle_pid[3] = {KP_CHASSIS_YAW_ANGLE, KI_CHASSIS_YAW_ANGLE, KD_CHASSIS_YAW_ANGLE};
@@ -247,7 +247,6 @@ void ChassisSetMode(void)
 /*-------------------- Observe --------------------*/
 
 static void UpdateLegStatus(void);
-static void UpdateImuStatus(void);
 static void UpdateMotorStatus(void);
 
 /**
@@ -259,27 +258,25 @@ void ChassisObserver(void)
 {
     // 更新腿部姿态
     UpdateLegStatus();
-    // 更新底盘IMU数据
-    UpdateImuStatus();
     // 更新底盘电机数据
     UpdateMotorStatus();
 
     // 更新fdb数据
-    CHASSIS.fdb.roll = CHASSIS.imu.roll;
-    CHASSIS.fdb.roll_velocity = CHASSIS.imu.roll_velocity;
-    CHASSIS.fdb.yaw = CHASSIS.imu.yaw;
-    CHASSIS.fdb.yaw_velocity = CHASSIS.imu.yaw_velocity;
+    CHASSIS.fdb.roll = CHASSIS.imu->roll;
+    CHASSIS.fdb.roll_velocity = CHASSIS.imu->roll_vel;
+    CHASSIS.fdb.yaw = CHASSIS.imu->yaw;
+    CHASSIS.fdb.yaw_velocity = CHASSIS.imu->yaw_vel;
 
     // 更新LQR状态向量
     // clang-format off
     CHASSIS.fdb.theta = (CHASSIS.fdb.leg_l.angle + CHASSIS.fdb.leg_r.angle) / 2 
-                        - M_PI_2 - CHASSIS.imu.pitch;
+                        - M_PI_2 - CHASSIS.imu->pitch;
     CHASSIS.fdb.theta_dot = (CHASSIS.fdb.leg_l.dAngle + CHASSIS.fdb.leg_r.dAngle) / 2 
-                            - CHASSIS.imu.pitch_velocity;
+                            - CHASSIS.imu->pitch_vel;
     CHASSIS.fdb.x       = 0;
     CHASSIS.fdb.x_dot   = WHEEL_RADIUS * (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2;
-    CHASSIS.fdb.phi     = CHASSIS.imu.pitch;
-    CHASSIS.fdb.phi_dot = CHASSIS.imu.pitch_velocity;
+    CHASSIS.fdb.phi     = CHASSIS.imu->pitch;
+    CHASSIS.fdb.phi_dot = CHASSIS.imu->pitch_vel;
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
@@ -292,16 +289,15 @@ void ChassisObserver(void)
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
     OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
-    OutputPCData.packets[9].data = CHASSIS.imu.pitch;
-    OutputPCData.packets[10].data = CHASSIS.imu.pitch_velocity;
-    OutputPCData.packets[11].data = CHASSIS.imu.roll;
-    OutputPCData.packets[12].data = CHASSIS.imu.roll_velocity;
-    OutputPCData.packets[13].data = CHASSIS.imu.yaw;
-    OutputPCData.packets[14].data = CHASSIS.imu.yaw_velocity;
-    OutputPCData.packets[15].data = CHASSIS.imu.xAccel;
-    OutputPCData.packets[16].data = CHASSIS.imu.yAccel;
-    OutputPCData.packets[17].data = CHASSIS.imu.zAccel;
-
+    OutputPCData.packets[9].data = CHASSIS.imu->pitch;
+    OutputPCData.packets[10].data = CHASSIS.imu->pitch_vel;
+    OutputPCData.packets[11].data = CHASSIS.imu->roll;
+    OutputPCData.packets[12].data = CHASSIS.imu->roll_vel;
+    OutputPCData.packets[13].data = CHASSIS.imu->yaw;
+    OutputPCData.packets[14].data = CHASSIS.imu->yaw_vel;
+    OutputPCData.packets[15].data = CHASSIS.imu->x_accel;
+    OutputPCData.packets[16].data = CHASSIS.imu->y_accel;
+    OutputPCData.packets[17].data = CHASSIS.imu->z_accel;
 }
 
 /**
@@ -317,25 +313,6 @@ static void UpdateMotorStatus(void)
     for (uint8_t i = 0; i < 2; i++) {
         GetMotorMeasure(&CHASSIS.wheel_motor[i]);
     }
-}
-
-/**
- * @brief  更新IMU状态
- * @param  none
- */
-static void UpdateImuStatus(void)
-{
-    CHASSIS.imu.roll = get_INS_angle_point()[2];
-    CHASSIS.imu.pitch = get_INS_angle_point()[1];
-    CHASSIS.imu.yaw = get_INS_angle_point()[0];
-
-    CHASSIS.imu.roll_velocity = get_gyro_data_point()[0];
-    CHASSIS.imu.pitch_velocity = get_gyro_data_point()[1];
-    CHASSIS.imu.yaw_velocity = get_gyro_data_point()[2];
-
-    CHASSIS.imu.xAccel = get_accel_data_point()[0];
-    CHASSIS.imu.yAccel = get_accel_data_point()[1];
-    CHASSIS.imu.zAccel = get_accel_data_point()[2];
 }
 
 /**

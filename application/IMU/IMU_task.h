@@ -25,7 +25,7 @@
 #define INS_Task_H
 #include "struct_typedef.h"
 
-
+// clang-format off
 #define SPI_DMA_GYRO_LENGHT       8
 #define SPI_DMA_ACCEL_LENGHT      9
 #define SPI_DMA_ACCEL_TEMP_LENGHT 4
@@ -71,110 +71,31 @@
 #define INS_MAG_X_ADDRESS_OFFSET 0
 #define INS_MAG_Y_ADDRESS_OFFSET 1
 #define INS_MAG_Z_ADDRESS_OFFSET 2
+// clang-format on
 
-/**
-  * @brief          imu task, init bmi088, ist8310, calculate the euler angle
-  * @param[in]      pvParameters: NULL
-  * @retval         none
-  */
-/**
-  * @brief          imu任务, 初始化 bmi088, ist8310, 计算欧拉角
-  * @param[in]      pvParameters: NULL
-  * @retval         none
-  */
-extern void IMU_task(void const *pvParameters);
+typedef struct __Imu
+{
+    float yaw, pitch, roll;              // rad
+    float yaw_vel, pitch_vel, roll_vel;  // rad/s
+    float x_accel, y_accel, z_accel;     // m/s^2
+} Imu_t;
 
-/**
-  * @brief          calculate gyro zero drift
-  * @param[out]     cali_scale:scale, default 1.0
-  * @param[out]     cali_offset:zero drift, collect the gyro ouput when in still
-  * @param[out]     time_count: time, when call gyro_offset_calc 
-  * @retval         none
-  */
-/**
-  * @brief          校准陀螺仪
-  * @param[out]     陀螺仪的比例因子，1.0f为默认值，不修改
-  * @param[out]     陀螺仪的零漂，采集陀螺仪的静止的输出作为offset
-  * @param[out]     陀螺仪的时刻，每次在gyro_offset调用会加1,
-  * @retval         none
-  */
-extern void INS_cali_gyro(fp32 cali_scale[3], fp32 cali_offset[3], uint16_t *time_count);
+extern void IMU_task(void const * pvParameters);
 
-/**
-  * @brief          get gyro zero drift from flash
-  * @param[in]      cali_scale:scale, default 1.0
-  * @param[in]      cali_offset:zero drift, 
-  * @retval         none
-  */
-/**
-  * @brief          校准陀螺仪设置，将从flash或者其他地方传入校准值
-  * @param[in]      陀螺仪的比例因子，1.0f为默认值，不修改
-  * @param[in]      陀螺仪的零漂
-  * @retval         none
-  */
+extern void INS_cali_gyro(fp32 cali_scale[3], fp32 cali_offset[3], uint16_t * time_count);
+
 extern void INS_set_cali_gyro(fp32 cali_scale[3], fp32 cali_offset[3]);
 
-/**
-  * @brief          get the quat
-  * @param[in]      none
-  * @retval         the point of INS_quat
-  */
-/**
-  * @brief          获取四元数
-  * @param[in]      none
-  * @retval         INS_quat的指针
-  */
-extern const fp32 *get_INS_quat_point(void);
+extern const fp32 * get_INS_quat_point(void);
 
+extern const fp32 * get_INS_angle_point(void);
 
-/**
-  * @brief          get the euler angle, 0:yaw, 1:pitch, 2:roll unit rad
-  * @param[in]      none
-  * @retval         the point of INS_angle
-  */
-/**
-  * @brief          获取欧拉角, 0:yaw, 1:pitch, 2:roll 单位 rad
-  * @param[in]      none
-  * @retval         INS_angle的指针
-  */
-extern const fp32 *get_INS_angle_point(void);
+extern const fp32 * get_gyro_data_point(void);
 
+extern const fp32 * get_accel_data_point(void);
 
-/**
-  * @brief          get the rotation speed, 0:x-axis, 1:y-axis, 2:roll-axis,unit rad/s
-  * @param[in]      none
-  * @retval         the point of INS_gyro
-  */
-/**
-  * @brief          获取角速度,0:x轴, 1:y轴, 2:roll轴 单位 rad/s
-  * @param[in]      none
-  * @retval         INS_gyro的指针
-  */
-extern const fp32 *get_gyro_data_point(void);
+extern const fp32 * get_mag_data_point(void);
 
-
-/**
-  * @brief          get aceel, 0:x-axis, 1:y-axis, 2:roll-axis unit m/s2
-  * @param[in]      none
-  * @retval         the point of INS_gyro
-  */
-/**
-  * @brief          获取加速度,0:x轴, 1:y轴, 2:roll轴 单位 m/s2
-  * @param[in]      none
-  * @retval         INS_gyro的指针
-  */
-extern const fp32 *get_accel_data_point(void);
-
-/**
-  * @brief          get mag, 0:x-axis, 1:y-axis, 2:roll-axis unit ut
-  * @param[in]      none
-  * @retval         the point of INS_mag
-  */
-/**
-  * @brief          获取加速度,0:x轴, 1:y轴, 2:roll轴 单位 ut
-  * @param[in]      none
-  * @retval         INS_mag的指针
-  */
-extern const fp32 *get_mag_data_point(void);
+extern const Imu_t * GetImuDataPoint(void);
 
 #endif

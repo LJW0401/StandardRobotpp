@@ -59,13 +59,6 @@ typedef struct
     float last_dLength;  // m/s
 } LegPos_t;
 
-typedef struct
-{
-    float yaw, pitch, roll;                             // rad
-    float yaw_velocity, pitch_velocity, roll_velocity;  // rad/s
-    float xAccel, yAccel, zAccel;                       // m/s^2
-} Imu_t;
-
 /**
  * @brief      比例系数结构体
  * @note       比例系数，用于手动优化控制效果
@@ -125,6 +118,7 @@ typedef struct
 typedef struct
 {
     const RC_ctrl_t * rc;  // 底盘使用的遥控器指针
+    const Imu_t * imu;     // imu数据
     ChassisMode_e mode;    // 底盘模式
     ChassisState_e state;  // 底盘状态
     uint8_t error_code;    // 底盘错误代码
@@ -134,7 +128,6 @@ typedef struct
     Motor_s joint_motor[4];
     Motor_s wheel_motor[2];  // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
-    Imu_t imu;  // (feedback)底盘使用的IMU数据
 
     Values_t ref;          // 期望值
     Values_t fdb;          // 状态值

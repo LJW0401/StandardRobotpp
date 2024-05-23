@@ -23,21 +23,18 @@
 
 #include "IMU_task.h"
 
-#include "main.h"
-
-#include "cmsis_os.h"
-
+#include "ahrs.h"
+#include "bmi088driver.h"
 #include "bsp_imu_pwm.h"
 #include "bsp_spi.h"
-#include "bmi088driver.h"
-#include "ist8310driver.h"
-#include "pid.h"
-#include "ahrs.h"
-
 #include "calibrate_task.h"
+#include "cmsis_os.h"
 #include "detect_task.h"
+#include "ist8310driver.h"
+#include "main.h"
+#include "pid.h"
 
-
+// clang-format off
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
 
 #define BMI088_BOARD_INSTALL_SPIN_MATRIX    \
@@ -49,8 +46,8 @@
 #define IST8310_BOARD_INSTALL_SPIN_MATRIX   \
     {1.0f, 0.0f, 0.0f},                     \
     {0.0f, 1.0f, 0.0f},                     \
-    {0.0f, 0.0f, 1.0f}                      \
-
+    {0.0f, 0.0f, 1.0f} \
+// clang-format on
 
 /**
   * @brief          rotate the gyro, accel and mag, and calculate the zero drift, because sensors have 
@@ -71,7 +68,9 @@
   * @param[in]      ist8310: 磁力计数据
   * @retval         none
   */
-static void imu_cali_slove(fp32 gyro[3], fp32 accel[3], fp32 mag[3], bmi088_real_data_t *bmi088, ist8310_real_data_t *ist8310);
+static void imu_cali_slove(
+    fp32 gyro[3], fp32 accel[3], fp32 mag[3], bmi088_real_data_t * bmi088,
+    ist8310_real_data_t * ist8310);
 
 /**
   * @brief          control the temperature of bmi088
@@ -96,8 +95,9 @@ static void imu_temp_control(fp32 temp);
   */
 static void imu_cmd_spi_dma(void);
 
+static void UpdateImuData(void);
 
-
+// clang-format off
 extern SPI_HandleTypeDef hspi1;
 
 
@@ -157,10 +157,19 @@ static fp32 INS_accel[3] = {0.0f, 0.0f, 0.0f};
 static fp32 INS_mag[3] = {0.0f, 0.0f, 0.0f};
 static fp32 INS_quat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 fp32 INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
+// clang-format on
 
-
-
-
+static Imu_t IMU_DATA = {
+    .pitch = 0.0f,
+    .roll = 0.0f,
+    .yaw = 0.0f,
+    .pitch_vel = 0.0f,
+    .roll_vel = 0.0f,
+    .yaw_vel = 0.0f,
+    .x_accel = 0.0f,
+    .y_accel = 0.0f,
+    .z_accel = 0.0f,
+};
 
 /**
   * @brief          imu task, init bmi088, ist8310, calculate the euler angle
@@ -172,9 +181,9 @@ fp32 INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 �
   * @param[in]      pvParameters: NULL
   * @retval         none
   */
-
-void IMU_task(void const *pvParameters)
+void IMU_task(void const * pvParameters)
 {
+    // clang-format off
     //wait a time
     osDelay(INS_TASK_INIT_TIME);
     while(BMI088_init())
@@ -275,12 +284,30 @@ void IMU_task(void const *pvParameters)
             mag_update_flag |= (1 << IMU_SPI_SHFITS);
 //            ist8310_read_mag(ist8310_real_data.mag);
         }
-
+        // clang-format on
+        UpdateImuData();
     }
 }
 
+static void UpdateImuData(void)
+{
+    IMU_DATA.pitch = INS_angle[INS_PITCH_ADDRESS_OFFSET];
+    IMU_DATA.roll = INS_angle[INS_ROLL_ADDRESS_OFFSET];
+    IMU_DATA.yaw = INS_angle[INS_YAW_ADDRESS_OFFSET];
+    IMU_DATA.roll_vel = INS_gyro[INS_GYRO_X_ADDRESS_OFFSET];
+    IMU_DATA.pitch_vel = INS_gyro[INS_GYRO_Y_ADDRESS_OFFSET];
+    IMU_DATA.yaw_vel = INS_gyro[INS_GYRO_Z_ADDRESS_OFFSET];
+    IMU_DATA.x_accel = INS_accel[INS_ACCEL_X_ADDRESS_OFFSET];
+    IMU_DATA.y_accel = INS_accel[INS_ACCEL_Y_ADDRESS_OFFSET];
+    IMU_DATA.z_accel = INS_accel[INS_ACCEL_Z_ADDRESS_OFFSET];
+}
 
+const Imu_t * GetImuDataPoint(void)
+{
+    return &IMU_DATA;
+}
 
+// clang-format off
 
 /**
   * @brief          rotate the gyro, accel and mag, and calculate the zero drift, because sensors have 
@@ -658,4 +685,4 @@ void DMA2_Stream2_IRQHandler(void)
         }
     }
 }
-
+// clang-format on
