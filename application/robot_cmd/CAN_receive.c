@@ -181,13 +181,13 @@ static void CybergearRxDecode(Motor_s * p_motor, uint8_t rx_data[8])
     p_motor->fdb.pos = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 4 * 3.1415926f;
 
     decode_temp_mi = (rx_data[2] << 8 | rx_data[3]);
-    p_motor->fdb.w = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 30.0f;
+    p_motor->fdb.vel = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 30.0f;
 
     decode_temp_mi = (rx_data[4] << 8 | rx_data[5]);
-    p_motor->fdb.T = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 12.0f;
+    p_motor->fdb.tor = ((float)decode_temp_mi - 32767.5f) / 32767.5f * 12.0f;
 
     decode_temp_mi = (rx_data[6] << 8 | rx_data[7]);
-    p_motor->fdb.temperature = (float)decode_temp_mi / 10.0f;
+    p_motor->fdb.temp = (float)decode_temp_mi / 10.0f;
 }
 
 /**
@@ -267,11 +267,11 @@ const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
  */
 static void GetDjiFdbData(Motor_s * p_motor, const DjiMotorMeasure_t * p_dji_motor_measure)
 {
-    p_motor->fdb.w = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA * p_motor->reduction_ratio *
+    p_motor->fdb.vel = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA * p_motor->reduction_ratio *
                      p_motor->direction;
     p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
-    p_motor->fdb.temperature = p_dji_motor_measure->temperate;
-    p_motor->fdb.current = p_dji_motor_measure->given_current;
+    p_motor->fdb.temp = p_dji_motor_measure->temperate;
+    p_motor->fdb.curr = p_dji_motor_measure->given_current;
     p_motor->fdb.ecd = p_dji_motor_measure->ecd;
 }
 
@@ -311,9 +311,9 @@ CybergearModeState_e GetCybergearModeState(Motor_s * p_motor)
 static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
 {
     motor->fdb.pos = dm_measure->pos;
-    motor->fdb.w = dm_measure->vel;
-    motor->fdb.T = dm_measure->tor;
-    motor->fdb.temperature = dm_measure->t_mos;
+    motor->fdb.vel = dm_measure->vel;
+    motor->fdb.tor = dm_measure->tor;
+    motor->fdb.temp = dm_measure->t_mos;
     motor->fdb.state = dm_measure->state;
 
     uint32_t now = HAL_GetTick();
@@ -334,9 +334,9 @@ static void GetLkFdbData(Motor_s * motor, const LkMeasure_s * lk_measure)
 {
     // clang-format off
     motor->fdb.pos     = uint_to_float(lk_measure->encoder, -M_PI, M_PI, 16);
-    motor->fdb.w       = lk_measure->speed * DEGREE_TO_RAD;
-    motor->fdb.current = lk_measure->iq * MF_CONTROL_TO_CURRENT;
-    motor->fdb.temperature = lk_measure->temprature;
+    motor->fdb.vel       = lk_measure->speed * DEGREE_TO_RAD;
+    motor->fdb.curr = lk_measure->iq * MF_CONTROL_TO_CURRENT;
+    motor->fdb.temp = lk_measure->temprature;
     // clang-format on
 
     uint32_t now = HAL_GetTick();

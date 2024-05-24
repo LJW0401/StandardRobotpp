@@ -274,17 +274,17 @@ void ChassisObserver(void)
     CHASSIS.fdb.theta_dot = (CHASSIS.fdb.leg_l.dAngle + CHASSIS.fdb.leg_r.dAngle) / 2 
                             - CHASSIS.imu->pitch_vel;
     CHASSIS.fdb.x       = 0;
-    CHASSIS.fdb.x_dot   = WHEEL_RADIUS * (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2;
+    CHASSIS.fdb.x_dot   = WHEEL_RADIUS * (CHASSIS.wheel_motor[0].fdb.vel + CHASSIS.wheel_motor[1].fdb.vel) / 2;
     CHASSIS.fdb.phi     = CHASSIS.imu->pitch;
     CHASSIS.fdb.phi_dot = CHASSIS.imu->pitch_vel;
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
-    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.w;
+    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.vel;
     OutputPCData.packets[1].data = CHASSIS.wheel_motor[0].fdb.pos;
-    OutputPCData.packets[2].data = CHASSIS.wheel_motor[0].fdb.current;
-    OutputPCData.packets[3].data = CHASSIS.wheel_motor[0].fdb.temperature;
-    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.position;
+    OutputPCData.packets[2].data = CHASSIS.wheel_motor[0].fdb.curr;
+    OutputPCData.packets[3].data = CHASSIS.wheel_motor[0].fdb.temp;
+    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.pos;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
@@ -333,7 +333,7 @@ static void UpdateLegStatus(void)
     // clang-format off
     CHASSIS.fdb.leg_l.last_dLength = CHASSIS.fdb.leg_l.dLength;
     LegSpeed(
-        CHASSIS.joint_motor[1].fdb.w  , CHASSIS.joint_motor[0].fdb.w,
+        CHASSIS.joint_motor[1].fdb.vel  , CHASSIS.joint_motor[0].fdb.vel,
         CHASSIS.joint_motor[1].fdb.pos, CHASSIS.joint_motor[0].fdb.pos,
         leg_speed);
     CHASSIS.fdb.leg_l.dLength = leg_speed[0];
@@ -355,7 +355,7 @@ static void UpdateLegStatus(void)
     // clang-format off
     CHASSIS.fdb.leg_r.last_dLength = CHASSIS.fdb.leg_r.dLength;
     LegSpeed(
-        CHASSIS.joint_motor[3].fdb.w  , CHASSIS.joint_motor[2].fdb.w,
+        CHASSIS.joint_motor[3].fdb.vel  , CHASSIS.joint_motor[2].fdb.vel,
         CHASSIS.joint_motor[3].fdb.pos, CHASSIS.joint_motor[2].fdb.pos,
         leg_speed);
     CHASSIS.fdb.leg_r.dLength = leg_speed[0];
@@ -462,17 +462,17 @@ void ChassisConsole(void)
     }
 
     for (uint8_t i = 0; i < 4; i++) {
-        CHASSIS.joint_motor[i].set.position = GenerateSinWave(1, 0, 2);
-        CHASSIS.joint_motor[i].set.torque = 0;
-        CHASSIS.joint_motor[i].set.velocity = 0;
-        CHASSIS.joint_motor[i].set.current = 0;
+        CHASSIS.joint_motor[i].set.pos = GenerateSinWave(1, 0, 2);
+        CHASSIS.joint_motor[i].set.tor = 0;
+        CHASSIS.joint_motor[i].set.vel = 0;
+        CHASSIS.joint_motor[i].set.curr = 0;
     }
 
     for (uint8_t i = 0; i < 2; i++) {
-        CHASSIS.wheel_motor[i].set.position = 0;
-        CHASSIS.wheel_motor[i].set.torque = GenerateSinWave(0.3, 0, 2);
-        CHASSIS.wheel_motor[i].set.velocity = 0;
-        CHASSIS.wheel_motor[i].set.current = 0;
+        CHASSIS.wheel_motor[i].set.pos = 0;
+        CHASSIS.wheel_motor[i].set.tor = GenerateSinWave(0.3, 0, 2);
+        CHASSIS.wheel_motor[i].set.vel = 0;
+        CHASSIS.wheel_motor[i].set.curr = 0;
     }
 }
 
@@ -660,7 +660,7 @@ static void SendWheelMotorCmd(void)
     } else {
         // clang-format off
         LkMultipleTorqueControl(WHEEL_CAN,
-            CHASSIS.wheel_motor[0].set.torque, CHASSIS.wheel_motor[1].set.torque, 0, 0);
+            CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
         // clang-format on
     }
 }
