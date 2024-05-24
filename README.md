@@ -1,4 +1,13 @@
 # StandardRobot++
+<div align=center>
+
+[![Author](https://img.shields.io/badge/Author-小企鹅-orange.svg)](https://gitee.com/wangjiabin-x/uh5)
+
+[![fork](https://gitee.com/SMBU-POLARBEAR/StandardRobotpp/badge/fork.svg?theme=dark)](https://gitee.com/SMBU-POLARBEAR/StandardRobotpp)
+[![star](https://gitee.com/SMBU-POLARBEAR/StandardRobotpp/badge/star.svg?theme=dark)](https://gitee.com/SMBU-POLARBEAR/StandardRobotpp)
+
+
+</div>
 
 ## 简介
 > 也许不是最好的？但一定是最适合上手的电控开源！
