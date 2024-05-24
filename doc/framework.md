@@ -1,4 +1,4 @@
-# 架构
+# 框架
 ## 总体介绍
 ### 机器人参数
 机器人的主要选项在 [robot_typedef](../application/robot_typedef.h) 中定义。
@@ -48,14 +48,14 @@
     <summary>整体的一个任务处理顺序</summary>
 
 ```C
-InitChassis();
+ChassisInit();
 while (1) {
     ChassisObserver();
-    HandleException();
-    SetChassisMode();
+    ChassisHandleException();
+    ChassisSetMode();
     ChassisReference();
     ChassisConsole();
-    SendChassisCmd();
+    ChassisSendCmd();
     vTaskDelay(CHASSIS_CONTROL_TIME_MS);
     }
 ```
@@ -184,6 +184,9 @@ typedef struct
 - pid ：PID控制器
 
 除了以上提到的变量还可根据实际需求添加其他需要用到的变量。
+> 为了实现控制、执行、感知之间的解耦，要认真编写 `Values_t` 结构体，里面量用于在控制过程中的运算。\
+> 所有传感器接收到的反馈都要传入 `fdb` 变量，控制用的目标值都传入 `ref` 变量。\
+> 最后计算出来的直接控制量给电机赋值（目前的执行机构仅有电机，后续可能会增加其他执行机构）
 
 ### 示例
 如果要将代码用于平衡步兵机器人
