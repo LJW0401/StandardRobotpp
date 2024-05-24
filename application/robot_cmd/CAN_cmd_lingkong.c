@@ -231,7 +231,7 @@ void LkSingleTorqueControl(Motor_s * p_motor)
 
     SingleTorqueControl(
         hcan, p_motor->id,
-        fp32_constrain(p_motor->set.torque, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) /
+        fp32_constrain(p_motor->set.tor, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) /
             TORQUE_COEFFICIENT * CURRENT_TO_MF_CONTROL);
 }
 
@@ -240,7 +240,7 @@ void LkSingleSpeedControl(Motor_s * p_motor)
     hcan_t * hcan = GetHcanPoint(p_motor);
     if (hcan == NULL) return;
 
-    SingleSpeedControl(hcan, p_motor->id, p_motor->set.velocity * RAD_TO_DEGREE * 100);
+    SingleSpeedControl(hcan, p_motor->id, p_motor->set.vel * RAD_TO_DEGREE * 100);
 }
 
 void LkMultipleTorqueControl(

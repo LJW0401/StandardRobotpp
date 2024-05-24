@@ -50,6 +50,15 @@ static Chassis_s CHASSIS = {
             .yaw = MAX_YAW,
             .yaw_velocity = MAX_YAW_VELOCITY,
 
+            .joint_l =
+                {
+                    .Angle = MAX_JOINT_ANGLE,
+                },
+            .joint_r =
+                {
+                    .Angle = MAX_JOINT_ANGLE,
+                },
+
             .leg_l =
                 {
                     .length = MAX_LEG_LENGTH,
@@ -90,6 +99,15 @@ static Chassis_s CHASSIS = {
             .roll_velocity = MIN_ROLL_VELOCITY,
             .yaw = MIN_YAW,
             .yaw_velocity = MIN_YAW_VELOCITY,
+
+            .joint_l =
+                {
+                    .Angle = MIN_JOINT_ANGLE,
+                },
+            .joint_r =
+                {
+                    .Angle = MIN_JOINT_ANGLE,
+                },
 
             .leg_l =
                 {
@@ -247,6 +265,7 @@ void ChassisSetMode(void)
 /*-------------------- Observe --------------------*/
 
 static void UpdateLegStatus(void);
+static void UpdateJointStatus(void);
 static void UpdateMotorStatus(void);
 
 /**
@@ -256,10 +275,9 @@ static void UpdateMotorStatus(void);
  */
 void ChassisObserver(void)
 {
-    // 更新腿部姿态
-    UpdateLegStatus();
-    // 更新底盘电机数据
     UpdateMotorStatus();
+    UpdateJointStatus();
+    UpdateLegStatus();
 
     // 更新fdb数据
     CHASSIS.fdb.roll = CHASSIS.imu->roll;
@@ -274,17 +292,17 @@ void ChassisObserver(void)
     CHASSIS.fdb.theta_dot = (CHASSIS.fdb.leg_l.dAngle + CHASSIS.fdb.leg_r.dAngle) / 2 
                             - CHASSIS.imu->pitch_vel;
     CHASSIS.fdb.x       = 0;
-    CHASSIS.fdb.x_dot   = WHEEL_RADIUS * (CHASSIS.wheel_motor[0].fdb.w + CHASSIS.wheel_motor[1].fdb.w) / 2;
+    CHASSIS.fdb.x_dot   = WHEEL_RADIUS * (CHASSIS.wheel_motor[0].fdb.vel + CHASSIS.wheel_motor[1].fdb.vel) / 2;
     CHASSIS.fdb.phi     = CHASSIS.imu->pitch;
     CHASSIS.fdb.phi_dot = CHASSIS.imu->pitch_vel;
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
-    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.w;
-    OutputPCData.packets[1].data = CHASSIS.wheel_motor[0].fdb.pos;
-    OutputPCData.packets[2].data = CHASSIS.wheel_motor[0].fdb.current;
-    OutputPCData.packets[3].data = CHASSIS.wheel_motor[0].fdb.temperature;
-    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.position;
+    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.pos;
+    OutputPCData.packets[1].data = theta_transfrom(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, 1);
+    OutputPCData.packets[2].data = theta_transfrom(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, -1);
+    OutputPCData.packets[3].data = theta_transfrom(CHASSIS.wheel_motor[0].fdb.pos, M_PI / 4, 1);
+    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.pos;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
@@ -298,6 +316,23 @@ void ChassisObserver(void)
     OutputPCData.packets[15].data = CHASSIS.imu->x_accel;
     OutputPCData.packets[16].data = CHASSIS.imu->y_accel;
     OutputPCData.packets[17].data = CHASSIS.imu->z_accel;
+}
+
+/**
+ * @brief 更新关节状态
+ * @param  none
+ */
+static void UpdateJointStatus(void)
+{
+    CHASSIS.fdb.joint_l.Angle[0] = CHASSIS.joint_motor[0].fdb.pos;
+    CHASSIS.fdb.joint_l.Angle[1] = CHASSIS.joint_motor[1].fdb.pos;
+    CHASSIS.fdb.joint_r.Angle[0] = CHASSIS.joint_motor[2].fdb.pos;
+    CHASSIS.fdb.joint_r.Angle[1] = CHASSIS.joint_motor[3].fdb.pos;
+
+    CHASSIS.fdb.joint_l.dAngle[0] = CHASSIS.joint_motor[0].fdb.vel;
+    CHASSIS.fdb.joint_l.dAngle[1] = CHASSIS.joint_motor[1].fdb.vel;
+    CHASSIS.fdb.joint_r.dAngle[0] = CHASSIS.joint_motor[2].fdb.vel;
+    CHASSIS.fdb.joint_r.dAngle[1] = CHASSIS.joint_motor[3].fdb.vel;
 }
 
 /**
@@ -325,7 +360,7 @@ static void UpdateLegStatus(void)
     double leg_speed[2];
     /*-------------------- 更新左腿 --------------------*/
     // 更新位置信息
-    LegFKine(CHASSIS.joint_motor[1].fdb.pos, CHASSIS.joint_motor[0].fdb.pos, leg_pos);
+    LegFKine(CHASSIS.fdb.joint_l.Angle[1], CHASSIS.fdb.joint_l.Angle[0], leg_pos);
     CHASSIS.fdb.leg_l.length = leg_pos[0];
     CHASSIS.fdb.leg_l.angle = leg_pos[1];
 
@@ -333,8 +368,8 @@ static void UpdateLegStatus(void)
     // clang-format off
     CHASSIS.fdb.leg_l.last_dLength = CHASSIS.fdb.leg_l.dLength;
     LegSpeed(
-        CHASSIS.joint_motor[1].fdb.w  , CHASSIS.joint_motor[0].fdb.w,
-        CHASSIS.joint_motor[1].fdb.pos, CHASSIS.joint_motor[0].fdb.pos,
+        CHASSIS.fdb.joint_l.dAngle[1], CHASSIS.fdb.joint_l.dAngle[0],
+        CHASSIS.fdb.joint_l.Angle[1] , CHASSIS.fdb.joint_l.Angle[0],
         leg_speed);
     CHASSIS.fdb.leg_l.dLength = leg_speed[0];
     CHASSIS.fdb.leg_l.dAngle  = leg_speed[1];
@@ -347,7 +382,7 @@ static void UpdateLegStatus(void)
 
     /*-------------------- 更新右腿 --------------------*/
     // 更新位置信息
-    LegFKine(CHASSIS.joint_motor[3].fdb.pos, CHASSIS.joint_motor[2].fdb.pos, leg_pos);
+    LegFKine(CHASSIS.fdb.joint_r.Angle[1], CHASSIS.fdb.joint_r.Angle[0], leg_pos);
     CHASSIS.fdb.leg_r.length = leg_pos[0];
     CHASSIS.fdb.leg_r.angle = leg_pos[1];
 
@@ -355,8 +390,8 @@ static void UpdateLegStatus(void)
     // clang-format off
     CHASSIS.fdb.leg_r.last_dLength = CHASSIS.fdb.leg_r.dLength;
     LegSpeed(
-        CHASSIS.joint_motor[3].fdb.w  , CHASSIS.joint_motor[2].fdb.w,
-        CHASSIS.joint_motor[3].fdb.pos, CHASSIS.joint_motor[2].fdb.pos,
+        CHASSIS.fdb.joint_r.dAngle[1], CHASSIS.fdb.joint_r.dAngle[0],
+        CHASSIS.fdb.joint_r.Angle[1] , CHASSIS.fdb.joint_r.Angle[0],
         leg_speed);
     CHASSIS.fdb.leg_r.dLength = leg_speed[0];
     CHASSIS.fdb.leg_r.dAngle  = leg_speed[1];
@@ -462,17 +497,17 @@ void ChassisConsole(void)
     }
 
     for (uint8_t i = 0; i < 4; i++) {
-        CHASSIS.joint_motor[i].set.position = GenerateSinWave(1, 0, 2);
-        CHASSIS.joint_motor[i].set.torque = 0;
-        CHASSIS.joint_motor[i].set.velocity = 0;
-        CHASSIS.joint_motor[i].set.current = 0;
+        CHASSIS.joint_motor[i].set.pos = GenerateSinWave(1, 0, 2);
+        CHASSIS.joint_motor[i].set.tor = 0;
+        CHASSIS.joint_motor[i].set.vel = 0;
+        CHASSIS.joint_motor[i].set.curr = 0;
     }
 
     for (uint8_t i = 0; i < 2; i++) {
-        CHASSIS.wheel_motor[i].set.position = 0;
-        CHASSIS.wheel_motor[i].set.torque = GenerateSinWave(0.3, 0, 2);
-        CHASSIS.wheel_motor[i].set.velocity = 0;
-        CHASSIS.wheel_motor[i].set.current = 0;
+        CHASSIS.wheel_motor[i].set.pos = 0;
+        CHASSIS.wheel_motor[i].set.tor = 0;  //GenerateSinWave(0.3, 0, 2);
+        CHASSIS.wheel_motor[i].set.vel = 0;
+        CHASSIS.wheel_motor[i].set.curr = 0;
     }
 }
 
@@ -660,7 +695,7 @@ static void SendWheelMotorCmd(void)
     } else {
         // clang-format off
         LkMultipleTorqueControl(WHEEL_CAN,
-            CHASSIS.wheel_motor[0].set.torque, CHASSIS.wheel_motor[1].set.torque, 0, 0);
+            CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
         // clang-format on
     }
 }

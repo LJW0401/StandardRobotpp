@@ -188,7 +188,6 @@ fp32 theta_format(fp32 Ang)
  * @param[in] angle  (rad)当前角度
  * @param[in] dangle (rad)旋转角度
  * @param[in] direction 方向，1为正，-1为负
- * @note      逆时针为正方向
  * @return    转换后的角度
  */
 fp32 theta_transfrom(fp32 angle, fp32 dangle,int8_t direction)

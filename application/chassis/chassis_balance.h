@@ -59,6 +59,12 @@ typedef struct
     float last_dLength;  // m/s
 } LegPos_t;
 
+typedef struct JointPos
+{
+    float Angle[2];   // rad 0-前 1-后
+    float dAngle[2];  // rad/s 0-前 1-后
+} JointPos_t;
+
 /**
  * @brief      比例系数结构体
  * @note       比例系数，用于手动优化控制效果
@@ -91,6 +97,10 @@ typedef struct
 
     LegPos_t leg_l;
     LegPos_t leg_r;
+
+    JointPos_t joint_l;
+    JointPos_t joint_r;
+
     ChassisSpeedVector_t speed_vector;
 } Values_t;
 

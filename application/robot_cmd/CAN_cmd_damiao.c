@@ -347,7 +347,7 @@ void DmMitCtrlTorque(Motor_s * motor)
     hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
-    MitCtrl(hcan, motor->id, 0, 0, 0, 0, motor->set.torque);
+    MitCtrl(hcan, motor->id, 0, 0, 0, 0, motor->set.tor);
 }
 
 /**
@@ -360,7 +360,7 @@ void DmMitCtrlVelocity(Motor_s * motor, float kd)
     hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
-    MitCtrl(hcan, motor->id, 0, motor->set.velocity, 0, kd, 0);
+    MitCtrl(hcan, motor->id, 0, motor->set.vel, 0, kd, 0);
 }
 
 /**
@@ -373,7 +373,7 @@ void DmMitCtrlPosition(Motor_s * motor, float kp, float kd)
     hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
-    MitCtrl(hcan, motor->id, motor->set.position, 0, kp, kd, 0);
+    MitCtrl(hcan, motor->id, motor->set.pos, 0, kp, kd, 0);
 }
 
 /**
@@ -386,7 +386,7 @@ void DmPosCtrl(Motor_s * motor)
     hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
-    PosSpeedCtrl(hcan, motor->id, motor->set.position, motor->set.velocity);
+    PosSpeedCtrl(hcan, motor->id, motor->set.pos, motor->set.vel);
 }
 
 /**
@@ -399,6 +399,6 @@ void DmSpeedCtrl(Motor_s * motor)
     hcan_t * hcan = GetHcanPoint(motor);
     if (hcan == NULL) return;
 
-    SpeedCtrl(hcan, motor->id, motor->set.velocity);
+    SpeedCtrl(hcan, motor->id, motor->set.vel);
 }
 /************************ END OF FILE ************************/

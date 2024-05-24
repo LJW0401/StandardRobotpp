@@ -35,6 +35,8 @@
 #define MAX_YAW             M_PI
 #define MAX_YAW_VELOCITY    3.0f
 
+#define MAX_JOINT_ANGLE     3.0f
+
 #define MAX_LEG_LENGTH       0.35f
 #define MAX_LEG_ANGLE        M_PI_2 + 0.1f
 #define MAX_SPEED_VECTOR_VX  5.0f
@@ -54,6 +56,8 @@
 #define MIN_ROLL_VELOCITY   -MAX_ROLL_VELOCITY
 #define MIN_YAW             -MAX_YAW
 #define MIN_YAW_VELOCITY    -MAX_YAW_VELOCITY
+
+#define MIN_JOINT_ANGLE     -MAX_JOINT_ANGLE
 
 #define MIN_LEG_LENGTH        0.11f
 #define MIN_LEG_ANGLE         M_PI_2 - 0.1f
