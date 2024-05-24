@@ -77,7 +77,7 @@ void DjiMotorVelocityControl(
     if (p_motor == NULL || pid == NULL) return;
     if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
         return;
-    p_motor->set.current = PID_calc(pid, p_motor->fdb.w, velocity) + feedforward;
+    p_motor->set.curr = PID_calc(pid, p_motor->fdb.vel, velocity) + feedforward;
 }
 
 /**
@@ -95,7 +95,7 @@ void DjiMotorPositionControl(
     if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
         return;
     float velocity_set = PID_calc(angle_pid, p_motor->fdb.pos, angle);
-    float current_set = PID_calc(velocity_pid, p_motor->fdb.w, velocity_set) + feedforward;
-    p_motor->set.current = current_set;
+    float current_set = PID_calc(velocity_pid, p_motor->fdb.vel, velocity_set) + feedforward;
+    p_motor->set.curr = current_set;
 }
 /************************ END OF FILE ************************/

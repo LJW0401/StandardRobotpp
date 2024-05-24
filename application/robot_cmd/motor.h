@@ -21,8 +21,8 @@
 #include "stdbool.h"
 #include "struct_typedef.h"
 
-#define RPM_TO_OMEGA 0.1047197551f  // (1/60*2*pi) (rpm)->(rad/s)
-#define DEGREE_TO_RAD 0.0174532925f  // (pi/180) (degree)->(rad)
+#define RPM_TO_OMEGA 0.1047197551f    // (1/60*2*pi) (rpm)->(rad/s)
+#define DEGREE_TO_RAD 0.0174532925f   // (pi/180) (degree)->(rad)
 #define RAD_TO_DEGREE 57.2957795131f  // (180/pi) (rad)->(degree)
 
 #define MOTOR_STABLE_RUNNING_TIME 10  // (ms)电机稳定运行时间
@@ -41,6 +41,10 @@
 #define DJI_GM6020_ECD_TO_RAD 0.000766990394f  // (2*pi/8192) 电机编码器值转换为弧度
 #define DJI_GM3508_RPM_TO_OMEGA 0.0055115661f  // (1/60*2*pi/19) m3508(减速比19:1) (rpm)->(rad/s)
 #define DJI_GM2006_RPM_TO_OMEGA 0.0029088821f  // (1/60*2*pi/36) m2006(减速比36:1) (rpm)->(rad/s)
+
+#define DJI_GM2006_MAX_CURRENT 10000
+#define DJI_GM3508_MAX_CURRENT 16384
+#define DJI_GM6020_MAX_VOLTAGE 30000
 
 typedef struct _DjiMotorMeasure
 {
@@ -205,24 +209,25 @@ typedef struct __Motor
     /*状态量*/
     struct __fdb
     {
-        float a;            // (rad/s^2)电机加速度
-        float w;            // (rad/s)电机输出轴转速
-        float T;            // (N*m)电机输出力矩
-        float pos;          // (rad)电机输出轴位置
-        float temperature;  // (℃)电机温度
-        float current;      // (A)电机电流
-        int16_t round;      // (r)电机旋转圈数(用于计算输出轴位置)
-        uint16_t ecd;       // 电机编码器值
-        uint8_t state;      // 电机状态
+        float acc;      // (rad/s^2)电机加速度
+        float vel;      // (rad/s)电机输出轴转速
+        float tor;      // (N*m)电机输出力矩
+        float pos;      // (rad)电机输出轴位置
+        float temp;     // (℃)电机温度
+        float curr;     // (A)电机电流
+        int16_t round;  // (r)电机旋转圈数(用于计算输出轴位置)
+        uint16_t ecd;   // 电机编码器值
+        uint8_t state;  // 电机状态
     } fdb;
 
     /*设定值*/
     struct __set
     {
-        float current;   // 电机电流
-        float torque;    // 电机力矩
-        float velocity;  // 电机转速
-        float position;  // 电机位置
+        float curr;  // (A)电机电流
+        float volt;  // (V)电机电压
+        float tor;   // (N*m)电机力矩
+        float vel;   // (rad/s)电机输出轴转速
+        float pos;   // (rad)电机位置
     } set;
 
 } Motor_s;
