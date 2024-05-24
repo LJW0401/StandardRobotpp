@@ -4,6 +4,7 @@
 ![Logo](./doc/pic/Logo6.png)
 
 [![Author](https://img.shields.io/badge/Author-小企鹅-orange.svg)](https://gitee.com/Ljw0401)
+[![Author](https://img.shields.io/badge/Author-xxx-orange.svg)](https://gitee.com/Ljw0401)
 
 ![language](https://img.shields.io/badge/language-C-blue.svg)
 ![license](https://img.shields.io/badge/license-MIT-green.svg)
@@ -45,6 +46,7 @@
 - **Shoot**\
   发射机构模块：
   - [ ] 摩擦轮+拨弹盘
+  - [ ] 摩擦轮+弹鼓+推杆
 
   详细信息请参考 [SHOOT_README](./application/shoot/SHOOT_README.md)
 
