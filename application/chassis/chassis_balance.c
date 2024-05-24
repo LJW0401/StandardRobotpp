@@ -298,10 +298,10 @@ void ChassisObserver(void)
     // clang-format on
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
-    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.vel;
-    OutputPCData.packets[1].data = CHASSIS.wheel_motor[0].fdb.pos;
-    OutputPCData.packets[2].data = CHASSIS.wheel_motor[0].fdb.curr;
-    OutputPCData.packets[3].data = CHASSIS.wheel_motor[0].fdb.temp;
+    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.pos;
+    OutputPCData.packets[1].data = theta_transfrom(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, 1);
+    OutputPCData.packets[2].data = theta_transfrom(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, -1);
+    OutputPCData.packets[3].data = theta_transfrom(CHASSIS.wheel_motor[0].fdb.pos, M_PI / 4, 1);
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.pos;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
@@ -505,7 +505,7 @@ void ChassisConsole(void)
 
     for (uint8_t i = 0; i < 2; i++) {
         CHASSIS.wheel_motor[i].set.pos = 0;
-        CHASSIS.wheel_motor[i].set.tor = GenerateSinWave(0.3, 0, 2);
+        CHASSIS.wheel_motor[i].set.tor = 0;  //GenerateSinWave(0.3, 0, 2);
         CHASSIS.wheel_motor[i].set.vel = 0;
         CHASSIS.wheel_motor[i].set.curr = 0;
     }
