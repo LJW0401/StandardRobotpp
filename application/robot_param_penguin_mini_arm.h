@@ -58,14 +58,14 @@
 #define JOINT_MOTOR_4_MODE 0
 //upper_limit parameters ---------------------
 #define MAX_JOINT_0_POSITION 0.5235987755f  // M_PI/6
-#define MAX_JOINT_1_POSITION 0
-#define MAX_JOINT_2_POSITION 0
+#define MAX_JOINT_1_POSITION M_PI_2
+#define MAX_JOINT_2_POSITION M_PI_2
 #define MAX_JOINT_3_POSITION 6.283185f
 #define MAX_JOINT_4_POSITION M_PI
 //lower_limit parameters ---------------------
 #define MIN_JOINT_0_POSITION -MAX_JOINT_0_POSITION
-#define MIN_JOINT_1_POSITION -3.75f
-#define MIN_JOINT_2_POSITION -1.9f
+#define MIN_JOINT_1_POSITION M_PI_2 - 3.75f
+#define MIN_JOINT_2_POSITION M_PI_2 - 1.9f
 #define MIN_JOINT_3_POSITION 0.0f
 #define MIN_JOINT_4_POSITION 0.0f
 //PID parameters ---------------------
@@ -100,9 +100,11 @@
 #define JOINT_1_INIT_TORQUE_SET 0.5f  //(N*m)
 // Other parameters ---------------------
 #define JOINT_MIN_VELOCITY 0.05f  //(rad/s)当关节速度低于此速度时认为关节已经停止运动了
-#define JOINT_ZERO_THRESHOLD 0.01f  //(rad)关节置零时的阈值
-#define JOINT_ZERO_THRESHOLD_RUN 0.2f  //(rad)关节运行时的阈值
-#define J_1_J_2_DELTA_MAX 0.9f      //(rad)关节1和关节2之间的最大差值
-#define J_2_ANGLE_OFFESET 1.0f      //(rad)关节2的角度偏移
+#define JOINT_ZERO_THRESHOLD 0.01f       //(rad)关节置零时的阈值
+#define JOINT_ZERO_THRESHOLD_RUN 0.2f    //(rad)关节运行时的阈值
+#define J_1_J_2_DELTA_MAX 2.6f           //(rad)关节1和关节2之间的最大差值
+#define J_1_J_2_DELTA_MIN 1.05f          //(rad)关节1和关节2之间的最大差值
+#define J_1_ANGLE_OFFESET M_PI_2         //(rad)关节1的角度偏移
+#define J_2_ANGLE_OFFESET M_PI_2 + 1.0f  //(rad)关节2的角度偏移
 
 #endif /* INCLUDED_ROBOT_PARAM_H */

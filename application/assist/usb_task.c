@@ -379,12 +379,12 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.packets[0].name, "state_0");
-    char_to_uint(OutputPCData.packets[1].name, "state_1");
-    char_to_uint(OutputPCData.packets[2].name, "state_2");
-    char_to_uint(OutputPCData.packets[3].name, "pos_0");
-    char_to_uint(OutputPCData.packets[4].name, "pos_1");
-    char_to_uint(OutputPCData.packets[5].name, "pos_2");
+    // char_to_uint(OutputPCData.packets[0].name, "state_0");
+    // char_to_uint(OutputPCData.packets[1].name, "state_1");
+    // char_to_uint(OutputPCData.packets[2].name, "state_2");
+    // char_to_uint(OutputPCData.packets[3].name, "pos_0");
+    // char_to_uint(OutputPCData.packets[4].name, "pos_1");
+    // char_to_uint(OutputPCData.packets[5].name, "pos_2");
     char_to_uint(OutputPCData.packets[6].name, "tor_0");
     char_to_uint(OutputPCData.packets[7].name, "tor_1");
     char_to_uint(OutputPCData.packets[8].name, "tor_2");
@@ -393,9 +393,9 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[11].name, "fdbpos_0");
     char_to_uint(OutputPCData.packets[12].name, "fdbpos_1");
     char_to_uint(OutputPCData.packets[13].name, "fdbpos_2");
-    // char_to_uint(OutputPCData.packets[14].name, "yaw_v");
-    // char_to_uint(OutputPCData.packets[15].name, "xAccel");
-    // char_to_uint(OutputPCData.packets[16].name, "yAccel");
+    char_to_uint(OutputPCData.packets[14].name, "refpos_0");
+    char_to_uint(OutputPCData.packets[15].name, "refpos_1");
+    char_to_uint(OutputPCData.packets[16].name, "refpos_2");
     // char_to_uint(OutputPCData.packets[17].name, "zAccel");
     // char_to_uint(OutputPCData.packets[18].name, "o_r");
     // char_to_uint(OutputPCData.packets[19].name, "o_p");
