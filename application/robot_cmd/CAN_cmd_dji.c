@@ -123,14 +123,13 @@ void CanCmdDjiMotor(
 }
 
 /**
- * @brief dji多电机电流控制
- * @param std_id 数据包标识符
+ * @brief 暂时还不可使用！！！ dji多电机电流控制
  * @param p_motor_1 电机1
  * @param p_motor_2 电机2
  * @param p_motor_3 电机3
  * @param p_motor_4 电机4
  */
-void DjiMultipleCurrentControl(
+void DjiMultipleControl(
     Motor_s * p_motor_1, Motor_s * p_motor_2, Motor_s * p_motor_3, Motor_s * p_motor_4)
 {
     hcan_t * hcan = NULL;
@@ -143,6 +142,7 @@ void DjiMultipleCurrentControl(
     uint16_t curr[4] = {0, 0, 0, 0};
 
     MultipleCurrentControl(hcan, p_motor_1->mode, curr[0], curr[1], curr[2], curr[3]);
+    MultipleVoltageControl(hcan, p_motor_1->mode, 0, 0, 0, 0);
 }
 
 /************************ END OF FILE ************************/

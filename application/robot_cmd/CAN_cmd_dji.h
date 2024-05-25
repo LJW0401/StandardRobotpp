@@ -31,6 +31,9 @@
 extern void CanCmdDjiMotor(
     uint8_t can, uint16_t std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
+extern void DjiMultipleControl(
+    Motor_s * p_motor_1, Motor_s * p_motor_2, Motor_s * p_motor_3, Motor_s * p_motor_4);
+
 #endif  //CAN_CMD_DJI_H
 
 /************************ END OF FILE ************************/
