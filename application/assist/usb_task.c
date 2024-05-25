@@ -388,7 +388,7 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[6].name, "tor_0");
     char_to_uint(OutputPCData.packets[7].name, "tor_1");
     char_to_uint(OutputPCData.packets[8].name, "tor_2");
-    // char_to_uint(OutputPCData.packets[9].name, "pitch");
+    char_to_uint(OutputPCData.packets[9].name, "mode");
     // char_to_uint(OutputPCData.packets[10].name, "pitch_v");
     // char_to_uint(OutputPCData.packets[11].name, "roll");
     // char_to_uint(OutputPCData.packets[12].name, "roll_v");
