@@ -46,6 +46,18 @@
 #define DJI_GM3508_MAX_CURRENT 16384
 #define DJI_GM6020_MAX_VOLTAGE 30000
 
+// 电机模式
+#define DJI_3508_MODE_CURRENT_1 ((uint16_t)0x200)  // 3508电流控制模式
+#define DJI_2006_MODE_CURRENT_1 ((uint16_t)0x200)  // 2006电流控制模式
+
+#define DJI_3508_MODE_CURRENT_2 ((uint16_t)0x1FF)  // 3508电流控制模式
+#define DJI_2006_MODE_CURRENT_2 ((uint16_t)0x1FF)  // 2006电流控制模式
+
+#define DJI_6020_MODE_VOLTAGE_1 ((uint16_t)0x1FF)  // 6020电压控制模式
+#define DJI_6020_MODE_VOLTAGE_2 ((uint16_t)0x2FF)  // 6020电压控制模式
+
+// #define DJI_6020_MODE_CURRENT_1 0x2FE  // 6020电流控制模式
+
 typedef struct _DjiMotorMeasure
 {
     uint16_t ecd;
