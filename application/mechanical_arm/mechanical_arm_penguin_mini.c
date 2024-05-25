@@ -21,6 +21,7 @@
 #include <stdbool.h>
 
 #include "CAN_communication.h"
+#include "bsp_delay.h"
 #include "custom_controller_connect.h"
 #include "detect_task.h"
 #include "math.h"
@@ -65,14 +66,14 @@ void InitMechanicalArm(void)
 {
     // #Motor init ---------------------
     MotorInit(
-        &MECHANICAL_ARM.joint_motor[0], JOINT_MOTOR_0_ID, JOINT_MOTOR_0_CAN, JOINT_MOTOR_0_TYPE,
-        JOINT_MOTOR_0_DIRECTION, JOINT_MOTOR_0_REDUCTION_RATIO, JOINT_MOTOR_0_MODE);
+        &MECHANICAL_ARM.joint_motor[0], 1, 1, CYBERGEAR_MOTOR, JOINT_MOTOR_0_DIRECTION,
+        JOINT_MOTOR_0_REDUCTION_RATIO, JOINT_MOTOR_0_MODE);
     MotorInit(
-        &MECHANICAL_ARM.joint_motor[1], JOINT_MOTOR_1_ID, JOINT_MOTOR_1_CAN, JOINT_MOTOR_1_TYPE,
-        JOINT_MOTOR_1_DIRECTION, JOINT_MOTOR_1_REDUCTION_RATIO, JOINT_MOTOR_1_MODE);
+        &MECHANICAL_ARM.joint_motor[1], 2, 1, CYBERGEAR_MOTOR, JOINT_MOTOR_1_DIRECTION,
+        JOINT_MOTOR_1_REDUCTION_RATIO, JOINT_MOTOR_1_MODE);
     MotorInit(
-        &MECHANICAL_ARM.joint_motor[2], JOINT_MOTOR_2_ID, JOINT_MOTOR_2_CAN, JOINT_MOTOR_2_TYPE,
-        JOINT_MOTOR_2_DIRECTION, JOINT_MOTOR_2_REDUCTION_RATIO, JOINT_MOTOR_2_MODE);
+        &MECHANICAL_ARM.joint_motor[2], 3, 1, CYBERGEAR_MOTOR, JOINT_MOTOR_2_DIRECTION,
+        JOINT_MOTOR_2_REDUCTION_RATIO, JOINT_MOTOR_2_MODE);
     MotorInit(
         &MECHANICAL_ARM.joint_motor[3], JOINT_MOTOR_3_ID, JOINT_MOTOR_3_CAN, JOINT_MOTOR_3_TYPE,
         JOINT_MOTOR_3_DIRECTION, JOINT_MOTOR_3_REDUCTION_RATIO, JOINT_MOTOR_3_MODE);
@@ -283,15 +284,30 @@ void SendMechanicalArmCmd(void)
     //         CanCmdDjiMotor(2, DJI_3508_MODE_CURRENT_1, 0, 0, 0, 0);
     //     }
     // }
+
+    if (MECHANICAL_ARM.joint_motor[0].fdb.state == RESET_MODE) {
+        CybergearEnable(&MECHANICAL_ARM.joint_motor[0]);
+    }
+    if (MECHANICAL_ARM.joint_motor[1].fdb.state == RESET_MODE) {
+        CybergearEnable(&MECHANICAL_ARM.joint_motor[1]);
+        delay_us(200);
+    }
+    if (MECHANICAL_ARM.joint_motor[2].fdb.state == RESET_MODE) {
+        CybergearEnable(&MECHANICAL_ARM.joint_motor[2]);
+    }
+
     if (MECHANICAL_ARM.mode == MECHANICAL_ARM_ZERO_FORCE) {
         MECHANICAL_ARM.joint_motor[0].set.tor = 0;
         MECHANICAL_ARM.joint_motor[1].set.tor = 0;
         MECHANICAL_ARM.joint_motor[2].set.tor = 0;
         CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
-        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
-        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
         CanCmdDjiMotor(2, DJI_6020_MODE_VOLTAGE_2, 0, 0, 0, 0);
         CanCmdDjiMotor(2, DJI_3508_MODE_CURRENT_1, 0, 0, 0, 0);
+
+        delay_us(200);
+        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
+        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
+
     } else {
         CybergearPositionControl(&MECHANICAL_ARM.joint_motor[0], 2, 0.5);
     }
