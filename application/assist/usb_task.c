@@ -390,9 +390,9 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[8].name, "tor_2");
     char_to_uint(OutputPCData.packets[9].name, "mode");
     // char_to_uint(OutputPCData.packets[10].name, "pitch_v");
-    // char_to_uint(OutputPCData.packets[11].name, "roll");
-    // char_to_uint(OutputPCData.packets[12].name, "roll_v");
-    // char_to_uint(OutputPCData.packets[13].name, "yaw");
+    char_to_uint(OutputPCData.packets[11].name, "fdbpos_0");
+    char_to_uint(OutputPCData.packets[12].name, "fdbpos_1");
+    char_to_uint(OutputPCData.packets[13].name, "fdbpos_2");
     // char_to_uint(OutputPCData.packets[14].name, "yaw_v");
     // char_to_uint(OutputPCData.packets[15].name, "xAccel");
     // char_to_uint(OutputPCData.packets[16].name, "yAccel");

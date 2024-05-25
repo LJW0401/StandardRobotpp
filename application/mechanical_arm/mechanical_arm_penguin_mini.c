@@ -32,23 +32,23 @@
 
 static MechanicalArm_s MECHANICAL_ARM = {
     .mode = MECHANICAL_ARM_ZERO_FORCE,
-    .reference =
+    .ref =
         {
-            .position = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+            .pos = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
         },
-    .feedback =
+    .fdb =
         {
-            .position = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+            .pos = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
         },
     .upper_limit =
         {
-            .position =
+            .pos =
                 {MAX_JOINT_0_POSITION, MAX_JOINT_1_POSITION, MAX_JOINT_2_POSITION,
                  MAX_JOINT_3_POSITION, MAX_JOINT_4_POSITION},
         },
     .lower_limit =
         {
-            .position =
+            .pos =
                 {MIN_JOINT_0_POSITION, MIN_JOINT_1_POSITION, MIN_JOINT_2_POSITION,
                  MIN_JOINT_3_POSITION, MIN_JOINT_4_POSITION},
         },
@@ -170,18 +170,14 @@ void MechanicalArmObserver(void)
 {
     for (uint8_t i = 0; i < 5; i++) {
         GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
-        MECHANICAL_ARM.feedback.position[i] = MECHANICAL_ARM.joint_motor[i].fdb.pos;
+        MECHANICAL_ARM.fdb.pos[i] = MECHANICAL_ARM.joint_motor[i].fdb.pos;
     }
-    MECHANICAL_ARM.feedback.position[0] =
-        theta_transfrom(MECHANICAL_ARM.joint_motor[0].fdb.pos, 0, 1);
-    MECHANICAL_ARM.feedback.position[1] =
-        theta_transfrom(MECHANICAL_ARM.joint_motor[1].fdb.pos, 0, 1);
-    MECHANICAL_ARM.feedback.position[2] =
-        theta_transfrom(MECHANICAL_ARM.joint_motor[2].fdb.pos, 0, 1);
-    MECHANICAL_ARM.feedback.position[3] =
-        theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1);
-    MECHANICAL_ARM.feedback.position[4] =
-        theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1);
+    MECHANICAL_ARM.fdb.pos[0] = theta_transfrom(MECHANICAL_ARM.joint_motor[0].fdb.pos, 0, 1, 1);
+    MECHANICAL_ARM.fdb.pos[1] = theta_transfrom(MECHANICAL_ARM.joint_motor[1].fdb.pos, 0, 1, 2);
+    MECHANICAL_ARM.fdb.pos[2] =
+        theta_transfrom(MECHANICAL_ARM.joint_motor[2].fdb.pos, J_2_ANGLE_OFFESET, -1, 2);
+    MECHANICAL_ARM.fdb.pos[3] = theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1, 1);
+    MECHANICAL_ARM.fdb.pos[4] = theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1, 1);
 
     OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[0].fdb.state;
     OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[1].fdb.state;
@@ -193,6 +189,10 @@ void MechanicalArmObserver(void)
     OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
     OutputPCData.packets[8].data = MECHANICAL_ARM.joint_motor[2].fdb.tor;
     OutputPCData.packets[9].data = MECHANICAL_ARM.mode;
+    OutputPCData.packets[10].data = MECHANICAL_ARM.mode;
+    OutputPCData.packets[11].data = MECHANICAL_ARM.fdb.pos[0];
+    OutputPCData.packets[12].data = MECHANICAL_ARM.fdb.pos[1];
+    OutputPCData.packets[13].data = MECHANICAL_ARM.fdb.pos[2];
 }
 
 /*-------------------- Reference --------------------*/
@@ -204,11 +204,11 @@ void MechanicalArmObserver(void)
  */
 void MechanicalArmReference(void)
 {
-    MECHANICAL_ARM.reference.position[0] = 0.0f;
-    MECHANICAL_ARM.reference.position[1] = M_PI_2;
-    MECHANICAL_ARM.reference.position[2] = 0.0f;
-    MECHANICAL_ARM.reference.position[3] = M_PI_2;
-    MECHANICAL_ARM.reference.position[4] = M_PI_2;
+    MECHANICAL_ARM.ref.pos[0] = 0.0f;
+    MECHANICAL_ARM.ref.pos[1] = M_PI_2;
+    MECHANICAL_ARM.ref.pos[2] = 0.0f;
+    MECHANICAL_ARM.ref.pos[3] = M_PI_2;
+    MECHANICAL_ARM.ref.pos[4] = M_PI_2;
 
     EngineerCustomControllerData_t engineer_custom_controller_data;
     EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);

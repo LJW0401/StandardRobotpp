@@ -43,7 +43,7 @@ typedef enum {
  */
 typedef struct
 {
-    float position[5];  // (rad) 关节位置
+    float pos[5];  // (rad) 关节位置
 } Values_t;
 typedef struct
 {
@@ -60,8 +60,8 @@ typedef struct
     Motor_s joint_motor[5];
     /*-------------------- Values --------------------*/
 
-    Values_t reference;    // 期望值
-    Values_t feedback;     // 状态值
+    Values_t ref;    // 期望值
+    Values_t fdb;     // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
 
