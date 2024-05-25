@@ -130,7 +130,7 @@ void SetMechanicalArmMode(void)
 bool CheckInitCompleted(void)
 {
     bool init_completed = true;
-    for (uint8_t i = 1; i < 5; i++) {
+    for (uint8_t i = 0; i < 5; i++) {
         init_completed = init_completed && MECHANICAL_ARM.init_completed[i];
     }
 
@@ -158,7 +158,7 @@ bool CheckInitCompleted(void)
  */
 void MechanicalArmObserver(void)
 {
-    for (uint8_t i = 1; i < 5; i++) {
+    for (uint8_t i = 0; i < 5; i++) {
         GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
         MECHANICAL_ARM.feedback.position[i] = MECHANICAL_ARM.joint_motor[i].fdb.pos;
     }
@@ -172,6 +172,16 @@ void MechanicalArmObserver(void)
         theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1);
     MECHANICAL_ARM.feedback.position[4] =
         theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1);
+
+    OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[0].fdb.state;
+    OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[1].fdb.state;
+    OutputPCData.packets[2].data = MECHANICAL_ARM.joint_motor[2].fdb.state;
+    OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[0].fdb.pos;
+    OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[1].fdb.pos;
+    OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
+    OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
+    OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
+    OutputPCData.packets[8].data = MECHANICAL_ARM.joint_motor[2].fdb.tor;
 }
 
 /*-------------------- Reference --------------------*/
@@ -244,7 +254,9 @@ void MechanicalArmConsole(void)
     MECHANICAL_ARM.joint_motor[4].set.curr = 0.0f;
 #endif
 
-    MECHANICAL_ARM.joint_motor[0].set.pos = GenerateSinWave(1, 0, 3);
+    MECHANICAL_ARM.joint_motor[0].set.pos = GenerateSinWave(0.5, 0, 3);
+    MECHANICAL_ARM.joint_motor[1].set.vel = -0.5;
+    MECHANICAL_ARM.joint_motor[2].set.vel = -0.5;
 }
 
 /*-------------------- Cmd --------------------*/
@@ -287,13 +299,15 @@ void SendMechanicalArmCmd(void)
 
     if (MECHANICAL_ARM.joint_motor[0].fdb.state == RESET_MODE) {
         CybergearEnable(&MECHANICAL_ARM.joint_motor[0]);
+        delay_us(5);
     }
     if (MECHANICAL_ARM.joint_motor[1].fdb.state == RESET_MODE) {
         CybergearEnable(&MECHANICAL_ARM.joint_motor[1]);
-        delay_us(200);
+        delay_us(5);
     }
     if (MECHANICAL_ARM.joint_motor[2].fdb.state == RESET_MODE) {
         CybergearEnable(&MECHANICAL_ARM.joint_motor[2]);
+        delay_us(5);
     }
 
     if (MECHANICAL_ARM.mode == MECHANICAL_ARM_ZERO_FORCE) {
@@ -301,15 +315,26 @@ void SendMechanicalArmCmd(void)
         MECHANICAL_ARM.joint_motor[1].set.tor = 0;
         MECHANICAL_ARM.joint_motor[2].set.tor = 0;
         CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
-        CanCmdDjiMotor(2, DJI_6020_MODE_VOLTAGE_2, 0, 0, 0, 0);
-        CanCmdDjiMotor(2, DJI_3508_MODE_CURRENT_1, 0, 0, 0, 0);
+        for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[0], 0X302d);
 
-        delay_us(200);
         CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
-        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
+        for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
 
+        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
+        for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
+
+        // CanCmdDjiMotor(2, DJI_6020_MODE_VOLTAGE_2, 0, 0, 0, 0);
+        // CanCmdDjiMotor(2, DJI_3508_MODE_CURRENT_1, 0, 0, 0, 0);
     } else {
+        // CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
         CybergearPositionControl(&MECHANICAL_ARM.joint_motor[0], 2, 0.5);
+        for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[0], 0X302d);
+
+        CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 3.1);
+        for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
+        
+        CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 0.7);
+        for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
     }
 }
 

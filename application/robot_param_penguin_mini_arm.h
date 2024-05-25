@@ -57,13 +57,13 @@
 #define JOINT_MOTOR_3_MODE 0
 #define JOINT_MOTOR_4_MODE 0
 //upper_limit parameters ---------------------
-#define MAX_JOINT_0_POSITION 6.283185f  //2*M_PI
+#define MAX_JOINT_0_POSITION 0.5235987755f  // M_PI/6
 #define MAX_JOINT_1_POSITION M_PI
 #define MAX_JOINT_2_POSITION M_PI
 #define MAX_JOINT_3_POSITION 6.283185f
 #define MAX_JOINT_4_POSITION M_PI
 //lower_limit parameters ---------------------
-#define MIN_JOINT_0_POSITION 0.0f
+#define MIN_JOINT_0_POSITION -MAX_JOINT_0_POSITION
 #define MIN_JOINT_1_POSITION 0.0f
 #define MIN_JOINT_2_POSITION 0.0f
 #define MIN_JOINT_3_POSITION 0.0f
