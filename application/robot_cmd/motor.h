@@ -46,6 +46,18 @@
 #define DJI_GM3508_MAX_CURRENT 16384
 #define DJI_GM6020_MAX_VOLTAGE 30000
 
+// 电机模式
+#define DJI_3508_MODE_CURRENT_1 ((uint16_t)0x200)  // 3508电流控制模式
+#define DJI_2006_MODE_CURRENT_1 ((uint16_t)0x200)  // 2006电流控制模式
+
+#define DJI_3508_MODE_CURRENT_2 ((uint16_t)0x1FF)  // 3508电流控制模式
+#define DJI_2006_MODE_CURRENT_2 ((uint16_t)0x1FF)  // 2006电流控制模式
+
+#define DJI_6020_MODE_VOLTAGE_1 ((uint16_t)0x1FF)  // 6020电压控制模式
+#define DJI_6020_MODE_VOLTAGE_2 ((uint16_t)0x2FF)  // 6020电压控制模式
+
+// #define DJI_6020_MODE_CURRENT_1 0x2FE  // 6020电流控制模式
+
 typedef struct _DjiMotorMeasure
 {
     uint16_t ecd;
@@ -223,11 +235,12 @@ typedef struct __Motor
     /*设定值*/
     struct __set
     {
-        float curr;  // (A)电机电流
-        float volt;  // (V)电机电压
-        float tor;   // (N*m)电机力矩
-        float vel;   // (rad/s)电机输出轴转速
-        float pos;   // (rad)电机位置
+        float curr;   // (A)电机电流
+        float volt;   // (V)电机电压
+        float tor;    // (N*m)电机力矩
+        float vel;    // (rad/s)电机输出轴转速
+        float pos;    // (rad)电机位置
+        float value;  // 可发送的直接控制量，无单位
     } set;
 
 } Motor_s;
