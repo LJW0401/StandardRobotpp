@@ -62,40 +62,27 @@ void CanCmdDjiMotor(
     CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
-/*-------------------- 控制函数 --------------------*/
-
 /**
- * @brief       dji电机速度控制
- * @param[in]   p_motor 
- * @param[in]   pid 
- * @param[in]   velocity 
- * @param[in]   feedforward 
+ * @brief dji多电机电流控制
+ * @param std_id 数据包标识符
+ * @param p_motor_1 电机1
+ * @param p_motor_2 电机2
+ * @param p_motor_3 电机3
+ * @param p_motor_4 电机4
  */
-void DjiMotorVelocityControl(
-    Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward)
+void DjiMultipleCurrentControl(
+    Motor_s * p_motor_1, Motor_s * p_motor_2, Motor_s * p_motor_3, Motor_s * p_motor_4)
 {
-    if (p_motor == NULL || pid == NULL) return;
-    if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
-        return;
-    p_motor->set.curr = PID_calc(pid, p_motor->fdb.vel, velocity) + feedforward;
+    hcan_t * hcan = NULL;
+    if (p_motor_1->can == 1)
+        hcan = &hcan1;
+    else if (p_motor_1->can == 2)
+        hcan = &hcan2;
+    if (hcan == NULL) return;
+
+    uint16_t curr[4] = {0, 0, 0, 0};
+
+    MultipleCurrentControl(hcan, p_motor_1->mode, curr[0], curr[1], curr[2], curr[3]);
 }
 
-/**
- * @brief       dji电机位置控制
- * @param[in]   p_motor 
- * @param[in]   pid 
- * @param[in]   velocity 
- * @param[in]   feedforward 
- */
-void DjiMotorPositionControl(
-    Motor_s * p_motor, pid_type_def * angle_pid, pid_type_def * velocity_pid, float angle,
-    float feedforward)
-{
-    if (p_motor == NULL || angle_pid == NULL || velocity_pid == NULL) return;
-    if (p_motor->type != DJI_M2006 && p_motor->type != DJI_M3508 && p_motor->type != DJI_M6020)
-        return;
-    float velocity_set = PID_calc(angle_pid, p_motor->fdb.pos, angle);
-    float current_set = PID_calc(velocity_pid, p_motor->fdb.vel, velocity_set) + feedforward;
-    p_motor->set.curr = current_set;
-}
 /************************ END OF FILE ************************/

@@ -38,14 +38,7 @@ typedef enum {
 } DJI_Std_ID;
 
 extern void CanCmdDjiMotor(
-    uint8_t can, DJI_Std_ID std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
-
-extern void DjiMotorVelocityControl(
-    Motor_s * p_motor, pid_type_def * pid, float velocity, float feedforward);
-
-extern void DjiMotorPositionControl(
-    Motor_s * p_motor, pid_type_def * angle_pid, pid_type_def * velocity_pid, float angle,
-    float feedforward);
+    uint8_t can, uint16_t std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4);
 
 #endif  //CAN_CMD_DJI_H
 
