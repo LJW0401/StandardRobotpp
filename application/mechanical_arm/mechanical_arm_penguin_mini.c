@@ -204,14 +204,40 @@ void MechanicalArmObserver(void)
  */
 void MechanicalArmReference(void)
 {
-    MECHANICAL_ARM.ref.pos[0] = 0.0f;
-    MECHANICAL_ARM.ref.pos[1] = M_PI_2;
-    MECHANICAL_ARM.ref.pos[2] = 0.0f;
+    MECHANICAL_ARM.ref.pos[0] = MECHANICAL_ARM.rc->rc.ch[4] * RC_TO_ONE * MAX_JOINT_0_POSITION;
+    MECHANICAL_ARM.ref.pos[1] =
+        -(MECHANICAL_ARM.rc->rc.ch[1] + 660) * RC_TO_ONE * MAX_JOINT_1_POSITION;
+    MECHANICAL_ARM.ref.pos[2] =
+        -(MECHANICAL_ARM.rc->rc.ch[3] + 660) * RC_TO_ONE * MAX_JOINT_2_POSITION;
     MECHANICAL_ARM.ref.pos[3] = M_PI_2;
     MECHANICAL_ARM.ref.pos[4] = M_PI_2;
 
-    EngineerCustomControllerData_t engineer_custom_controller_data;
-    EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
+    if (MECHANICAL_ARM.ref.pos[0] > MAX_JOINT_0_POSITION) {
+        MECHANICAL_ARM.ref.pos[0] = MAX_JOINT_0_POSITION;
+    } else if (MECHANICAL_ARM.ref.pos[0] < MIN_JOINT_0_POSITION) {
+        MECHANICAL_ARM.ref.pos[0] = MIN_JOINT_0_POSITION;
+    }
+
+    if (MECHANICAL_ARM.ref.pos[1] > MAX_JOINT_1_POSITION) {
+        MECHANICAL_ARM.ref.pos[1] = MAX_JOINT_1_POSITION;
+    } else if (MECHANICAL_ARM.ref.pos[1] < MIN_JOINT_1_POSITION) {
+        MECHANICAL_ARM.ref.pos[1] = MIN_JOINT_1_POSITION;
+    }
+
+    if (MECHANICAL_ARM.ref.pos[2] > MAX_JOINT_2_POSITION) {
+        MECHANICAL_ARM.ref.pos[2] = MAX_JOINT_2_POSITION;
+    } else if (MECHANICAL_ARM.ref.pos[2] < MIN_JOINT_2_POSITION) {
+        MECHANICAL_ARM.ref.pos[2] = MIN_JOINT_2_POSITION;
+    }
+
+    if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.ref.pos[1] > J_1_J_2_DELTA_MAX) {
+        MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.ref.pos[1] + MAX_JOINT_2_POSITION;
+    } else if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.ref.pos[1] < J_1_J_2_DELTA_MAX) {
+        MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.ref.pos[1] - MAX_JOINT_2_POSITION;
+    }
+
+    // EngineerCustomControllerData_t engineer_custom_controller_data;
+    // EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
 }
 
 /*-------------------- Console --------------------*/
@@ -250,6 +276,20 @@ void MechanicalArmConsole(void)
                 MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
                 MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
             }
+        } break;
+        case MECHANICAL_ARM_FOLLOW: {
+            MECHANICAL_ARM.joint_motor[0].set.pos = MECHANICAL_ARM.ref.pos[0];
+
+            // if (MECHANICAL_ARM.fdb.pos[0] - MECHANICAL_ARM.ref.pos[0] > JOINT_ZERO_THRESHOLD_RUN) {
+            //     MECHANICAL_ARM.joint_motor[0].set.vel = -0.8f;
+            // } else if (
+            //     MECHANICAL_ARM.fdb.pos[0] - MECHANICAL_ARM.ref.pos[0] < JOINT_ZERO_THRESHOLD_RUN) {
+            //     MECHANICAL_ARM.joint_motor[0].set.vel = 0.8f;
+            // } else {
+            //     MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
+            // }
+            MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
+            MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
         } break;
         case MECHANICAL_ARM_ZERO_FORCE:
         case MECHANICAL_ARM_SET_ZERO:
@@ -305,9 +345,17 @@ void SendMechanicalArmCmd(void)
             delay_us(5);
             CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[2]);
             delay_us(5);
-        }  //break;
+        } break;
         case MECHANICAL_ARM_FOLLOW: {
-        }  //break;
+            CybergearPositionControl(&MECHANICAL_ARM.joint_motor[0], 2, 0.5);
+            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[0], 0X302d);
+
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 4.0);
+            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
+
+            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 1.5);
+            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
+        } break;
         case MECHANICAL_ARM_ZERO_FORCE:
         default: {
             MECHANICAL_ARM.joint_motor[0].set.tor = 0;

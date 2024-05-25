@@ -101,6 +101,7 @@
 // Other parameters ---------------------
 #define JOINT_MIN_VELOCITY 0.05f  //(rad/s)当关节速度低于此速度时认为关节已经停止运动了
 #define JOINT_ZERO_THRESHOLD 0.01f  //(rad)关节置零时的阈值
+#define JOINT_ZERO_THRESHOLD_RUN 0.2f  //(rad)关节运行时的阈值
 #define J_1_J_2_DELTA_MAX 0.9f      //(rad)关节1和关节2之间的最大差值
 #define J_2_ANGLE_OFFESET 1.0f      //(rad)关节2的角度偏移
 
