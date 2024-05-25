@@ -124,6 +124,12 @@ void SetMechanicalArmMode(void)
         if (CheckInitCompleted()) {
             MECHANICAL_ARM.mode = MECHANICAL_ARM_SET_ZERO;
         }
+    } else if (MECHANICAL_ARM.mode == MECHANICAL_ARM_SET_ZERO) {
+        if ((MECHANICAL_ARM.joint_motor[0].fdb.pos < JOINT_ZERO_THRESHOLD) &&
+            (MECHANICAL_ARM.joint_motor[1].fdb.pos < JOINT_ZERO_THRESHOLD) &&
+            (MECHANICAL_ARM.joint_motor[2].fdb.pos < JOINT_ZERO_THRESHOLD)) {
+            MECHANICAL_ARM.mode = MECHANICAL_ARM_FOLLOW;
+        }
     }
 }
 
@@ -245,7 +251,8 @@ void MechanicalArmConsole(void)
                 MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
             }
         } break;
-
+        case MECHANICAL_ARM_ZERO_FORCE:
+        case MECHANICAL_ARM_SET_ZERO:
         default: {
             MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
             MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
@@ -292,6 +299,12 @@ void SendMechanicalArmCmd(void)
             for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
         } break;
         case MECHANICAL_ARM_SET_ZERO: {
+            CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[0]);
+            delay_us(5);
+            CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[1]);
+            delay_us(5);
+            CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[2]);
+            delay_us(5);
         }  //break;
         case MECHANICAL_ARM_FOLLOW: {
         }  //break;

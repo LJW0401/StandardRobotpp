@@ -100,5 +100,6 @@
 #define JOINT_1_INIT_TORQUE_SET 0.5f  //(N*m)
 // Other parameters ---------------------
 #define JOINT_MIN_VELOCITY 0.05f  //(rad/s)当关节速度低于此速度时认为关节已经停止运动了
+#define JOINT_ZERO_THRESHOLD 0.01f  //(rad)关节置零时的阈值
 
 #endif /* INCLUDED_ROBOT_PARAM_H */
