@@ -223,11 +223,12 @@ typedef struct __Motor
     /*设定值*/
     struct __set
     {
-        float curr;  // (A)电机电流
-        float volt;  // (V)电机电压
-        float tor;   // (N*m)电机力矩
-        float vel;   // (rad/s)电机输出轴转速
-        float pos;   // (rad)电机位置
+        float curr;   // (A)电机电流
+        float volt;   // (V)电机电压
+        float tor;    // (N*m)电机力矩
+        float vel;    // (rad/s)电机输出轴转速
+        float pos;    // (rad)电机位置
+        float value;  // 可发送的直接控制量，无单位
     } set;
 
 } Motor_s;
