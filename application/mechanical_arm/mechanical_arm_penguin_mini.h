@@ -17,11 +17,11 @@
 
 #include "robot_param.h"
 
-#if (MECHANICAL_ARM_TYPE == PENGUIN_MINI_ARM)
-#ifndef MECHANICAL_ARM_5_AXIS_H
-#define MECHANICAL_ARM_5_AXIS_H
+#if (MECHANICAL_ARM_TYPE == MECHANICAL_ARM_PENGUIN_MINI_ARM)
+#ifndef MECHANICAL_ARM_PENGUIN_MINI_H
+#define MECHANICAL_ARM_PENGUIN_MINI_H
 
-#include <stdbool.h>
+#include "stdbool.h"
 
 #include "mechanical_arm.h"
 #include "motor.h"
@@ -34,6 +34,7 @@ typedef enum {
     MECHANICAL_ARM_ZERO_FORCE,
     MECHANICAL_ARM_INIT,
     MECHANICAL_ARM_FOLLOW,
+    MECHANICAL_ARM_STOP,
 } MechanicalArmMode_e;
 
 /**
@@ -81,5 +82,5 @@ extern void MechanicalArmConsole(void);
 
 extern void SendMechanicalArmCmd(void);
 
-#endif  // MECHANICAL_ARM_5_AXIS_H
-#endif  /* MECHANICAL_ARM_5_AXIS */
+#endif  // MECHANICAL_ARM_PENGUIN_MINI_H
+#endif  /* MECHANICAL_ARM_PENGUIN_MINI */

@@ -17,7 +17,7 @@
 
 #include "mechanical_arm_penguin_mini.h"
 
-#if (MECHANICAL_ARM_TYPE == PENGUIN_MINI_ARM)
+#if (MECHANICAL_ARM_TYPE == MECHANICAL_ARM_PENGUIN_MINI_ARM)
 #include <stdbool.h>
 
 #include "CAN_communication.h"
@@ -113,6 +113,7 @@ bool CheckInitCompleted(void);
 void SetMechanicalArmMode(void)
 {
     if (toe_is_error(DBUS_TOE)) {
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
         return;
     }
 
@@ -137,8 +138,8 @@ bool CheckInitCompleted(void)
     }
 
     if (!MECHANICAL_ARM.init_completed[1]) {  //检测关节1电机初始化状况
-        if (fabsf(MECHANICAL_ARM.joint_motor[1].fdb.w) < JOINT_MIN_VELOCITY &&
-            MECHANICAL_ARM.joint_motor[1].fdb.T >= JOINT_INIT_MAX_TORQUE) {
+        if (fabsf(MECHANICAL_ARM.joint_motor[1].fdb.vel) < JOINT_MIN_VELOCITY &&
+            MECHANICAL_ARM.joint_motor[1].fdb.tor >= JOINT_INIT_MAX_TORQUE) {
             MECHANICAL_ARM.init_completed[1] = true;
         }
     }
@@ -204,22 +205,22 @@ void MechanicalArmConsole(void)
         case MECHANICAL_ARM_INIT: {
             // 0-2关节初始化
             // 关节0无需初始化
-            MECHANICAL_ARM.joint_motor[0].set.velocity = 0.0f;
-            MECHANICAL_ARM.joint_motor[0].set.torque = 0.0f;
+            MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
+            MECHANICAL_ARM.joint_motor[0].set.tor = 0.0f;
             // 先对关节1进行初始化，再对关节2进行初始化
             if (!MECHANICAL_ARM.init_completed[1]) {
-                MECHANICAL_ARM.joint_motor[1].set.velocity = JOINT_INIT_VELOCITY_SET;
-                MECHANICAL_ARM.joint_motor[2].set.velocity = 0.0f;
+                MECHANICAL_ARM.joint_motor[1].set.vel = JOINT_INIT_VELOCITY_SET;
+                MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
 
-                MECHANICAL_ARM.joint_motor[1].set.torque = 0.0f;
-                MECHANICAL_ARM.joint_motor[2].set.torque = 0.0f;
+                MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
+                MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
             } else if (!MECHANICAL_ARM.init_completed[2]) {
-                MECHANICAL_ARM.joint_motor[1].set.velocity = 0.0f;
-                MECHANICAL_ARM.joint_motor[2].set.velocity = JOINT_INIT_VELOCITY_SET;
+                MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
+                MECHANICAL_ARM.joint_motor[2].set.vel = JOINT_INIT_VELOCITY_SET;
 
                 // 关节1初始化完成后，对关节1进行力矩控制，压住关节1防止关节1移动
-                MECHANICAL_ARM.joint_motor[1].set.torque = JOINT_1_INIT_TORQUE_SET;
-                MECHANICAL_ARM.joint_motor[2].set.torque = 0.0f;
+                MECHANICAL_ARM.joint_motor[1].set.tor = JOINT_1_INIT_TORQUE_SET;
+                MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
             }
             // 3-4关节初始化（同步进行）
         } break;
@@ -230,17 +231,19 @@ void MechanicalArmConsole(void)
 
 #define STOP_ALL_JOINT
 #ifdef STOP_ALL_JOINT
-    MECHANICAL_ARM.joint_motor[0].set.velocity = 0.0f;
-    MECHANICAL_ARM.joint_motor[1].set.velocity = 0.0f;
-    MECHANICAL_ARM.joint_motor[2].set.velocity = 0.0f;
+    MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
+    MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
+    MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
 
-    MECHANICAL_ARM.joint_motor[0].set.torque = 0.0f;
-    MECHANICAL_ARM.joint_motor[1].set.torque = 0.0f;
-    MECHANICAL_ARM.joint_motor[2].set.torque = 0.0f;
+    MECHANICAL_ARM.joint_motor[0].set.tor = 0.0f;
+    MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
+    MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
 
-    MECHANICAL_ARM.joint_motor[3].set.current = 0.0f;
-    MECHANICAL_ARM.joint_motor[4].set.current = 0.0f;
+    MECHANICAL_ARM.joint_motor[3].set.curr = 0.0f;
+    MECHANICAL_ARM.joint_motor[4].set.curr = 0.0f;
 #endif
+
+    MECHANICAL_ARM.joint_motor[0].set.pos = GenerateSinWave(1, 0, 3);
 }
 
 /*-------------------- Cmd --------------------*/
@@ -252,29 +255,45 @@ void MechanicalArmConsole(void)
  */
 void SendMechanicalArmCmd(void)
 {
-    switch (MECHANICAL_ARM.mode) {
-        case MECHANICAL_ARM_INIT: {
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 0.5);
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 0.5);
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 0.5);
-            CanCmdDjiMotor(2, DJI_2FF, MECHANICAL_ARM.joint_motor[3].set.current, 0, 0, 0);
-            CanCmdDjiMotor(2, DJI_200, 0, MECHANICAL_ARM.joint_motor[4].set.current, 0, 0);
-        } break;
-        case MECHANICAL_ARM_FOLLOW: {
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 0.5);
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 0.5);
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 0.5);
-            CanCmdDjiMotor(2, DJI_2FF, MECHANICAL_ARM.joint_motor[3].set.current, 0, 0, 0);
-            CanCmdDjiMotor(2, DJI_200, 0, MECHANICAL_ARM.joint_motor[4].set.current, 0, 0);
-        } break;
-        case MECHANICAL_ARM_ZERO_FORCE:
-        default: {
-            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
-            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
-            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
-            CanCmdDjiMotor(2, DJI_2FF, 0, 0, 0, 0);
-            CanCmdDjiMotor(2, DJI_200, 0, 0, 0, 0);
-        }
+    // switch (MECHANICAL_ARM.mode) {
+    //     case MECHANICAL_ARM_INIT: {
+    //         CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 0.5);
+    //         CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 0.5);
+    //         CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 0.5);
+    //         CanCmdDjiMotor(
+    //             2, DJI_6020_MODE_VOLTAGE_2, MECHANICAL_ARM.joint_motor[3].set.curr, 0, 0, 0);
+    //         CanCmdDjiMotor(
+    //             2, DJI_3508_MODE_CURRENT_1, 0, MECHANICAL_ARM.joint_motor[4].set.curr, 0, 0);
+    //     } break;
+    //     case MECHANICAL_ARM_FOLLOW: {
+    //         CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 0.5);
+    //         CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 0.5);
+    //         CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 0.5);
+    //         CanCmdDjiMotor(
+    //             2, DJI_6020_MODE_VOLTAGE_2, MECHANICAL_ARM.joint_motor[3].set.curr, 0, 0, 0);
+    //         CanCmdDjiMotor(
+    //             2, DJI_3508_MODE_CURRENT_1, 0, MECHANICAL_ARM.joint_motor[4].set.curr, 0, 0);
+    //     } break;
+    //     case MECHANICAL_ARM_ZERO_FORCE:
+    //     default: {
+    //         CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
+    //         CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
+    //         CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
+    //         CanCmdDjiMotor(2, DJI_6020_MODE_VOLTAGE_2, 0, 0, 0, 0);
+    //         CanCmdDjiMotor(2, DJI_3508_MODE_CURRENT_1, 0, 0, 0, 0);
+    //     }
+    // }
+    if (MECHANICAL_ARM.mode == MECHANICAL_ARM_ZERO_FORCE) {
+        MECHANICAL_ARM.joint_motor[0].set.tor = 0;
+        MECHANICAL_ARM.joint_motor[1].set.tor = 0;
+        MECHANICAL_ARM.joint_motor[2].set.tor = 0;
+        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
+        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
+        CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
+        CanCmdDjiMotor(2, DJI_6020_MODE_VOLTAGE_2, 0, 0, 0, 0);
+        CanCmdDjiMotor(2, DJI_3508_MODE_CURRENT_1, 0, 0, 0, 0);
+    } else {
+        CybergearPositionControl(&MECHANICAL_ARM.joint_motor[0], 2, 0.5);
     }
 }
 
