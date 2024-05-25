@@ -17,13 +17,13 @@
 */
 #include "robot_param.h"
 
-#if (SHOOT_TYPE == SHOOT_FRIC)
+#if (SHOOT_TYPE == SHOOT_FRIC_TRIGGER)
 #ifndef SHOOT_FRIC_H
 #define SHOOT_FRIC_H
 #include "motor.h"
 #include "pid.h"
-#include "shoot.h"
 #include "remote_control.h"
+#include "shoot.h"
 
 typedef struct
 {
@@ -31,8 +31,8 @@ typedef struct
     LoadMode_e mode;       // 射击模式
     FricState_e state;     // 摩擦轮状态
 
-    DJI_Motor_s fric_motor[4];  // 摩擦轮电机
-    DJI_Motor_s trigger_motor;  // 拨弹盘电机
+    Motor_s fric_motor[4];  // 摩擦轮电机
+    Motor_s trigger_motor;  // 拨弹盘电机
 
     /*目标量*/
     float shoot_frequency;  // (Hz)射频

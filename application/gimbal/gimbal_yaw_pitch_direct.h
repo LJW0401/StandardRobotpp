@@ -17,7 +17,7 @@
 */
 
 #include "robot_param.h"
-#if (GIMBAL_TYPE == GIMBAL_YAW_PITCH)
+#if (GIMBAL_TYPE == GIMBAL_YAW_PITCH_DIRECT)
 #ifndef GIMBAL_YAW_PITCH_H
 #define GIMBAL_YAW_PITCH_H
 #include "IMU_task.h"
@@ -27,6 +27,17 @@
 #include "remote_control.h"
 #include "robot_param.h"
 #include "struct_typedef.h"
+
+/**
+ * @brief 云台模式
+ */
+typedef enum {
+    GIMBAL_ZERO_FORCE,  // 云台无力，所有控制量置0
+    GIMBAL_GYRO,        // 云台陀螺仪控制
+    GIMBAL_OPEN,        // 遥控器的值乘以比例成电流值开环控制
+} GimbalMode_e;
+
+
 /**
  * @brief 状态、期望和限制值
  */

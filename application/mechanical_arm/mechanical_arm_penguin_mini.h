@@ -17,9 +17,11 @@
 
 #include "robot_param.h"
 
-#if (MECHANICAL_ARM_TYPE == MECHANICAL_ARM_5_AXIS)
+#if (MECHANICAL_ARM_TYPE == PENGUIN_MINI_ARM)
 #ifndef MECHANICAL_ARM_5_AXIS_H
 #define MECHANICAL_ARM_5_AXIS_H
+
+#include <stdbool.h>
 
 #include "mechanical_arm.h"
 #include "motor.h"
@@ -27,6 +29,12 @@
 #include "remote_control.h"
 #include "struct_typedef.h"
 /*-------------------- Structural definition --------------------*/
+
+typedef enum {
+    MECHANICAL_ARM_ZERO_FORCE,
+    MECHANICAL_ARM_INIT,
+    MECHANICAL_ARM_FOLLOW,
+} MechanicalArmMode_e;
 
 /**
  * @brief 状态、期望和限制值
@@ -47,14 +55,15 @@ typedef struct
     MechanicalArmMode_e mode;  // 模式
 
     /*-------------------- Motors --------------------*/
-    DJI_Motor_s dji_motor[2];
-    CyberGear_s cybergear[3];
+    Motor_s joint_motor[5];
     /*-------------------- Values --------------------*/
 
     Values_t reference;    // 期望值
     Values_t feedback;     // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
+
+    bool init_completed[5];  // 初始化完成标志
 
     PID_t pid;  // PID控制器
 

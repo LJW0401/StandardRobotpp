@@ -1,93 +1,78 @@
 # 底盘介绍
+## 硬件规范
+### CAN线
+- **平衡底盘**
 
-## 框架
-### 主体框图
-![framwork](../../doc/pic/chassis_framework.svg)
+  若使用
 
-### 主代码框架
-- 主体框架由以下几部分构成：
-  1. 初始化
-  2. 模式设置
-  3. 状态反馈
-  4. 目标值设置
-  5. 控制量计算
-  6. 直接控制量发送
+- **全向轮底盘**
 
-    每个部分从对应的`/*----*/`注释开始\
-    每个部分内部可视为一个小文件。该部分的函数声明全部置于`/*----*/`注释以下。
+  若使用 **GM3508** 作为驱动轮，统一接入`CAN1`，并使用 `0x200` 标识符作为底盘数据包的标识符
 
-```C
-static Chassis_s CHASSIS = {...};
+- **麦轮底盘**
+  - 同全向轮底盘
 
-/*-------------------- Init --------------------*/
 
-/**
- * @brief          初始化
- * @param[in]      none
- * @retval         none
- */
-void InitChassis(void)
-{
-    add code here
-}
+### 电机
+统一以逆时针旋转为正方向(发送正电流时的电机输出轴旋转方向)
 
-/*-------------------- Set mode --------------------*/
+### 电机ID与正方向
+- **平衡底盘**
+  
+  ![balance_id](../../doc/pic/balance_id.svg)
+  
+  以正方向为对称轴
+  - 左边前关节ID为1，后关节ID为2；右边前关节ID为3，后关节ID为4。
+  - 左驱动轮ID为1，右驱动轮ID为2
 
-/**
- * @brief          设置模式
- * @param[in]      none
- * @retval         none
- */
-void SetChassisMode(void)
-{
-    add code here
-}
+- **全向轮底盘**
+  
+  ![omni_id](../../doc/pic/omni_id.svg)
 
-/*-------------------- Observe --------------------*/
+- **麦轮底盘**
 
-/**
- * @brief          更新状态量
- * @param[in]      none
- * @retval         none
- */
-void ChassisObserver(void)
-{
-    add code here
-}
+  ![mecanum_id](../../doc/pic/mecanum_id.svg)
 
-/*-------------------- Reference --------------------*/
 
-/**
- * @brief          更新目标量
- * @param[in]      none
- * @retval         none
- */
-void ChassisReference(void)
-{
-    add code here
-}
+### 遥控器使用
+- **平衡底盘**
+  - 左拨杆：
+  - 右拨杆：底盘模式切换。
+    - 上档：正常控制，侧身模式
+    - 中档：键鼠控制，切换模式
+    - 下档：底盘无力，紧急停止
+  - 左摇杆：
+  - 右摇杆：控制x和y方向上的平移速度
+  - 左滚轮：小陀螺旋转速度
 
-/*-------------------- Console --------------------*/
+- **全向轮底盘**
+  - 左拨杆：
+  - 右拨杆：底盘模式切换。
+    - 上档：正常控制，小陀螺
+    - 中档：键鼠控制，切换模式
+    - 下档：底盘锁定，紧急停止
+  - 左摇杆：
+  - 右摇杆：控制x和y方向上的平移速度
+  - 左滚轮：
+- **麦轮底盘**
+  - 同全向轮底盘
 
-/**
- * @brief          计算控制量
- * @param[in]      none
- * @retval         none
- */
-void ChassisConsole(void)
-{
-    add code here
-}
+### 键鼠操作
+- **平衡底盘**
+  - W: 前进
+  - A: 左平移
+  - S: 后退
+  - D: 右平移
+  - Q: 左探头
+  - E: 右探头
+  - Ctrl: 跳跃
 
-/*-------------------- Cmd --------------------*/
-
-/**
- * @brief          发送控制量
- * @param[in]      none
- * @retval         none
- */
-void SendChassisCmd(void)
-{
-    add code here
-}
-```
+- **全向轮底盘**
+  - W: 前进
+  - A: 左平移
+  - S: 后退
+  - D: 右平移
+  - shift: 小陀螺
+  - 
+- **麦轮底盘**
+  - 同全向轮底盘

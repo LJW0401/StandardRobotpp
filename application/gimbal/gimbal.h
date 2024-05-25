@@ -28,13 +28,5 @@
 #define GIMBAL_MODE_CHANNEL 0   // 状态开关通道
 #define GIMBAL_RC_DEADBAND 10   // 摇杆死区
 
-/**
- * @brief 云台模式
- */
-typedef enum {
-    GIMBAL_ZERO_FORCE,  // 云台无力，所有控制量置0
-    GIMBAL_GYRO,        // 云台陀螺仪控制
-    GIMBAL_OPEN,        // 遥控器的值乘以比例成电流值开环控制
-} GimbalMode_e;
 
 #endif  // GIMBAL_H

@@ -16,83 +16,133 @@
 
 #include "CAN_cmd_dji.h"
 
-extern CAN_HandleTypeDef hcan1;
-extern CAN_HandleTypeDef hcan2;
+/*-------------------- Global var --------------------*/
 
-/*-------------------- DJI --------------------*/
-// 发送数据
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x200 = {
-    .CAN = &CAN_1,
-    .std_id = DJI_200,
-    .can_send_data = {0},
+static CanCtrlData_s CAN_CTRL_DATA = {
+    .tx_header.IDE = CAN_ID_STD,
+    .tx_header.RTR = CAN_RTR_DATA,
+    .tx_header.DLC = 8,
 };
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x1FF = {
-    .CAN = &CAN_1,
-    .std_id = DJI_1FF,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN1_0x2FF = {
-    .CAN = &CAN_1,
-    .std_id = DJI_2FF,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x200 = {
-    .CAN = &CAN_2,
-    .std_id = DJI_200,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x1FF = {
-    .CAN = &CAN_2,
-    .std_id = DJI_1FF,
-    .can_send_data = {0},
-};
-DJI_Motor_Send_Data_s DJI_Motor_Send_Data_CAN2_0x2FF = {
-    .CAN = &CAN_2,
-    .std_id = DJI_2FF,
-    .can_send_data = {0},
-};
+
+/*-------------------- Private functions --------------------*/
 
 /**
- * @brief          发送控制电流
- * @param[in]      can_handle 选择CAN1或CAN2
- * @param[in]      tx_header  CAN发送数据header
- * @param[in]      tx_data    发送数据
+ * @brief          通过CAN发送控制电流控制DJI电机(支持GM3508 GM2006 GM6020)
+ * @param[in]      can 发送数据使用的can口
+ * @param[in]      std_id 发送数据使用的std_id
+ * @param[in]      curr_1 电机控制电流
+ * @param[in]      curr_2 电机控制电流
+ * @param[in]      curr_3 电机控制电流
+ * @param[in]      curr_4 电机控制电流
  * @return         none
  */
-static void CAN_SendTxMessage(CAN_HandleTypeDef *can_handle, CAN_TxHeaderTypeDef *tx_header, uint8_t *tx_data)
+static void MultipleCurrentControl(
+    hcan_t * hcan, uint16_t std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
 {
-    uint32_t send_mail_box;
+    CAN_CTRL_DATA.hcan = hcan;
 
-    uint32_t free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle); // 检测是否有空闲邮箱
-    while (free_TxMailbox < 3)
-    { // 等待空闲邮箱数达到3
-        free_TxMailbox = HAL_CAN_GetTxMailboxesFreeLevel(can_handle);
-    }
-    HAL_CAN_AddTxMessage(can_handle, tx_header, tx_data, &send_mail_box);
+    CAN_CTRL_DATA.tx_header.StdId = std_id;
+
+    CAN_CTRL_DATA.tx_data[0] = (curr_1 >> 8);
+    CAN_CTRL_DATA.tx_data[1] = curr_1;
+    CAN_CTRL_DATA.tx_data[2] = (curr_2 >> 8);
+    CAN_CTRL_DATA.tx_data[3] = curr_2;
+    CAN_CTRL_DATA.tx_data[4] = (curr_3 >> 8);
+    CAN_CTRL_DATA.tx_data[5] = curr_3;
+    CAN_CTRL_DATA.tx_data[6] = (curr_4 >> 8);
+    CAN_CTRL_DATA.tx_data[7] = curr_4;
+
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
 
 /**
+ * @brief          通过CAN发送控制电压控制DJI电机(支持GM3508 GM2006 GM6020)
+ * @param[in]      can 发送数据使用的can口
+ * @param[in]      std_id 发送数据使用的std_id
+ * @param[in]      volt_1 电机控制电压
+ * @param[in]      volt_2 电机控制电压
+ * @param[in]      volt_3 电机控制电压
+ * @param[in]      volt_4 电机控制电压
+ * @return         none
+ */
+static void MultipleVoltageControl(
+    hcan_t * hcan, uint16_t std_id, int16_t volt_1, int16_t volt_2, int16_t volt_3, int16_t volt_4)
+{
+    CAN_CTRL_DATA.hcan = hcan;
+
+    CAN_CTRL_DATA.tx_header.StdId = std_id;
+
+    CAN_CTRL_DATA.tx_data[0] = (volt_1 >> 8);
+    CAN_CTRL_DATA.tx_data[1] = volt_1;
+    CAN_CTRL_DATA.tx_data[2] = (volt_2 >> 8);
+    CAN_CTRL_DATA.tx_data[3] = volt_2;
+    CAN_CTRL_DATA.tx_data[4] = (volt_3 >> 8);
+    CAN_CTRL_DATA.tx_data[5] = volt_3;
+    CAN_CTRL_DATA.tx_data[6] = (volt_4 >> 8);
+    CAN_CTRL_DATA.tx_data[7] = volt_4;
+
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
+}
+/*-------------------- User function --------------------*/
+
+/**
  * @brief          通过CAN控制DJI电机(支持GM3508 GM2006 GM6020)
- * @param[in]      DJI_Motor_Send_Data 电机发送数据结构体
+ * @param[in]      can 发送数据使用的can口(1/2)
+ * @param[in]      std_id 发送数据使用的std_id
  * @param[in]      curr_1 电机控制电流(id=1/5)
  * @param[in]      curr_2 电机控制电流(id=2/6)
  * @param[in]      curr_3 电机控制电流(id=3/7)
  * @param[in]      curr_4 电机控制电流(id=4/8)
  * @return         none
+ * @note           老的控制方式的兼容函数，等后期的安全函数上线后会删除
  */
-void CAN_CmdDJIMotor(DJI_Motor_Send_Data_s *DJI_Motor_Send_Data, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
+void CanCmdDjiMotor(
+    uint8_t can, uint16_t std_id, int16_t curr_1, int16_t curr_2, int16_t curr_3, int16_t curr_4)
 {
-    DJI_Motor_Send_Data->tx_message.StdId = DJI_Motor_Send_Data->std_id;
-    DJI_Motor_Send_Data->tx_message.IDE = CAN_ID_STD;
-    DJI_Motor_Send_Data->tx_message.RTR = CAN_RTR_DATA;
-    DJI_Motor_Send_Data->tx_message.DLC = 0x08;
-    DJI_Motor_Send_Data->can_send_data[0] = (curr_1 >> 8);
-    DJI_Motor_Send_Data->can_send_data[1] = curr_1;
-    DJI_Motor_Send_Data->can_send_data[2] = (curr_2 >> 8);
-    DJI_Motor_Send_Data->can_send_data[3] = curr_2;
-    DJI_Motor_Send_Data->can_send_data[4] = (curr_3 >> 8);
-    DJI_Motor_Send_Data->can_send_data[5] = curr_3;
-    DJI_Motor_Send_Data->can_send_data[6] = (curr_4 >> 8);
-    DJI_Motor_Send_Data->can_send_data[7] = curr_4;
-    CAN_SendTxMessage(DJI_Motor_Send_Data->CAN, &DJI_Motor_Send_Data->tx_message, DJI_Motor_Send_Data->can_send_data);
+    hcan_t * hcan = NULL;
+    if (can == 1)
+        hcan = &hcan1;
+    else if (can == 2)
+        hcan = &hcan2;
+    if (hcan == NULL) return;
+
+    CAN_CTRL_DATA.hcan = hcan;
+
+    CAN_CTRL_DATA.tx_header.StdId = std_id;
+
+    CAN_CTRL_DATA.tx_data[0] = (curr_1 >> 8);
+    CAN_CTRL_DATA.tx_data[1] = curr_1;
+    CAN_CTRL_DATA.tx_data[2] = (curr_2 >> 8);
+    CAN_CTRL_DATA.tx_data[3] = curr_2;
+    CAN_CTRL_DATA.tx_data[4] = (curr_3 >> 8);
+    CAN_CTRL_DATA.tx_data[5] = curr_3;
+    CAN_CTRL_DATA.tx_data[6] = (curr_4 >> 8);
+    CAN_CTRL_DATA.tx_data[7] = curr_4;
+
+    CAN_SendTxMessage(&CAN_CTRL_DATA);
 }
+
+/**
+ * @brief 暂时还不可使用！！！ dji多电机电流控制
+ * @param p_motor_1 电机1
+ * @param p_motor_2 电机2
+ * @param p_motor_3 电机3
+ * @param p_motor_4 电机4
+ */
+void DjiMultipleControl(
+    Motor_s * p_motor_1, Motor_s * p_motor_2, Motor_s * p_motor_3, Motor_s * p_motor_4)
+{
+    hcan_t * hcan = NULL;
+    if (p_motor_1->can == 1)
+        hcan = &hcan1;
+    else if (p_motor_1->can == 2)
+        hcan = &hcan2;
+    if (hcan == NULL) return;
+
+    uint16_t curr[4] = {0, 0, 0, 0};
+
+    MultipleCurrentControl(hcan, p_motor_1->mode, curr[0], curr[1], curr[2], curr[3]);
+    MultipleVoltageControl(hcan, p_motor_1->mode, 0, 0, 0, 0);
+}
+
+/************************ END OF FILE ************************/
