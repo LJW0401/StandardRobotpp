@@ -22,7 +22,7 @@
 #include "struct_typedef.h"
 
 //导入具体的机器人参数配置文件
-#include "robot_param_balanced_infantry.h"
+#include "robot_param_penguin_mini_arm.h"
 // #include "robot_param_omni_infantry.h"
 // #include "robot_param_engineering.h"
 
