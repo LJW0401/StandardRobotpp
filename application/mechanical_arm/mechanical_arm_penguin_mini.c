@@ -102,6 +102,9 @@ void MechanicalArmInit(void)
     MECHANICAL_ARM.rc = get_remote_control_point();
 }
 
+/*-------------------- Handle exception --------------------*/
+void MechanicalArmHandleException(void) {}
+
 /*-------------------- Set mode --------------------*/
 
 bool CheckInitCompleted(void);

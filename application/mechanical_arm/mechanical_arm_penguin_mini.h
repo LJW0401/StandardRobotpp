@@ -21,12 +21,11 @@
 #ifndef MECHANICAL_ARM_PENGUIN_MINI_H
 #define MECHANICAL_ARM_PENGUIN_MINI_H
 
-#include "stdbool.h"
-
 #include "mechanical_arm.h"
 #include "motor.h"
 #include "pid.h"
 #include "remote_control.h"
+#include "stdbool.h"
 #include "struct_typedef.h"
 /*-------------------- Structural definition --------------------*/
 
@@ -60,8 +59,8 @@ typedef struct
     Motor_s joint_motor[5];
     /*-------------------- Values --------------------*/
 
-    Values_t ref;    // 期望值
-    Values_t fdb;     // 状态值
+    Values_t ref;          // 期望值
+    Values_t fdb;          // 状态值
     Values_t upper_limit;  // 上限值
     Values_t lower_limit;  // 下限值
 
@@ -72,6 +71,8 @@ typedef struct
 } MechanicalArm_s;
 
 extern void MechanicalArmInit(void);
+
+extern void MechanicalArmHandleException(void);
 
 extern void MechanicalArmSetMode(void);
 
