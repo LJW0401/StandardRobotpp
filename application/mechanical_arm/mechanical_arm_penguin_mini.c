@@ -62,7 +62,7 @@ static MechanicalArm_s MECHANICAL_ARM = {
  * @param[in]      none
  * @retval         none
  */
-void InitMechanicalArm(void)
+void MechanicalArmInit(void)
 {
     // #Motor init ---------------------
     MotorInit(
@@ -111,7 +111,7 @@ bool CheckInitCompleted(void);
  * @param[in]      none
  * @retval         none
  */
-void SetMechanicalArmMode(void)
+void MechanicalArmSetMode(void)
 {
     if (toe_is_error(DBUS_TOE)) {
         MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
@@ -337,7 +337,7 @@ static void ArmZeroForceSendCmd(void);
  * @param[in]      none
  * @retval         none
  */
-void SendMechanicalArmCmd(void)
+void MechanicalArmSendCmd(void)
 {
     ArmEnable();
     switch (MECHANICAL_ARM.mode) {

@@ -71,9 +71,9 @@ typedef struct
 
 } MechanicalArm_s;
 
-extern void InitMechanicalArm(void);
+extern void MechanicalArmInit(void);
 
-extern void SetMechanicalArmMode(void);
+extern void MechanicalArmSetMode(void);
 
 extern void MechanicalArmObserver(void);
 
@@ -81,7 +81,7 @@ extern void MechanicalArmReference(void);
 
 extern void MechanicalArmConsole(void);
 
-extern void SendMechanicalArmCmd(void);
+extern void MechanicalArmSendCmd(void);
 
 #endif  // MECHANICAL_ARM_PENGUIN_MINI_H
 #endif  /* MECHANICAL_ARM_PENGUIN_MINI */
