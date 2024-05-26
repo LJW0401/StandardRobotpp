@@ -326,13 +326,38 @@ void MechanicalArmConsole(void)
 }
 
 /*-------------------- Cmd --------------------*/
+static void ArmEnable(void);
+static void ArmInitSendCmd(void);
+static void ArmSetZeroSendCmd(void);
 static void ArmFollowSendCmd(void);
+static void ArmZeroForceSendCmd(void);
+
 /**
  * @brief          发送控制量
  * @param[in]      none
  * @retval         none
  */
 void SendMechanicalArmCmd(void)
+{
+    ArmEnable();
+    switch (MECHANICAL_ARM.mode) {
+        case MECHANICAL_ARM_INIT: {
+            ArmInitSendCmd();
+        } break;
+        case MECHANICAL_ARM_SET_ZERO: {
+            ArmSetZeroSendCmd();
+        } break;
+        case MECHANICAL_ARM_FOLLOW: {
+            ArmFollowSendCmd();
+        } break;
+        case MECHANICAL_ARM_ZERO_FORCE:
+        default: {
+            ArmZeroForceSendCmd();
+        }
+    }
+}
+
+static void ArmEnable(void)
 {
     if (MECHANICAL_ARM.joint_motor[0].fdb.state == RESET_MODE) {
         CybergearEnable(&MECHANICAL_ARM.joint_motor[0]);
@@ -346,44 +371,28 @@ void SendMechanicalArmCmd(void)
         CybergearEnable(&MECHANICAL_ARM.joint_motor[2]);
         delay_us(5);
     }
+}
 
-    switch (MECHANICAL_ARM.mode) {
-        case MECHANICAL_ARM_INIT: {
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 1);
-            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[0], 0X302d);
+static void ArmInitSendCmd(void)
+{
+    CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[0], 1);
+    for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[0], 0X302d);
 
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 4.0);
-            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
+    CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[1], 4.0);
+    for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
 
-            CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 2.1);
-            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
-        } break;
-        case MECHANICAL_ARM_SET_ZERO: {
-            CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[0]);
-            delay_us(5);
-            CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[1]);
-            delay_us(5);
-            CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[2]);
-            delay_us(5);
-        } break;
-        case MECHANICAL_ARM_FOLLOW: {
-            ArmFollowSendCmd();
-        } break;
-        case MECHANICAL_ARM_ZERO_FORCE:
-        default: {
-            MECHANICAL_ARM.joint_motor[0].set.tor = 0;
-            MECHANICAL_ARM.joint_motor[1].set.tor = 0;
-            MECHANICAL_ARM.joint_motor[2].set.tor = 0;
-            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
-            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[0], 0X302d);
+    CybergearVelocityControl(&MECHANICAL_ARM.joint_motor[2], 2.1);
+    for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
+}
 
-            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
-            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
-
-            CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
-            for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
-        }
-    }
+static void ArmSetZeroSendCmd(void)
+{
+    CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[0]);
+    delay_us(5);
+    CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[1]);
+    delay_us(5);
+    CybergearSetMechPositionToZero(&MECHANICAL_ARM.joint_motor[2]);
+    delay_us(5);
 }
 
 static void ArmFollowSendCmd(void)
@@ -403,6 +412,21 @@ static void ArmFollowSendCmd(void)
         }
         for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
     }
+}
+
+static void ArmZeroForceSendCmd(void)
+{
+    MECHANICAL_ARM.joint_motor[0].set.tor = 0;
+    MECHANICAL_ARM.joint_motor[1].set.tor = 0;
+    MECHANICAL_ARM.joint_motor[2].set.tor = 0;
+    CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[0]);
+    for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[0], 0X302d);
+
+    CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[1]);
+    for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
+
+    CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
+    for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
 }
 
 #endif /* MECHANICAL_ARM_5_AXIS */
