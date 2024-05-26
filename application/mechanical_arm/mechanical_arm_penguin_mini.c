@@ -253,6 +253,10 @@ void MechanicalArmReference(void)
 }
 
 /*-------------------- Console --------------------*/
+static void MechanicalArmInitConsole(void);
+static void MechanicalArmFollowConsole(void);
+static void MechanicalArmZeroForceConsole(void);
+static void JointTorqueLimit(void);
 
 /**
  * @brief          计算控制量
@@ -263,58 +267,78 @@ void MechanicalArmConsole(void)
 {
     switch (MECHANICAL_ARM.mode) {
         case MECHANICAL_ARM_INIT: {
-            // 0-2关节初始化
-            // 关节0无需初始化
-            MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
-            MECHANICAL_ARM.joint_motor[0].set.tor = 0.0f;
-
-            // 先对关节1进行初始化，再对关节2进行初始化
-            if (!MECHANICAL_ARM.init_completed[1]) {
-                MECHANICAL_ARM.joint_motor[1].set.vel = JOINT_INIT_VELOCITY_SET;
-                MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
-
-                MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
-                MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
-            } else if (!MECHANICAL_ARM.init_completed[2]) {
-                MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
-                MECHANICAL_ARM.joint_motor[2].set.vel = JOINT_INIT_VELOCITY_SET;
-
-                MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
-                MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
-            } else {
-                MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
-                MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
-
-                MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
-                MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
-            }
+            MechanicalArmInitConsole();
         } break;
         case MECHANICAL_ARM_FOLLOW: {
-            MECHANICAL_ARM.joint_motor[0].set.pos = MECHANICAL_ARM.ref.pos[0];
-
-            MECHANICAL_ARM.joint_motor[1].set.pos =
-                theta_transfrom(MECHANICAL_ARM.ref.pos[1], -J_1_ANGLE_OFFESET, 1, 1);
-            MECHANICAL_ARM.joint_motor[1].mode = CYBERGEAR_MODE_POS;
-
-            MECHANICAL_ARM.joint_motor[2].set.pos =
-                theta_transfrom(MECHANICAL_ARM.ref.pos[2], J_2_ANGLE_OFFESET, -1, 1);
-            MECHANICAL_ARM.joint_motor[2].mode = CYBERGEAR_MODE_POS;
+            MechanicalArmFollowConsole();
         } break;
         case MECHANICAL_ARM_ZERO_FORCE:
         case MECHANICAL_ARM_SET_ZERO:
         default: {
-            MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
-            MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
-            MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
-
-            MECHANICAL_ARM.joint_motor[0].set.tor = 0.0f;
-            MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
-            MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
+            MechanicalArmZeroForceConsole();
         }
     }
 
+    JointTorqueLimit();
+}
+
+static void MechanicalArmInitConsole(void)
+{
+    // 0-2关节初始化
+    // 关节0无需初始化
+    MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
+    MECHANICAL_ARM.joint_motor[0].set.tor = 0.0f;
+
+    // 先对关节1进行初始化，再对关节2进行初始化
+    if (!MECHANICAL_ARM.init_completed[1]) {
+        MECHANICAL_ARM.joint_motor[1].set.vel = JOINT_INIT_VELOCITY_SET;
+        MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
+
+        MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
+        MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
+    } else if (!MECHANICAL_ARM.init_completed[2]) {
+        MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
+        MECHANICAL_ARM.joint_motor[2].set.vel = JOINT_INIT_VELOCITY_SET;
+
+        MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
+        MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
+    } else {
+        MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
+        MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
+
+        MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
+        MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
+    }
+}
+
+static void MechanicalArmFollowConsole(void)
+{
+    MECHANICAL_ARM.joint_motor[0].set.pos = MECHANICAL_ARM.ref.pos[0];
+
+    MECHANICAL_ARM.joint_motor[1].set.pos =
+        theta_transfrom(MECHANICAL_ARM.ref.pos[1], -J_1_ANGLE_OFFESET, 1, 1);
+    MECHANICAL_ARM.joint_motor[1].mode = CYBERGEAR_MODE_POS;
+
+    MECHANICAL_ARM.joint_motor[2].set.pos =
+        theta_transfrom(MECHANICAL_ARM.ref.pos[2], J_2_ANGLE_OFFESET, -1, 1);
+    MECHANICAL_ARM.joint_motor[2].mode = CYBERGEAR_MODE_POS;
+}
+
+static void MechanicalArmZeroForceConsole(void)
+{
+    MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
+    MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
+    MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
+
+    MECHANICAL_ARM.joint_motor[0].set.tor = 0.0f;
+    MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
+    MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
+}
+
+static void JointTorqueLimit(void)
+{
     static float max_torque[3] = {JOINT_0_MAX_TORQUE, JOINT_1_MAX_TORQUE, JOINT_2_MAX_TORQUE};
-    for (uint8_t i = 0; i < 4; i++) {
+    for (uint8_t i = 0; i <= 2; i++) {
         if (MECHANICAL_ARM.joint_motor[i].fdb.tor > max_torque[i]) {
             MECHANICAL_ARM.joint_motor[i].set.tor = max_torque[i];
             MECHANICAL_ARM.joint_motor[i].mode = CYBERGEAR_MODE_TORQUE;
