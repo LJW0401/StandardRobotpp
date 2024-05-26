@@ -382,9 +382,9 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[0].name, "mode_0");
     char_to_uint(OutputPCData.packets[1].name, "mode_1");
     char_to_uint(OutputPCData.packets[2].name, "mode_2");
-    // char_to_uint(OutputPCData.packets[3].name, "pos_0");
-    // char_to_uint(OutputPCData.packets[4].name, "pos_1");
-    // char_to_uint(OutputPCData.packets[5].name, "pos_2");
+    char_to_uint(OutputPCData.packets[3].name, "vel_0");
+    char_to_uint(OutputPCData.packets[4].name, "vel_1");
+    char_to_uint(OutputPCData.packets[5].name, "vel_2");
     char_to_uint(OutputPCData.packets[6].name, "tor_0");
     char_to_uint(OutputPCData.packets[7].name, "tor_1");
     char_to_uint(OutputPCData.packets[8].name, "tor_2");

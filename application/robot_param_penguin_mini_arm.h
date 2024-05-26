@@ -35,7 +35,7 @@
 
 #define JOINT_MOTOR_0_DIRECTION 1
 #define JOINT_MOTOR_1_DIRECTION 1
-#define JOINT_MOTOR_2_DIRECTION -1
+#define JOINT_MOTOR_2_DIRECTION 1
 #define JOINT_MOTOR_3_DIRECTION 1
 #define JOINT_MOTOR_4_DIRECTION 1
 
@@ -53,7 +53,7 @@
 //upper_limit parameters ---------------------
 #define MAX_JOINT_0_POSITION 0.5235987755f  // M_PI/6
 #define MAX_JOINT_1_POSITION 0.0f
-#define MAX_JOINT_2_POSITION 0.0f
+#define MAX_JOINT_2_POSITION 2.2f
 #define MAX_JOINT_3_POSITION 6.283185f
 #define MAX_JOINT_4_POSITION M_PI
 //lower_limit parameters ---------------------
@@ -105,6 +105,6 @@
 #define JOINT_1_MAX_TORQUE 4.0f  //(N*m)关节1最大输出力矩
 #define JOINT_2_MAX_TORQUE 1.3f  //(N*m)关节2最大输出力矩
 
-#define JOINT_VELOCITY_SET 0.5f  //(rad/s)关节运行时的转速
+#define JOINT_VELOCITY_SET 0.8f  //(rad/s)关节运行时的转速
 
 #endif /* INCLUDED_ROBOT_PARAM_H */
