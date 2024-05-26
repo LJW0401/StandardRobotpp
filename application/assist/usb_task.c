@@ -379,9 +379,9 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    // char_to_uint(OutputPCData.packets[0].name, "state_0");
-    // char_to_uint(OutputPCData.packets[1].name, "state_1");
-    // char_to_uint(OutputPCData.packets[2].name, "state_2");
+    char_to_uint(OutputPCData.packets[0].name, "mode_0");
+    char_to_uint(OutputPCData.packets[1].name, "mode_1");
+    char_to_uint(OutputPCData.packets[2].name, "mode_2");
     // char_to_uint(OutputPCData.packets[3].name, "pos_0");
     // char_to_uint(OutputPCData.packets[4].name, "pos_1");
     // char_to_uint(OutputPCData.packets[5].name, "pos_2");
@@ -389,7 +389,7 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[7].name, "tor_1");
     char_to_uint(OutputPCData.packets[8].name, "tor_2");
     char_to_uint(OutputPCData.packets[9].name, "mode");
-    // char_to_uint(OutputPCData.packets[10].name, "pitch_v");
+    char_to_uint(OutputPCData.packets[10].name, "trans");
     char_to_uint(OutputPCData.packets[11].name, "fdbpos_0");
     char_to_uint(OutputPCData.packets[12].name, "fdbpos_1");
     char_to_uint(OutputPCData.packets[13].name, "fdbpos_2");
