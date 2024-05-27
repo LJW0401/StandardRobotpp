@@ -16,12 +16,13 @@
 #include "custom_controller_penguin_mini.h"
 #if (CUSTOM_CONTROLLER_TYPE == CUSTOM_CONTROLLER_PENGUIN_MINI)
 #include "CAN_communication.h"
+#include "usb_task.h"
 #include "user_lib.h"
 
-#define BIG_ARM_DATA_ID 0
-#define SMALL_ARM_DATA_ID 1
+#define BIG_ARM_DATA_ID 1
+#define SMALL_ARM_DATA_ID 2
 
-#define MAIN_DATA_ID_1 0
+#define MAIN_DATA_ID_1 1
 
 CustomController_s CUSTOM_CONTROLLER;
 
@@ -59,7 +60,13 @@ void CustomControllerSetMode(void) {}
  * @param[in]      none
  * @retval         none
  */
-void CustomControllerObserver(void) {}
+void CustomControllerObserver(void)
+{
+    OutputPCData.packets[17].data = uint_to_float(CUSTOM_CONTROLLER.ctrl_data.yaw, -M_PI, M_PI, 16);
+    OutputPCData.packets[18].data = uint_to_float(CUSTOM_CONTROLLER.ctrl_data.big_arm_pitch, -M_PI_2, M_PI_2, 16);
+    OutputPCData.packets[19].data = CUSTOM_CONTROLLER.ctrl_data.small_arm_pitch;
+    OutputPCData.packets[20].data = CUSTOM_CONTROLLER.ctrl_data.small_arm_roll;
+}
 
 /*-------------------- Reference --------------------*/
 
@@ -89,7 +96,7 @@ void CustomControllerConsole(void)
     CUSTOM_CONTROLLER.ctrl_data.yaw = 
         float_to_uint(CUSTOM_CONTROLLER.imu->yaw, -M_PI, M_PI, 16);
     CUSTOM_CONTROLLER.ctrl_data.big_arm_pitch =
-        float_to_uint(CUSTOM_CONTROLLER.imu->pitch, -M_PI, M_PI, 16);
+        float_to_uint(CUSTOM_CONTROLLER.imu->pitch, -M_PI_2, M_PI_2, 16);
     // clang-format on
 #elif (__SELF_BOARD_ID == SMALL_ARM_BOARD_ID)
     // clang-format off
