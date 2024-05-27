@@ -19,8 +19,8 @@
 #define SHOOT_PNEUMATIC_TRIGGER  2  // 气动+拨弹盘发射机构
 
 // 可用机械臂硬件类型
-#define MECHANICAL_ARM_NONE   0  // 无机械臂
-#define PENGUIN_MINI_ARM      1  // 企鹅mini机械臂
+#define MECHANICAL_ARM_NONE              0  // 无机械臂
+#define MECHANICAL_ARM_PENGUIN_MINI_ARM  1  // 企鹅mini机械臂
 
 // 控制类型（板间通信时用到）
 #define CHASSIS_ONLY       0  // 只控制底盘

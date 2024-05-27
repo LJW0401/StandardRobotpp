@@ -16,6 +16,7 @@
 #include "CAN_cmd_cybergear.h"
 
 #include "bsp_can.h"
+#include "string.h"
 
 #ifndef CAN_N
 #define CAN_N
@@ -254,6 +255,36 @@ void CybergearSetMechPositionToZero(Motor_s * p_motor)
 
     CybergearSendData[p_motor->id].txdata[0] = 1;
     for (uint8_t i = 1; i < 8; i++) {
+        CybergearSendData[p_motor->id].txdata[i] = 0;
+    }
+
+    if (p_motor->can == 1) {
+        CybergearSendData[p_motor->id].CAN = &CAN_1;
+    } else {
+        CybergearSendData[p_motor->id].CAN = &CAN_2;
+    }
+
+    CybergearCanTx(p_motor->id);
+}
+
+/**
+  * @brief          单个参数读取（通信类型17）
+  * @param[in]      p_motor 电机结构体
+  * @param[in]      index 功能码
+  * @retval         none
+  */
+void CybergearReadParam(Motor_s * p_motor, uint16_t index)
+{
+    if (p_motor->type != CYBERGEAR_MOTOR) return;
+
+    CybergearSendData[p_motor->id].EXT_ID.mode = 17;
+    CybergearSendData[p_motor->id].EXT_ID.motor_id = p_motor->id;
+    CybergearSendData[p_motor->id].EXT_ID.data = MASTER_ID;
+    CybergearSendData[p_motor->id].EXT_ID.res = 0;
+
+    memcpy(&CybergearSendData[p_motor->id].txdata[0], &index, 2);
+
+    for (uint8_t i = 2; i < 8; i++) {
         CybergearSendData[p_motor->id].txdata[i] = 0;
     }
 

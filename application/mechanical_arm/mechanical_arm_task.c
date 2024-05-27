@@ -29,12 +29,13 @@ uint32_t mechanical_arm_high_water;
 #define __weak __attribute__((weak))
 #endif /* __weak */
 
-__weak void InitMechanicalArm(void);
-__weak void SetMechanicalArmMode(void);
+__weak void MechanicalArmInit(void);
+__weak void MechanicalArmHandleException(void);
+__weak void MechanicalArmSetMode(void);
 __weak void MechanicalArmObserver(void);
 __weak void MechanicalArmReference(void);
 __weak void MechanicalArmConsole(void);
-__weak void SendMechanicalArmCmd(void);
+__weak void MechanicalArmSendCmd(void);
 
 /**
  * @brief          射击任务
@@ -45,32 +46,40 @@ void mechanical_arm_task(void const * pvParameters)
 {
     vTaskDelay(MECHANICAL_ARM_TASK_INIT_TIME);
     // 射击初始化
-    InitMechanicalArm();
+    MechanicalArmInit();
 
     while (1) {
+        // 处理异常
+        MechanicalArmHandleException();
         // 更新状态量
         MechanicalArmObserver();
         // 设置模式
-        SetMechanicalArmMode();
+        MechanicalArmSetMode();
         // 设置目标量
         MechanicalArmReference();
         // 计算控制量
         MechanicalArmConsole();
         // 发送控制量
-        SendMechanicalArmCmd();
+        MechanicalArmSendCmd();
 
         // 系统延时
         vTaskDelay(MECHANICAL_ARM_CONTROL_TIME);
     }
 }
 
-__weak void InitMechanicalArm(void)
+__weak void MechanicalArmInit(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容
     */
 }
-__weak void SetMechanicalArmMode(void)
+__weak void MechanicalArmHandleException(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+__weak void MechanicalArmSetMode(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容
@@ -94,7 +103,7 @@ __weak void MechanicalArmConsole(void)
      NOTE : 在其他文件中定义具体内容
     */
 }
-__weak void SendMechanicalArmCmd(void)
+__weak void MechanicalArmSendCmd(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容

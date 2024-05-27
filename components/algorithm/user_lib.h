@@ -47,7 +47,7 @@ extern fp32 loop_fp32_constrain(fp32 Input, fp32 minValue, fp32 maxValue);
 //弧度 限幅 -PI~PI
 extern fp32 theta_format(fp32 Ang);
 
-extern fp32 theta_transfrom(fp32 angle, fp32 dangle,int8_t direction);
+extern fp32 theta_transfrom(fp32 angle, fp32 dangle,int8_t direction,uint8_t duration);
 
 extern int float_to_uint(float x_float, float x_min, float x_max, int bits);
 
