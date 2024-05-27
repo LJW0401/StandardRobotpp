@@ -136,7 +136,7 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
                 DjiFdbData(&CAN2_DJI_MEASURE[i], rx_data);
             }
             return;
-        } 
+        }
         case DM_M1_ID:
         case DM_M2_ID:
         case DM_M3_ID:
@@ -153,7 +153,7 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
                 DmFdbData(&CAN2_DM_MEASURE[i], rx_data);
             }
             return;
-        } 
+        }
         case LK_M1_ID:
         case LK_M2_ID:
         case LK_M3_ID:
@@ -168,7 +168,7 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
                 LkFdbData(&CAN2_LK_MEASURE[i], rx_data);
             }
             return;
-        } 
+        }
         default: {
             break;
         }
@@ -415,4 +415,15 @@ void GetMotorMeasure(Motor_s * p_motor)
         default:
             break;
     }
+}
+
+/**
+ * @brief 获取板间通信数据
+ * @param data_id 数据ID
+ * @param data_offset 数据位置偏移
+ * @return none
+ */
+uint16_t GetOtherBoardDataUint16(uint8_t data_id, uint8_t data_offset)
+{
+    return OTHER_BOARD_DATA_UINT16[data_id][data_offset];
 }

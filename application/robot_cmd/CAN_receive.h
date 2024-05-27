@@ -71,4 +71,6 @@ extern CybergearModeState_e GetCybergearModeState(Motor_s * p_motor);
 
 extern void GetMotorMeasure(Motor_s * p_motor);
 
+extern uint16_t GetOtherBoardDataUint16(uint8_t data_id, uint8_t data_offset);
+
 #endif
