@@ -11,10 +11,12 @@
   *  V2.0.0     Mar-27-2024     Penguin         1. 添加CAN发送函数和新的电机控制函数，解码中将CAN1 CAN2分开。
   *  V2.1.0     Mar-20-2024     Penguin         1. 添加DM电机的适配
   *  V2.2.0     May-22-2024     Penguin         1. 添加LK电机的适配
+  *  V2.3.0     May-22-2024     Penguin         1. 添加板间通信数据解码
   *
   @verbatim
   ==============================================================================
-
+    dm电机设置：
+    为了配合本框架，请在使用上位机进行设置时，将dm电机的master id 设置为 slave id + 0x50
   ==============================================================================
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
@@ -70,5 +72,7 @@ extern const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
 extern CybergearModeState_e GetCybergearModeState(Motor_s * p_motor);
 
 extern void GetMotorMeasure(Motor_s * p_motor);
+
+extern uint16_t GetOtherBoardDataUint16(uint8_t data_id, uint8_t data_offset);
 
 #endif

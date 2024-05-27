@@ -42,6 +42,7 @@
 #include "shoot_task.h"
 #include "mechanical_arm_task.h"
 #include "music_task.h"
+#include "develop_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,6 +70,10 @@ osThreadId mechanical_armTaskHandle;
 
 #if (__MUSIC_ON)
 osThreadId musicTaskHandle;
+#endif
+
+#if (__DEVELOP)
+osThreadId developTaskHandle;
 #endif
 
 osThreadId imuTaskHandle;
@@ -208,6 +213,11 @@ void MX_FREERTOS_Init(void) {
 #if (__MUSIC_ON)
     osThreadDef(musicTask, music_task, osPriorityNormal, 0, 256);
     musicTaskHandle = osThreadCreate(osThread(musicTask), NULL);
+#endif
+
+#if (__DEVELOP)
+    osThreadDef(developTask, develop_task, osPriorityNormal, 0, 256);
+    developTaskHandle = osThreadCreate(osThread(developTask), NULL);
 #endif
 
     osThreadDef(imuTask, IMU_task, osPriorityRealtime, 0, 1024);

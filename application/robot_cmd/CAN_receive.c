@@ -11,10 +11,12 @@
   *  V2.0.0     Mar-27-2024     Penguin         1. 添加CAN发送函数和新的电机控制函数，解码中将CAN1 CAN2分开。
   *  V2.1.0     Mar-20-2024     Penguin         1. 添加DM电机的适配
   *  V2.2.0     May-22-2024     Penguin         1. 添加LK电机的适配
+  *  V2.3.0     May-22-2024     Penguin         1. 添加板间通信数据解码
   *
   @verbatim
   ==============================================================================
-
+    dm电机设置：
+    为了配合本框架，请在使用上位机进行设置时，将dm电机的master id 设置为 slave id + 0x50
   ==============================================================================
   @endverbatim
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
@@ -22,13 +24,15 @@
 
 #include "CAN_receive.h"
 
-#include <string.h>
-
 #include "bsp_can.h"
 #include "cmsis_os.h"
 #include "detect_task.h"
+#include "robot_param.h"
+#include "string.h"
 #include "usb_task.h"
 #include "user_lib.h"
+
+#define DATA_NUM 10
 
 // 接收数据
 static DjiMotorMeasure_t CAN1_DJI_MEASURE[11];
@@ -42,6 +46,10 @@ static DmMeasure_s CAN2_DM_MEASURE[DM_NUM];
 
 static LkMeasure_s CAN1_LK_MEASURE[LK_NUM];
 static LkMeasure_s CAN2_LK_MEASURE[LK_NUM];
+
+static uint8_t OTHER_BOARD_DATA_ANY[DATA_NUM][8];
+static uint16_t OTHER_BOARD_DATA_UINT16[DATA_NUM][4];
+
 /*-------------------- Decode --------------------*/
 
 /**
@@ -108,7 +116,7 @@ void LkFdbData(LkMeasure_s * lk_measure, uint8_t * rx_data)
  */
 static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8_t rx_data[8])
 {
-    switch (rx_header->StdId) {
+    switch (rx_header->StdId) {  //电机解码
         case DJI_M1_ID:
         case DJI_M2_ID:
         case DJI_M3_ID:
@@ -129,7 +137,7 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             {
                 DjiFdbData(&CAN2_DJI_MEASURE[i], rx_data);
             }
-            break;
+            return;
         }
         case DM_M1_ID:
         case DM_M2_ID:
@@ -146,7 +154,8 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             {
                 DmFdbData(&CAN2_DM_MEASURE[i], rx_data);
             }
-        } break;
+            return;
+        }
         case LK_M1_ID:
         case LK_M2_ID:
         case LK_M3_ID:
@@ -160,10 +169,28 @@ static void DecodeStdIdData(hcan_t * CAN, CAN_RxHeaderTypeDef * rx_header, uint8
             {
                 LkFdbData(&CAN2_LK_MEASURE[i], rx_data);
             }
-        } break;
+            return;
+        }
         default: {
             break;
         }
+    }
+
+    //板间通信数据解码
+    // clang-format off
+    uint16_t data_type =  rx_header->StdId & 0xF00;
+    uint16_t data_id   = (rx_header->StdId & 0x0F0) >> 4;
+    uint16_t target_id =  rx_header->StdId & 0x00F;
+    // clang-format on
+    if (target_id != __SELF_BOARD_ID) return;
+
+    if (data_type == BOARD_DATA_UINT16) {
+        OTHER_BOARD_DATA_UINT16[data_id][0] = (rx_data[0] << 8) | rx_data[1];
+        OTHER_BOARD_DATA_UINT16[data_id][1] = (rx_data[2] << 8) | rx_data[3];
+        OTHER_BOARD_DATA_UINT16[data_id][2] = (rx_data[4] << 8) | rx_data[5];
+        OTHER_BOARD_DATA_UINT16[data_id][3] = (rx_data[6] << 8) | rx_data[7];
+    } else if (data_type == BOARD_DATA_ANY) {
+        memcpy(OTHER_BOARD_DATA_ANY[data_id], rx_data, 8);
     }
 }
 
@@ -268,7 +295,7 @@ const DjiMotorMeasure_t * GetDjiMotorMeasurePoint(uint8_t can, uint8_t i)
 static void GetDjiFdbData(Motor_s * p_motor, const DjiMotorMeasure_t * p_dji_motor_measure)
 {
     p_motor->fdb.vel = p_dji_motor_measure->speed_rpm * RPM_TO_OMEGA * p_motor->reduction_ratio *
-                     p_motor->direction;
+                       p_motor->direction;
     p_motor->fdb.pos = p_dji_motor_measure->ecd * 2 * M_PI / 8192 - M_PI;
     p_motor->fdb.temp = p_dji_motor_measure->temperate;
     p_motor->fdb.curr = p_dji_motor_measure->given_current;
@@ -332,12 +359,10 @@ static void GetDmFdbData(Motor_s * motor, const DmMeasure_s * dm_measure)
  */
 static void GetLkFdbData(Motor_s * motor, const LkMeasure_s * lk_measure)
 {
-    // clang-format off
-    motor->fdb.pos     = uint_to_float(lk_measure->encoder, -M_PI, M_PI, 16);
-    motor->fdb.vel       = lk_measure->speed * DEGREE_TO_RAD;
+    motor->fdb.pos = uint_to_float(lk_measure->encoder, -M_PI, M_PI, 16);
+    motor->fdb.vel = lk_measure->speed * DEGREE_TO_RAD;
     motor->fdb.curr = lk_measure->iq * MF_CONTROL_TO_CURRENT;
     motor->fdb.temp = lk_measure->temprature;
-    // clang-format on
 
     uint32_t now = HAL_GetTick();
     if (now - lk_measure->last_fdb_time > MOTOR_STABLE_RUNNING_TIME) {
@@ -390,4 +415,15 @@ void GetMotorMeasure(Motor_s * p_motor)
         default:
             break;
     }
+}
+
+/**
+ * @brief 获取板间通信数据
+ * @param data_id 数据ID
+ * @param data_offset 数据位置偏移
+ * @return none
+ */
+uint16_t GetOtherBoardDataUint16(uint8_t data_id, uint8_t data_offset)
+{
+    return OTHER_BOARD_DATA_UINT16[data_id][data_offset];
 }
