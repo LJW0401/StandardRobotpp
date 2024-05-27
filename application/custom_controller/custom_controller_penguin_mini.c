@@ -15,6 +15,15 @@
 */
 #include "custom_controller_penguin_mini.h"
 #if (CUSTOM_CONTROLLER_TYPE == CUSTOM_CONTROLLER_PENGUIN_MINI)
+#include "CAN_communication.h"
+#include "user_lib.h"
+
+#define BIG_ARM_DATA_ID 0
+#define SMALL_ARM_DATA_ID 1
+
+#define MAIN_DATA_ID_1 0
+
+CustomController_s CUSTOM_CONTROLLER;
 
 /*-------------------- Init --------------------*/
 
@@ -23,7 +32,7 @@
  * @param[in]      none
  * @retval         none
  */
-void CustomControllerInit(void) {}
+void CustomControllerInit(void) { CUSTOM_CONTROLLER.imu = GetImuDataPoint(); }
 
 /*-------------------- Handle exception --------------------*/
 
@@ -68,7 +77,29 @@ void CustomControllerReference(void) {}
  * @param[in]      none
  * @retval         none
  */
-void CustomControllerConsole(void) {}
+void CustomControllerConsole(void)
+{
+#if (__SELF_BOARD_ID == MAIN_BOARD_ID)
+    CUSTOM_CONTROLLER.ctrl_data.yaw = GetOtherBoardDataUint16(BIG_ARM_DATA_ID, 0);
+    CUSTOM_CONTROLLER.ctrl_data.big_arm_pitch = GetOtherBoardDataUint16(BIG_ARM_DATA_ID, 1);
+    CUSTOM_CONTROLLER.ctrl_data.small_arm_pitch = GetOtherBoardDataUint16(SMALL_ARM_DATA_ID, 0);
+    CUSTOM_CONTROLLER.ctrl_data.small_arm_roll = GetOtherBoardDataUint16(SMALL_ARM_DATA_ID, 1);
+#elif (__SELF_BOARD_ID == BIG_ARM_BOARD_ID)
+    // clang-format off
+    CUSTOM_CONTROLLER.ctrl_data.yaw = 
+        float_to_uint(CUSTOM_CONTROLLER.imu->yaw, -M_PI, M_PI, 16);
+    CUSTOM_CONTROLLER.ctrl_data.big_arm_pitch =
+        float_to_uint(CUSTOM_CONTROLLER.imu->pitch, -M_PI, M_PI, 16);
+    // clang-format on
+#elif (__SELF_BOARD_ID == SMALL_ARM_BOARD_ID)
+    // clang-format off
+    CUSTOM_CONTROLLER.ctrl_data.small_arm_pitch = 
+        float_to_uint(CUSTOM_CONTROLLER.imu->pitch, -M_PI_2, M_PI_2, 16);
+    CUSTOM_CONTROLLER.ctrl_data.small_arm_roll =
+        float_to_uint(CUSTOM_CONTROLLER.imu->roll, -M_PI, M_PI, 16);
+    // clang-format on
+#endif
+}
 
 /*-------------------- Cmd --------------------*/
 
@@ -77,6 +108,31 @@ void CustomControllerConsole(void) {}
  * @param[in]      none
  * @retval         none
  */
-void CustomControllerSendCmd(void) {}
+void CustomControllerSendCmd(void)
+{
+#if (__SELF_BOARD_ID == MAIN_BOARD_ID)
+    // clang-format off
+    CanSendUint16DataToBoard(2, MAIN_DATA_ID_1, CTRL_BOARD_ID,
+        CUSTOM_CONTROLLER.ctrl_data.yaw,
+        CUSTOM_CONTROLLER.ctrl_data.big_arm_pitch,
+        CUSTOM_CONTROLLER.ctrl_data.small_arm_pitch,
+        CUSTOM_CONTROLLER.ctrl_data.small_arm_roll);
+    // clang-format on
+#elif (__SELF_BOARD_ID == BIG_ARM_BOARD_ID)
+    // clang-format off
+    CanSendUint16DataToBoard(2, BIG_ARM_DATA_ID, MAIN_BOARD_ID, 
+        CUSTOM_CONTROLLER.ctrl_data.yaw,
+        CUSTOM_CONTROLLER.ctrl_data.big_arm_pitch, 
+        0, 0);
+    // clang-format on
+#elif (__SELF_BOARD_ID == SMALL_ARM_BOARD_ID)
+    // clang-format off
+    CanSendUint16DataToBoard(2, SMALL_ARM_DATA_ID, MAIN_BOARD_ID, 
+        CUSTOM_CONTROLLER.ctrl_data.small_arm_pitch,
+        CUSTOM_CONTROLLER.ctrl_data.small_arm_roll, 
+        0, 0);
+    // clang-format on
+#endif
+}
 
 #endif

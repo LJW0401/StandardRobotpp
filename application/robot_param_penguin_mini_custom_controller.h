@@ -15,5 +15,11 @@
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL                        // 选择控制类型
 
 /*-------------------- Custom controller --------------------*/
+// clang-format off
+#define CTRL_BOARD_ID      1 //机械臂C板id
+#define MAIN_BOARD_ID      2 //主C板id
+#define BIG_ARM_BOARD_ID   3 //大臂C板id
+#define SMALL_ARM_BOARD_ID 4 //小臂C板id
+// clang-format on
 
 #endif /* INCLUDED_ROBOT_PARAM_H */

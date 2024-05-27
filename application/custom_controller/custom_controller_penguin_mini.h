@@ -25,15 +25,15 @@
 
 typedef struct
 {
-    const RC_ctrl_t * rc;  // 底盘使用的遥控器指针
-    const Imu_t * imu;     // imu数据
+    const Imu_t * imu;  // imu数据
 
     struct ctrl_data
     {
-        uint16_t x;  // x方向
-        uint16_t y;  // y方向
-        uint16_t z;  // z方向
-    } ctrl_data;     // 目标量
+        uint16_t yaw;
+        uint16_t big_arm_pitch;
+        uint16_t small_arm_pitch;
+        uint16_t small_arm_roll;
+    } ctrl_data;  // 控制量
 
 } CustomController_s;
 
