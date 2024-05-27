@@ -294,6 +294,11 @@ void MechanicalArmObserver(void)
     OutputPCData.packets[14].data = MECHANICAL_ARM.ref.pos[0];
     OutputPCData.packets[15].data = MECHANICAL_ARM.ref.pos[1];
     OutputPCData.packets[16].data = MECHANICAL_ARM.ref.pos[2];
+
+    OutputPCData.packets[17].data = GetOtherBoardDataUint16(1, 0);
+    OutputPCData.packets[18].data = GetOtherBoardDataUint16(1, 1);
+    OutputPCData.packets[19].data = GetOtherBoardDataUint16(1, 2);
+    OutputPCData.packets[20].data = GetOtherBoardDataUint16(1, 3);
 }
 
 /*-------------------- Reference --------------------*/
@@ -467,6 +472,9 @@ void MechanicalArmSendCmd(void)
             ArmZeroForceSendCmd();
         }
     }
+
+    CanSendUint16DataToBoard(
+        2, 1, 2, 200, 450, GenerateSinWave(200, 200, 3), GenerateSinWave(450, 450, 3));
 }
 
 static void ArmEnable(void)
