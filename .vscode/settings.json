@@ -82,7 +82,11 @@
         "ahrs.h": "c",
         "robot_param_penguin_mini_arm.h": "c",
         "chassis_steering.h": "c",
-        "develop_task.h": "c"
+        "develop_task.h": "c",
+        "custom_controller_task.h": "c",
+        "robot_param_penguin_mini_custom_controller.h": "c",
+        "custom_controller.h": "c",
+        "custom_controller_penguin_mini.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
