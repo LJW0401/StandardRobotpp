@@ -27,6 +27,16 @@
 #include "remote_control.h"
 #include "stdbool.h"
 #include "struct_typedef.h"
+
+// clang-format off
+#define DBUS_ERROR_OFFSET      ((uint8_t)1 << 0)  // dbus错误偏移量
+#define JOINT_0_ERROR_OFFSET   ((uint8_t)1 << 1)  // 关节0错误偏移量
+#define JOINT_1_ERROR_OFFSET   ((uint8_t)1 << 2)  // 关节1错误偏移量
+#define JOINT_2_ERROR_OFFSET   ((uint8_t)1 << 3)  // 关节2错误偏移量
+#define JOINT_3_ERROR_OFFSET   ((uint8_t)1 << 4)  // 关节3错误偏移量
+#define JOINT_4_ERROR_OFFSET   ((uint8_t)1 << 5)  // 关节4错误偏移量
+// clang-format on
+
 /*-------------------- Structural definition --------------------*/
 
 typedef enum {
@@ -54,6 +64,7 @@ typedef struct
 {
     const RC_ctrl_t * rc;      // 遥控器指针
     MechanicalArmMode_e mode;  // 模式
+    uint8_t error_code;        // 错误码
 
     /*-------------------- Motors --------------------*/
     Motor_s joint_motor[5];

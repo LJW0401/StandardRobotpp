@@ -103,7 +103,34 @@ void MechanicalArmInit(void)
 }
 
 /*-------------------- Handle exception --------------------*/
-void MechanicalArmHandleException(void) {}
+void MechanicalArmHandleException(void)
+{
+    // DBUS error handle ---------------------
+    if (toe_is_error(DBUS_TOE)) {
+        MECHANICAL_ARM.error_code |= DBUS_ERROR_OFFSET;
+    } else {
+        MECHANICAL_ARM.error_code &= ~DBUS_ERROR_OFFSET;
+    }
+
+    // Joint error handle ---------------------
+    if (fabs(MECHANICAL_ARM.joint_motor[0].fdb.tor) > JOINT_0_MAX_TORQUE) {
+        MECHANICAL_ARM.error_code |= JOINT_0_ERROR_OFFSET;
+    } else {
+        MECHANICAL_ARM.error_code &= ~JOINT_0_ERROR_OFFSET;
+    }
+
+    if (fabs(MECHANICAL_ARM.joint_motor[1].fdb.tor) > JOINT_1_MAX_TORQUE) {
+        MECHANICAL_ARM.error_code |= JOINT_1_ERROR_OFFSET;
+    } else {
+        MECHANICAL_ARM.error_code &= ~JOINT_1_ERROR_OFFSET;
+    }
+
+    if (fabs(MECHANICAL_ARM.joint_motor[2].fdb.tor) > JOINT_2_MAX_TORQUE) {
+        MECHANICAL_ARM.error_code |= JOINT_2_ERROR_OFFSET;
+    } else {
+        MECHANICAL_ARM.error_code &= ~JOINT_2_ERROR_OFFSET;
+    }
+}
 
 /*-------------------- Set mode --------------------*/
 
@@ -117,6 +144,18 @@ bool CheckInitCompleted(void);
 void MechanicalArmSetMode(void)
 {
     if (toe_is_error(DBUS_TOE)) {
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
+        return;
+    }
+
+    if (MECHANICAL_ARM.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
+        return;
+    }
+
+    if ((MECHANICAL_ARM.error_code & JOINT_0_ERROR_OFFSET) ||
+        (MECHANICAL_ARM.error_code & JOINT_1_ERROR_OFFSET) ||
+        (MECHANICAL_ARM.error_code & JOINT_2_ERROR_OFFSET)) {  // 关节出错时的状态处理
         MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
         return;
     }
@@ -244,9 +283,6 @@ void MechanicalArmReference(void)
     //关节2与当前关节1的位置比较，不能超过最大差值
     if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.fdb.pos[1] > J_1_J_2_DELTA_MAX) {
         MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.fdb.pos[1] + J_1_J_2_DELTA_MAX;
-        // } else if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.fdb.pos[1] < -J_1_J_2_DELTA_MAX) {
-        //     MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.fdb.pos[1] - J_1_J_2_DELTA_MAX;
-        // }
     } else if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.fdb.pos[1] < J_1_J_2_DELTA_MIN) {
         MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.fdb.pos[1] + J_1_J_2_DELTA_MIN;
     }
