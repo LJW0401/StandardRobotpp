@@ -47,6 +47,7 @@ typedef enum {
     MECHANICAL_ARM_SET_ZERO,
     MECHANICAL_ARM_FOLLOW,
     MECHANICAL_ARM_STOP,
+    MECHANICAL_ARM_STAY,  // 保持之前状态
 } MechanicalArmMode_e;
 
 /**
@@ -64,11 +65,10 @@ typedef struct
 
 typedef struct
 {
-    const RC_ctrl_t * rc;           // 遥控器指针
-    MechanicalArmMode_e mode;       // 模式
-    MechanicalArmMode_e last_mode;  // 模式
-    uint8_t error_code;             // 错误码
-    bool zero_setted;               // 零点设置标志
+    const RC_ctrl_t * rc;      // 遥控器指针
+    MechanicalArmMode_e mode;  // 模式
+    uint8_t error_code;        // 错误码
+    bool zero_setted;          // 零点设置标志
 
     /*-------------------- Motors --------------------*/
     Motor_s joint_motor[5];

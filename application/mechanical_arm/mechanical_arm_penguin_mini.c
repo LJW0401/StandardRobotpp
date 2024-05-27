@@ -32,6 +32,8 @@
 
 static MechanicalArm_s MECHANICAL_ARM = {
     .mode = MECHANICAL_ARM_ZERO_FORCE,
+    .error_code = 0,
+    .zero_setted = false,
     .ref =
         {
             .pos = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
@@ -130,12 +132,20 @@ void MechanicalArmHandleException(void)
     } else {
         MECHANICAL_ARM.error_code &= ~JOINT_2_ERROR_OFFSET;
     }
+
+    if (MECHANICAL_ARM.mode == MECHANICAL_ARM_SET_ZERO) {
+        if ((MECHANICAL_ARM.joint_motor[0].fdb.pos < JOINT_ZERO_THRESHOLD) &&
+            (MECHANICAL_ARM.joint_motor[1].fdb.pos < JOINT_ZERO_THRESHOLD) &&
+            (MECHANICAL_ARM.joint_motor[2].fdb.pos < JOINT_ZERO_THRESHOLD)) {
+            MECHANICAL_ARM.zero_setted = true;
+        }
+    }
 }
 
 /*-------------------- Set mode --------------------*/
 
 bool CheckInitCompleted(void);
-static void RemoteControlSetMode(void);
+static MechanicalArmMode_e RemoteControlSetMode(void);
 
 /**
  * @brief          设置模式
@@ -144,11 +154,6 @@ static void RemoteControlSetMode(void);
  */
 void MechanicalArmSetMode(void)
 {
-    if (toe_is_error(DBUS_TOE)) {
-        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
-        return;
-    }
-
     if (MECHANICAL_ARM.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
         MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
         return;
@@ -161,19 +166,31 @@ void MechanicalArmSetMode(void)
         return;
     }
 
-    RemoteControlSetMode();
+    MechanicalArmMode_e mode = MECHANICAL_ARM_ZERO_FORCE;
 
-    if (MECHANICAL_ARM.mode == MECHANICAL_ARM_INIT) {
-        if (CheckInitCompleted()) {
-            MECHANICAL_ARM.mode = MECHANICAL_ARM_SET_ZERO;
+    mode = RemoteControlSetMode();
+
+    if (mode == MECHANICAL_ARM_INIT) {
+        if (MECHANICAL_ARM.mode != MECHANICAL_ARM_INIT &&
+            MECHANICAL_ARM.mode != MECHANICAL_ARM_SET_ZERO) {  //从其他状态切入
+            MECHANICAL_ARM.init_completed[0] = true;
+            MECHANICAL_ARM.init_completed[1] = false;
+            MECHANICAL_ARM.init_completed[2] = false;
+            MECHANICAL_ARM.init_completed[3] = true;
+            MECHANICAL_ARM.init_completed[4] = true;
+            MECHANICAL_ARM.zero_setted = false;
         }
-    } else if (MECHANICAL_ARM.mode == MECHANICAL_ARM_SET_ZERO) {
-        if ((MECHANICAL_ARM.joint_motor[0].fdb.pos < JOINT_ZERO_THRESHOLD) &&
-            (MECHANICAL_ARM.joint_motor[1].fdb.pos < JOINT_ZERO_THRESHOLD) &&
-            (MECHANICAL_ARM.joint_motor[2].fdb.pos < JOINT_ZERO_THRESHOLD)) {
-            MECHANICAL_ARM.mode = MECHANICAL_ARM_FOLLOW;
+
+        if (CheckInitCompleted()) {
+            mode = MECHANICAL_ARM_SET_ZERO;
+        }
+    } else if (mode == MECHANICAL_ARM_FOLLOW) {
+        if (!MECHANICAL_ARM.zero_setted) {
+            mode = MECHANICAL_ARM_ZERO_FORCE;
         }
     }
+
+    MECHANICAL_ARM.mode = mode;
 }
 
 bool CheckInitCompleted(void)
@@ -202,17 +219,16 @@ bool CheckInitCompleted(void)
     return false;
 }
 
-static void RemoteControlSetMode(void)
+static MechanicalArmMode_e RemoteControlSetMode(void)
 {
-    // MechanicalArmMode_e mode;
     if (switch_is_up(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_STATE_CHANNEL])) {
-        MECHANICAL_ARM.mode = MECHANICAL_ARM_FOLLOW;
+        return MECHANICAL_ARM_FOLLOW;
     } else if (switch_is_mid(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_STATE_CHANNEL])) {
-        MECHANICAL_ARM.mode = MECHANICAL_ARM_INIT;
+        return MECHANICAL_ARM_INIT;
     } else if (switch_is_down(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_STATE_CHANNEL])) {
-        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
+        return MECHANICAL_ARM_ZERO_FORCE;
     }
-
+    return MECHANICAL_ARM_ZERO_FORCE;
 }
 
 /*-------------------- Observe --------------------*/
@@ -239,20 +255,14 @@ void MechanicalArmObserver(void)
     OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[0].mode;
     OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[1].mode;
     OutputPCData.packets[2].data = MECHANICAL_ARM.joint_motor[2].mode;
-    OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[0].fdb.vel;
-    OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[1].fdb.vel;
-    OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.vel;
+    OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[0].fdb.pos;
+    OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[1].fdb.pos;
+    OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
     OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
     OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
     OutputPCData.packets[8].data = MECHANICAL_ARM.joint_motor[2].fdb.tor;
     OutputPCData.packets[9].data = MECHANICAL_ARM.mode;
-
-    // clang-format off
-    OutputPCData.packets[10].data = theta_transfrom(
-        theta_transfrom(MECHANICAL_ARM.ref.pos[2], J_2_ANGLE_OFFESET, -1, 1) , 
-        J_2_ANGLE_OFFESET, -1, 1);
-    // clang-format on
-
+    OutputPCData.packets[10].data = MECHANICAL_ARM.zero_setted;
     OutputPCData.packets[11].data = MECHANICAL_ARM.fdb.pos[0];
     OutputPCData.packets[12].data = MECHANICAL_ARM.fdb.pos[1];
     OutputPCData.packets[13].data = MECHANICAL_ARM.fdb.pos[2];
@@ -421,12 +431,12 @@ void MechanicalArmSendCmd(void)
         case MECHANICAL_ARM_INIT: {
             ArmInitSendCmd();
         } break;
-        case MECHANICAL_ARM_SET_ZERO: {
-            ArmSetZeroSendCmd();
-        } break;
         case MECHANICAL_ARM_FOLLOW: {
             ArmFollowSendCmd();
         } break;
+        case MECHANICAL_ARM_SET_ZERO: {
+            ArmSetZeroSendCmd();
+        }
         case MECHANICAL_ARM_ZERO_FORCE:
         default: {
             ArmZeroForceSendCmd();
