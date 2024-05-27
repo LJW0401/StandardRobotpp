@@ -472,9 +472,6 @@ void MechanicalArmSendCmd(void)
             ArmZeroForceSendCmd();
         }
     }
-
-    CanSendUint16DataToBoard(
-        2, 1, 2, 200, 450, GenerateSinWave(200, 200, 3), GenerateSinWave(450, 450, 3));
 }
 
 static void ArmEnable(void)
