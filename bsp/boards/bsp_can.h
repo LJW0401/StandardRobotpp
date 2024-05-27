@@ -3,6 +3,11 @@
 #include "struct_typedef.h"
 #include "stm32f4xx_hal.h"
 
+// clang-format off
+#define BOARD_DATA_ANY     ((uint16_t)0xA00)
+#define BOARD_DATA_UINT16  ((uint16_t)0xB00)
+// clang-format on
+
 typedef CAN_HandleTypeDef hcan_t;
 
 typedef struct __CanCtrlData

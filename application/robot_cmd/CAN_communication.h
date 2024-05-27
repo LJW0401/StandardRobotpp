@@ -29,10 +29,6 @@ bit 8-11: data_type
 #include "CAN_cmd_lingkong.h"
 #include "CAN_receive.h"
 
-// clang-format off
-#define BOARD_DATA_ANY     ((uint16_t)0xA00)
-#define BOARD_DATA_UINT16  ((uint16_t)0xB00)
-// clang-format on
 
 extern void CanSendDataToBoard(uint8_t can, uint16_t data_id, uint16_t target_id, uint8_t * data);
 
