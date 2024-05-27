@@ -102,9 +102,11 @@
 #define J_2_ANGLE_OFFESET 1.0f         //(rad)关节2的角度偏移
 
 #define JOINT_0_MAX_TORQUE 4.0f  //(N*m)关节0最大输出力矩
-#define JOINT_1_MAX_TORQUE 4.0f  //(N*m)关节1最大输出力矩
+#define JOINT_1_MAX_TORQUE 2.5f  //(N*m)关节1最大输出力矩
 #define JOINT_2_MAX_TORQUE 1.3f  //(N*m)关节2最大输出力矩
 
 #define JOINT_VELOCITY_SET 0.8f  //(rad/s)关节运行时的转速
+
+#define POS_MUTATION_THRESHOLD 1.0f  //(rad)位置突变阈值
 
 #endif /* INCLUDED_ROBOT_PARAM_H */

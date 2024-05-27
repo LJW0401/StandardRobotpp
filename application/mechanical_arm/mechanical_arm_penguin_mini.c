@@ -133,12 +133,23 @@ void MechanicalArmHandleException(void)
         MECHANICAL_ARM.error_code &= ~JOINT_2_ERROR_OFFSET;
     }
 
+    // Zero setted expection handle ---------------------
     if (MECHANICAL_ARM.mode == MECHANICAL_ARM_SET_ZERO) {
         if ((MECHANICAL_ARM.joint_motor[0].fdb.pos < JOINT_ZERO_THRESHOLD) &&
             (MECHANICAL_ARM.joint_motor[1].fdb.pos < JOINT_ZERO_THRESHOLD) &&
             (MECHANICAL_ARM.joint_motor[2].fdb.pos < JOINT_ZERO_THRESHOLD)) {
             MECHANICAL_ARM.zero_setted = true;
         }
+    }
+
+    // Position mutation error handle ---------------------
+    for (uint8_t i = 0; i < 5; i++) {
+        if (fabs(MECHANICAL_ARM.fdb.pos_delta[i]) > POS_MUTATION_THRESHOLD) {
+            MECHANICAL_ARM.error_code |= POS_MUTATION_ERROR_OFFSET;
+        }
+    }
+    if (MECHANICAL_ARM.mode == MECHANICAL_ARM_ZERO_FORCE) {
+        MECHANICAL_ARM.error_code &= ~POS_MUTATION_ERROR_OFFSET;
     }
 }
 
@@ -162,6 +173,11 @@ void MechanicalArmSetMode(void)
     if ((MECHANICAL_ARM.error_code & JOINT_0_ERROR_OFFSET) ||
         (MECHANICAL_ARM.error_code & JOINT_1_ERROR_OFFSET) ||
         (MECHANICAL_ARM.error_code & JOINT_2_ERROR_OFFSET)) {  // 关节出错时的状态处理
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
+        return;
+    }
+
+    if (MECHANICAL_ARM.error_code & POS_MUTATION_ERROR_OFFSET) {  // 位置突变时的状态处理
         MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
         return;
     }
@@ -240,6 +256,11 @@ static MechanicalArmMode_e RemoteControlSetMode(void)
  */
 void MechanicalArmObserver(void)
 {
+    float last_pos[5];
+    for (uint8_t i = 0; i < 5; i++) {
+        last_pos[i] = MECHANICAL_ARM.fdb.pos[i];
+    }
+
     for (uint8_t i = 0; i < 5; i++) {
         GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
         MECHANICAL_ARM.fdb.pos[i] = MECHANICAL_ARM.joint_motor[i].fdb.pos;
@@ -251,6 +272,10 @@ void MechanicalArmObserver(void)
         theta_transfrom(MECHANICAL_ARM.joint_motor[2].fdb.pos, J_2_ANGLE_OFFESET, -1, 2);
     MECHANICAL_ARM.fdb.pos[3] = theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1, 1);
     MECHANICAL_ARM.fdb.pos[4] = theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1, 1);
+
+    for (uint8_t i = 0; i < 5; i++) {
+        MECHANICAL_ARM.fdb.pos_delta[i] = MECHANICAL_ARM.fdb.pos[i] - last_pos[i];
+    }
 
     OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[0].mode;
     OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[1].mode;
