@@ -30,6 +30,8 @@ extern void CybergearStop(Motor_s * p_motor);
 
 extern void CybergearSetMechPositionToZero(Motor_s * p_motor);
 
+extern void CybergearReadParam(Motor_s* p_motor,uint16_t index);
+
 /*-------------------- 封装的一些控制函数 --------------------*/
 
 extern void CybergearTorqueControl(Motor_s * p_motor);

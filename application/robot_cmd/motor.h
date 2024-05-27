@@ -72,6 +72,12 @@ typedef struct _DjiMotorMeasure
 /*-------------------- CyberGear --------------------*/
 #define CYBERGEAR_NUM 5
 
+// clang-format off
+#define CYBERGEAR_MODE_TORQUE  0x000
+#define CYBERGEAR_MODE_POS     0x100
+#define CYBERGEAR_MODE_SPEED   0x200
+// clang-format on
+
 typedef enum _CybergearModeState {
     UNDEFINED_MODE = -1,  //未定义模式
     RESET_MODE = 0,       //Reset模式[复位]
