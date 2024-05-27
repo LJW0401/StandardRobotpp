@@ -28,6 +28,8 @@
 #include "stdbool.h"
 #include "struct_typedef.h"
 
+#define MECHANICAL_ARM_STATE_CHANNEL 1  // 机械臂状态切换通道
+
 // clang-format off
 #define DBUS_ERROR_OFFSET      ((uint8_t)1 << 0)  // dbus错误偏移量
 #define JOINT_0_ERROR_OFFSET   ((uint8_t)1 << 1)  // 关节0错误偏移量
@@ -62,9 +64,11 @@ typedef struct
 
 typedef struct
 {
-    const RC_ctrl_t * rc;      // 遥控器指针
-    MechanicalArmMode_e mode;  // 模式
-    uint8_t error_code;        // 错误码
+    const RC_ctrl_t * rc;           // 遥控器指针
+    MechanicalArmMode_e mode;       // 模式
+    MechanicalArmMode_e last_mode;  // 模式
+    uint8_t error_code;             // 错误码
+    bool zero_setted;               // 零点设置标志
 
     /*-------------------- Motors --------------------*/
     Motor_s joint_motor[5];

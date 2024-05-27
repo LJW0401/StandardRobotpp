@@ -135,6 +135,7 @@ void MechanicalArmHandleException(void)
 /*-------------------- Set mode --------------------*/
 
 bool CheckInitCompleted(void);
+static void RemoteControlSetMode(void);
 
 /**
  * @brief          设置模式
@@ -160,9 +161,9 @@ void MechanicalArmSetMode(void)
         return;
     }
 
-    if (MECHANICAL_ARM.mode < MECHANICAL_ARM_INIT) {
-        MECHANICAL_ARM.mode = MECHANICAL_ARM_INIT;
-    } else if (MECHANICAL_ARM.mode == MECHANICAL_ARM_INIT) {
+    RemoteControlSetMode();
+
+    if (MECHANICAL_ARM.mode == MECHANICAL_ARM_INIT) {
         if (CheckInitCompleted()) {
             MECHANICAL_ARM.mode = MECHANICAL_ARM_SET_ZERO;
         }
@@ -199,6 +200,19 @@ bool CheckInitCompleted(void)
     }
 
     return false;
+}
+
+static void RemoteControlSetMode(void)
+{
+    // MechanicalArmMode_e mode;
+    if (switch_is_up(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_STATE_CHANNEL])) {
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_FOLLOW;
+    } else if (switch_is_mid(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_STATE_CHANNEL])) {
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_INIT;
+    } else if (switch_is_down(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_STATE_CHANNEL])) {
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
+    }
+
 }
 
 /*-------------------- Observe --------------------*/
