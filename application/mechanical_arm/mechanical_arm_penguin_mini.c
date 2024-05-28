@@ -32,6 +32,7 @@
 
 static MechanicalArm_s MECHANICAL_ARM = {
     .mode = MECHANICAL_ARM_ZERO_FORCE,
+    .ctrl_link = LINK_NONE,
     .error_code = 0,
     .zero_setted = false,
     .ref =
@@ -157,6 +158,7 @@ void MechanicalArmHandleException(void)
 
 bool CheckInitCompleted(void);
 static MechanicalArmMode_e RemoteControlSetMode(void);
+static void SetCtrlLink(void);
 
 /**
  * @brief          设置模式
@@ -170,6 +172,8 @@ void MechanicalArmSetMode(void)
         return;
     }
 
+    SetCtrlLink();
+
     if ((MECHANICAL_ARM.error_code & JOINT_0_ERROR_OFFSET) ||
         (MECHANICAL_ARM.error_code & JOINT_1_ERROR_OFFSET) ||
         (MECHANICAL_ARM.error_code & JOINT_2_ERROR_OFFSET)) {  // 关节出错时的状态处理
@@ -182,9 +186,20 @@ void MechanicalArmSetMode(void)
         return;
     }
 
+    if (MECHANICAL_ARM.ctrl_link == LINK_NONE) {
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
+        return;
+    }
+
     MechanicalArmMode_e mode = MECHANICAL_ARM_ZERO_FORCE;
 
     mode = RemoteControlSetMode();
+
+    if (mode == MECHANICAL_ARM_FOLLOW) {
+        if (!MECHANICAL_ARM.zero_setted) {
+            mode = MECHANICAL_ARM_INIT;
+        }
+    }
 
     if (mode == MECHANICAL_ARM_INIT) {
         if (MECHANICAL_ARM.mode != MECHANICAL_ARM_INIT &&
@@ -199,10 +214,6 @@ void MechanicalArmSetMode(void)
 
         if (CheckInitCompleted()) {
             mode = MECHANICAL_ARM_SET_ZERO;
-        }
-    } else if (mode == MECHANICAL_ARM_FOLLOW) {
-        if (!MECHANICAL_ARM.zero_setted) {
-            mode = MECHANICAL_ARM_ZERO_FORCE;
         }
     }
 
@@ -247,6 +258,18 @@ static MechanicalArmMode_e RemoteControlSetMode(void)
     return MECHANICAL_ARM_ZERO_FORCE;
 }
 
+static void SetCtrlLink(void)
+{
+    if (switch_is_up(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
+        MECHANICAL_ARM.ctrl_link = LINK_CUSTOM_CONTROLLER;
+    } else if (switch_is_mid(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
+        MECHANICAL_ARM.ctrl_link = LINK_REMOTE_CONTROL;
+    } else if (switch_is_down(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
+        MECHANICAL_ARM.ctrl_link = LINK_NONE;
+    } else {
+        MECHANICAL_ARM.ctrl_link = LINK_NONE;
+    }
+}
 /*-------------------- Observe --------------------*/
 
 /**
@@ -294,11 +317,6 @@ void MechanicalArmObserver(void)
     OutputPCData.packets[14].data = MECHANICAL_ARM.ref.pos[0];
     OutputPCData.packets[15].data = MECHANICAL_ARM.ref.pos[1];
     OutputPCData.packets[16].data = MECHANICAL_ARM.ref.pos[2];
-
-    OutputPCData.packets[17].data = GetOtherBoardDataUint16(1, 0);
-    OutputPCData.packets[18].data = GetOtherBoardDataUint16(1, 1);
-    OutputPCData.packets[19].data = GetOtherBoardDataUint16(1, 2);
-    OutputPCData.packets[20].data = GetOtherBoardDataUint16(1, 3);
 }
 
 /*-------------------- Reference --------------------*/
@@ -310,11 +328,28 @@ void MechanicalArmObserver(void)
  */
 void MechanicalArmReference(void)
 {
-    MECHANICAL_ARM.ref.pos[0] = MECHANICAL_ARM.rc->rc.ch[4] * RC_TO_ONE * MAX_JOINT_0_POSITION;
-    MECHANICAL_ARM.ref.pos[1] = MECHANICAL_ARM.rc->rc.ch[1] * RC_TO_ONE * (-M_PI_2);
-    MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.rc->rc.ch[3] * RC_TO_ONE * (-M_PI_2 - 0.6f);
-    MECHANICAL_ARM.ref.pos[3] = M_PI_2;
-    MECHANICAL_ARM.ref.pos[4] = M_PI_2;
+    float yaw = uint_to_float(GetOtherBoardDataUint16(1, 0), -M_PI, M_PI, 16);
+    float big_arm_pitch = uint_to_float(GetOtherBoardDataUint16(1, 1), -M_PI_2, M_PI_2, 16);
+    float small_arm_pitch = uint_to_float(GetOtherBoardDataUint16(1, 2), -M_PI_2, M_PI_2, 16);
+    float small_arm_roll = uint_to_float(GetOtherBoardDataUint16(1, 3), -M_PI, M_PI, 16);
+
+    OutputPCData.packets[17].data = yaw;
+    OutputPCData.packets[18].data = big_arm_pitch;
+    OutputPCData.packets[19].data = small_arm_pitch;
+    OutputPCData.packets[20].data = small_arm_roll;
+
+    if (MECHANICAL_ARM.ctrl_link == LINK_REMOTE_CONTROL) {
+        MECHANICAL_ARM.ref.pos[0] = MECHANICAL_ARM.rc->rc.ch[4] * RC_TO_ONE * MAX_JOINT_0_POSITION;
+        MECHANICAL_ARM.ref.pos[1] = MECHANICAL_ARM.rc->rc.ch[1] * RC_TO_ONE * (-M_PI_2);
+        MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.rc->rc.ch[3] * RC_TO_ONE * (-M_PI_2 - 0.6f);
+        MECHANICAL_ARM.ref.pos[3] = M_PI_2;
+        MECHANICAL_ARM.ref.pos[4] = M_PI_2;
+    } else if (MECHANICAL_ARM.ctrl_link == LINK_CUSTOM_CONTROLLER) {
+        MECHANICAL_ARM.ref.pos[0] = theta_transfrom(yaw, 0, 1, 1);
+        MECHANICAL_ARM.ref.pos[1] = theta_transfrom(big_arm_pitch, -M_PI_2, 1, 1);
+        MECHANICAL_ARM.ref.pos[2] = theta_transfrom(small_arm_pitch, 0, 1, 1);
+        MECHANICAL_ARM.ref.pos[3] = theta_transfrom(small_arm_roll, -M_PI_2, 1, 1);
+    }
 
     if (MECHANICAL_ARM.ref.pos[0] > MAX_JOINT_0_POSITION) {
         MECHANICAL_ARM.ref.pos[0] = MAX_JOINT_0_POSITION;
