@@ -43,6 +43,7 @@
 #include "mechanical_arm_task.h"
 #include "music_task.h"
 #include "develop_task.h"
+#include "custom_controller_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,6 +67,10 @@ osThreadId shootTaskHandle;
 
 #if (MECHANICAL_ARM_TYPE != MECHANICAL_ARM_NONE)
 osThreadId mechanical_armTaskHandle;
+#endif
+
+#if (CONTROL_TYPE != CUSTOM_CONTROLLER_NONE)
+osThreadId customControllerTaskHandle;
 #endif
 
 #if (__MUSIC_ON)
@@ -210,6 +215,11 @@ void MX_FREERTOS_Init(void) {
     mechanical_armTaskHandle = osThreadCreate(osThread(mechanical_armTask), NULL);
 #endif
 
+#if (CONTROL_TYPE != CUSTOM_CONTROLLER_NONE)
+    osThreadDef(customControllerTask, custom_controller_task, osPriorityHigh, 0, 512);
+    customControllerTaskHandle = osThreadCreate(osThread(customControllerTask), NULL);
+#endif
+
 #if (__MUSIC_ON)
     osThreadDef(musicTask, music_task, osPriorityNormal, 0, 256);
     musicTaskHandle = osThreadCreate(osThread(musicTask), NULL);
@@ -219,6 +229,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(developTask, develop_task, osPriorityNormal, 0, 256);
     developTaskHandle = osThreadCreate(osThread(developTask), NULL);
 #endif
+
 
     osThreadDef(imuTask, IMU_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
