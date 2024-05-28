@@ -28,7 +28,6 @@
 #include "pid.h"
 #include "signal_generator.h"
 #include "usb_task.h"
-#include "user_lib.h"
 
 static MechanicalArm_s MECHANICAL_ARM = {
     .mode = MECHANICAL_ARM_ZERO_FORCE,
@@ -67,6 +66,7 @@ static MechanicalArm_s MECHANICAL_ARM = {
  */
 void MechanicalArmInit(void)
 {
+    MECHANICAL_ARM.rc = get_remote_control_point();
     // #Motor init ---------------------
     MotorInit(
         &MECHANICAL_ARM.joint_motor[0], 1, 1, CYBERGEAR_MOTOR, JOINT_MOTOR_0_DIRECTION,
@@ -102,7 +102,13 @@ void MechanicalArmInit(void)
         &MECHANICAL_ARM.pid.joint_speed[4], PID_POSITION, pid_joint_4_speed, MAX_OUT_JOINT_4_SPEED,
         MAX_IOUT_JOINT_4_SPEED);
 
-    MECHANICAL_ARM.rc = get_remote_control_point();
+    // #First order filter init ---------------------
+    // float num[1] = {10.725709860247969f};
+    // first_order_filter_init(
+    //     &MECHANICAL_ARM.FirstOrderFilter.filter[3], 1.0f / MECHANICAL_ARM_CONTROL_TIME, num);
+
+    LowPassFilterInit(&MECHANICAL_ARM.FirstOrderFilter.filter[3], 0.015f);
+
 }
 
 /*-------------------- Handle exception --------------------*/
@@ -287,7 +293,16 @@ void MechanicalArmObserver(void)
     for (uint8_t i = 0; i < 5; i++) {
         GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
         MECHANICAL_ARM.fdb.pos[i] = MECHANICAL_ARM.joint_motor[i].fdb.pos;
+        MECHANICAL_ARM.fdb.vel[i] = MECHANICAL_ARM.joint_motor[i].fdb.vel;
     }
+
+    // 低通滤波
+    // first_order_filter_cali(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
+    // MECHANICAL_ARM.fdb.vel[3] = MECHANICAL_ARM.FirstOrderFilter.filter[3].out;
+
+    MECHANICAL_ARM.fdb.vel[3] = LowPassFilterCalc(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
+
+    // 位置转换
     MECHANICAL_ARM.fdb.pos[0] = theta_transfrom(MECHANICAL_ARM.joint_motor[0].fdb.pos, 0, 1, 1);
     MECHANICAL_ARM.fdb.pos[1] =
         theta_transfrom(MECHANICAL_ARM.joint_motor[1].fdb.pos, J_1_ANGLE_OFFESET, 1, 2);
@@ -296,15 +311,16 @@ void MechanicalArmObserver(void)
     MECHANICAL_ARM.fdb.pos[3] = theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1, 1);
     MECHANICAL_ARM.fdb.pos[4] = theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1, 1);
 
+    // 位置差
     for (uint8_t i = 0; i < 5; i++) {
         MECHANICAL_ARM.fdb.pos_delta[i] = MECHANICAL_ARM.fdb.pos[i] - last_pos[i];
     }
 
     OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[3].fdb.pos;
-    OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[3].fdb.vel;
-    OutputPCData.packets[2].data = MECHANICAL_ARM.joint_motor[3].set.vel;
+    OutputPCData.packets[1].data = MECHANICAL_ARM.fdb.vel[3];
+    OutputPCData.packets[2].data = MECHANICAL_ARM.ref.vel[3];
     OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[3].set.value;
-    // OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[1].fdb.pos;
+    OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[3].fdb.vel;
     // OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
     // OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
     // OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
@@ -375,6 +391,10 @@ void MechanicalArmReference(void)
     } else if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.fdb.pos[1] < J_1_J_2_DELTA_MIN) {
         MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.fdb.pos[1] + J_1_J_2_DELTA_MIN;
     }
+
+    // 测试ing
+    // MECHANICAL_ARM.ref.vel[3] = GenerateSinWave(2, 0, 10);
+    MECHANICAL_ARM.ref.vel[3] = GeneratePulseWave(0, 3, 3, 3);
 }
 
 /*-------------------- Console --------------------*/
@@ -450,10 +470,9 @@ static void MechanicalArmFollowConsole(void)
     MECHANICAL_ARM.joint_motor[2].mode = CYBERGEAR_MODE_POS;
 
     // 关节3跟随
-    MECHANICAL_ARM.joint_motor[3].set.vel = GenerateSinWave(2, 0, 10);
     MECHANICAL_ARM.joint_motor[3].set.value = PID_calc(
-        &MECHANICAL_ARM.pid.joint_speed[3], MECHANICAL_ARM.joint_motor[3].fdb.vel,
-        MECHANICAL_ARM.joint_motor[3].set.vel);
+        &MECHANICAL_ARM.pid.joint_speed[3], MECHANICAL_ARM.fdb.vel[3], MECHANICAL_ARM.ref.vel[3]);
+    // MECHANICAL_ARM.joint_motor[3].set.value = GenerateSinWave(2500, 0, 4);
 }
 
 static void MechanicalArmZeroForceConsole(void)

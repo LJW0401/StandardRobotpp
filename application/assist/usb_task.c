@@ -383,7 +383,7 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[1].name, "velfdb");
     char_to_uint(OutputPCData.packets[2].name, "velset");
     char_to_uint(OutputPCData.packets[3].name, "value");
-    // char_to_uint(OutputPCData.packets[4].name, "p_1");
+    char_to_uint(OutputPCData.packets[4].name, "vel");
     // char_to_uint(OutputPCData.packets[5].name, "p_2");
     // char_to_uint(OutputPCData.packets[6].name, "tor_0");
     // char_to_uint(OutputPCData.packets[7].name, "tor_1");
