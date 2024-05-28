@@ -18,6 +18,14 @@ typedef __packed struct
     fp32 num[1];        //滤波参数
     fp32 frame_period;  //滤波的时间间隔 单位 s
 } first_order_filter_type_t;
+
+// 定义一阶低通滤波器结构体
+typedef struct LowPassFilter
+{
+    float alpha;     // 平滑系数
+    float out;       // 输出
+} LowPassFilter_t;
+
 //快速开方
 extern fp32 invSqrt(fp32 num);
 
@@ -52,6 +60,10 @@ extern fp32 theta_transfrom(fp32 angle, fp32 dangle, int8_t direction, uint8_t d
 extern int float_to_uint(float x_float, float x_min, float x_max, int bits);
 
 extern float uint_to_float(int x_int, float x_min, float x_max, int bits);
+
+extern void LowPassFilterInit(LowPassFilter_t * filter, float alpha);
+
+extern float LowPassFilterCalc(LowPassFilter_t * filter, float input);
 
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)

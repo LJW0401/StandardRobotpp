@@ -76,11 +76,11 @@ void first_order_filter_init(
   */
 void first_order_filter_cali(first_order_filter_type_t * first_order_filter_type, fp32 input)
 {
-// clang-format off
+    // clang-format off
     first_order_filter_type->input = input;
     first_order_filter_type->out =
         first_order_filter_type->num[0] / (first_order_filter_type->num[0] + first_order_filter_type->frame_period) * first_order_filter_type->out + first_order_filter_type->frame_period / (first_order_filter_type->num[0] + first_order_filter_type->frame_period) * first_order_filter_type->input;
-// clang-format on
+    // clang-format on
 }
 
 //绝对限制
@@ -217,3 +217,27 @@ float uint_to_float(int x_int, float x_min, float x_max, int bits)
     return ((float)x_int) * span / ((float)((1 << bits) - 1)) + offset;
 }
 
+/**
+ * @brief 
+ * @param filter 
+ * @param alpha 
+ */
+void LowPassFilterInit(LowPassFilter_t * filter, float alpha)
+{
+    filter->alpha = alpha;
+    filter->out = 0.0f;
+}
+
+/**
+ * @brief 
+ * @param filter 
+ * @param input 
+ * @return 
+ */
+float LowPassFilterCalc(LowPassFilter_t * filter, float input)
+{
+    float output = filter->alpha * input + (1.0f - filter->alpha) * filter->out;
+    filter->out = output;
+
+    return output;
+}
