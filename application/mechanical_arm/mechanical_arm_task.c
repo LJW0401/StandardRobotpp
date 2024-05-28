@@ -38,14 +38,14 @@ __weak void MechanicalArmConsole(void);
 __weak void MechanicalArmSendCmd(void);
 
 /**
- * @brief          射击任务
+ * @brief          任务
  * @param[in]      pvParameters: 空
  * @retval         none
  */
 void mechanical_arm_task(void const * pvParameters)
 {
     vTaskDelay(MECHANICAL_ARM_TASK_INIT_TIME);
-    // 射击初始化
+    // 初始化
     MechanicalArmInit();
 
     while (1) {
