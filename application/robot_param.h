@@ -30,6 +30,6 @@
 #define __TUNING 0                 // 调参模式
 #define __MUSIC_ON 0               // 开启音乐
 #define __TUNING_MODE TUNING_NONE  // 调参模式
-#define __SELF_BOARD_ID 2          // 本板ID
+#define __SELF_BOARD_ID 1          // 本板ID
 
 #endif /* ROBOT_PARAM_H */

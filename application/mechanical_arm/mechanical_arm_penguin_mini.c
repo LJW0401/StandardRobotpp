@@ -294,11 +294,6 @@ void MechanicalArmObserver(void)
     OutputPCData.packets[14].data = MECHANICAL_ARM.ref.pos[0];
     OutputPCData.packets[15].data = MECHANICAL_ARM.ref.pos[1];
     OutputPCData.packets[16].data = MECHANICAL_ARM.ref.pos[2];
-
-    OutputPCData.packets[17].data = GetOtherBoardDataUint16(1, 0);
-    OutputPCData.packets[18].data = GetOtherBoardDataUint16(1, 1);
-    OutputPCData.packets[19].data = GetOtherBoardDataUint16(1, 2);
-    OutputPCData.packets[20].data = GetOtherBoardDataUint16(1, 3);
 }
 
 /*-------------------- Reference --------------------*/
@@ -310,6 +305,16 @@ void MechanicalArmObserver(void)
  */
 void MechanicalArmReference(void)
 {
+    float yaw = uint_to_float(GetOtherBoardDataUint16(1, 0), -M_PI, M_PI, 16);
+    float big_arm_pitch = uint_to_float(GetOtherBoardDataUint16(1, 1), -M_PI_2, M_PI_2, 16);
+    float small_arm_pitch = uint_to_float(GetOtherBoardDataUint16(1, 2), -M_PI_2, M_PI_2, 16);
+    float small_arm_roll = uint_to_float(GetOtherBoardDataUint16(1, 3), -M_PI, M_PI, 16);
+
+    OutputPCData.packets[17].data = yaw;
+    OutputPCData.packets[18].data = big_arm_pitch;
+    OutputPCData.packets[19].data = small_arm_pitch;
+    OutputPCData.packets[20].data = small_arm_roll;
+
     MECHANICAL_ARM.ref.pos[0] = MECHANICAL_ARM.rc->rc.ch[4] * RC_TO_ONE * MAX_JOINT_0_POSITION;
     MECHANICAL_ARM.ref.pos[1] = MECHANICAL_ARM.rc->rc.ch[1] * RC_TO_ONE * (-M_PI_2);
     MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.rc->rc.ch[3] * RC_TO_ONE * (-M_PI_2 - 0.6f);
