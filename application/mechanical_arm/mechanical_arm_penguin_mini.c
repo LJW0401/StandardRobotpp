@@ -28,7 +28,6 @@
 #include "pid.h"
 #include "signal_generator.h"
 #include "usb_task.h"
-#include "user_lib.h"
 
 static MechanicalArm_s MECHANICAL_ARM = {
     .mode = MECHANICAL_ARM_ZERO_FORCE,
@@ -67,6 +66,7 @@ static MechanicalArm_s MECHANICAL_ARM = {
  */
 void MechanicalArmInit(void)
 {
+    MECHANICAL_ARM.rc = get_remote_control_point();
     // #Motor init ---------------------
     MotorInit(
         &MECHANICAL_ARM.joint_motor[0], 1, 1, CYBERGEAR_MOTOR, JOINT_MOTOR_0_DIRECTION,
@@ -102,7 +102,8 @@ void MechanicalArmInit(void)
         &MECHANICAL_ARM.pid.joint_speed[4], PID_POSITION, pid_joint_4_speed, MAX_OUT_JOINT_4_SPEED,
         MAX_IOUT_JOINT_4_SPEED);
 
-    MECHANICAL_ARM.rc = get_remote_control_point();
+    // #Low pass filter init ---------------------
+    LowPassFilterInit(&MECHANICAL_ARM.FirstOrderFilter.filter[3], 0.015f);
 }
 
 /*-------------------- Handle exception --------------------*/
@@ -263,9 +264,9 @@ static void SetCtrlLink(void)
     if (switch_is_up(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
         MECHANICAL_ARM.ctrl_link = LINK_CUSTOM_CONTROLLER;
     } else if (switch_is_mid(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
-        MECHANICAL_ARM.ctrl_link = LINK_REMOTE_CONTROL;
-    } else if (switch_is_down(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
         MECHANICAL_ARM.ctrl_link = LINK_NONE;
+    } else if (switch_is_down(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
+        MECHANICAL_ARM.ctrl_link = LINK_REMOTE_CONTROL;
     } else {
         MECHANICAL_ARM.ctrl_link = LINK_NONE;
     }
@@ -287,36 +288,34 @@ void MechanicalArmObserver(void)
     for (uint8_t i = 0; i < 5; i++) {
         GetMotorMeasure(&MECHANICAL_ARM.joint_motor[i]);
         MECHANICAL_ARM.fdb.pos[i] = MECHANICAL_ARM.joint_motor[i].fdb.pos;
+        MECHANICAL_ARM.fdb.vel[i] = MECHANICAL_ARM.joint_motor[i].fdb.vel;
     }
-    MECHANICAL_ARM.fdb.pos[0] = theta_transfrom(MECHANICAL_ARM.joint_motor[0].fdb.pos, 0, 1, 1);
-    MECHANICAL_ARM.fdb.pos[1] =
-        theta_transfrom(MECHANICAL_ARM.joint_motor[1].fdb.pos, J_1_ANGLE_OFFESET, 1, 2);
-    MECHANICAL_ARM.fdb.pos[2] =
-        theta_transfrom(MECHANICAL_ARM.joint_motor[2].fdb.pos, J_2_ANGLE_OFFESET, -1, 2);
-    MECHANICAL_ARM.fdb.pos[3] = theta_transfrom(MECHANICAL_ARM.joint_motor[3].fdb.pos, 0, 1, 1);
-    MECHANICAL_ARM.fdb.pos[4] = theta_transfrom(MECHANICAL_ARM.joint_motor[4].fdb.pos, 0, 1, 1);
 
+    // 低通滤波
+    MECHANICAL_ARM.fdb.vel[3] =
+        LowPassFilterCalc(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
+
+    // 位置转换
+    MECHANICAL_ARM.fdb.pos[0] =
+        theta_transform(MECHANICAL_ARM.joint_motor[0].fdb.pos, J_0_ANGLE_TRANSFORM, 1, 1);
+    MECHANICAL_ARM.fdb.pos[1] =
+        theta_transform(MECHANICAL_ARM.joint_motor[1].fdb.pos, J_1_ANGLE_TRANSFORM, 1, 2);
+    MECHANICAL_ARM.fdb.pos[2] =
+        theta_transform(MECHANICAL_ARM.joint_motor[2].fdb.pos, J_2_ANGLE_TRANSFORM, -1, 2);
+    MECHANICAL_ARM.fdb.pos[3] =
+        theta_transform(MECHANICAL_ARM.joint_motor[3].fdb.pos, J_3_ANGLE_TRANSFORM, 1, 1);
+    MECHANICAL_ARM.fdb.pos[4] =
+        theta_transform(MECHANICAL_ARM.joint_motor[4].fdb.pos, J_4_ANGLE_TRANSFORM, 1, 1);
+
+    // 位置差
     for (uint8_t i = 0; i < 5; i++) {
         MECHANICAL_ARM.fdb.pos_delta[i] = MECHANICAL_ARM.fdb.pos[i] - last_pos[i];
     }
 
-    OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[0].mode;
-    OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[1].mode;
-    OutputPCData.packets[2].data = MECHANICAL_ARM.joint_motor[2].mode;
-    OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[0].fdb.pos;
-    OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[1].fdb.pos;
-    OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
-    OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
-    OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
-    OutputPCData.packets[8].data = MECHANICAL_ARM.joint_motor[2].fdb.tor;
-    OutputPCData.packets[9].data = MECHANICAL_ARM.mode;
-    OutputPCData.packets[10].data = MECHANICAL_ARM.zero_setted;
-    OutputPCData.packets[11].data = MECHANICAL_ARM.fdb.pos[0];
-    OutputPCData.packets[12].data = MECHANICAL_ARM.fdb.pos[1];
-    OutputPCData.packets[13].data = MECHANICAL_ARM.fdb.pos[2];
-    OutputPCData.packets[14].data = MECHANICAL_ARM.ref.pos[0];
-    OutputPCData.packets[15].data = MECHANICAL_ARM.ref.pos[1];
-    OutputPCData.packets[16].data = MECHANICAL_ARM.ref.pos[2];
+    OutputPCData.packets[0].data = MECHANICAL_ARM.fdb.pos[3];
+    OutputPCData.packets[1].data = MECHANICAL_ARM.ref.pos[3];
+    OutputPCData.packets[2].data = MECHANICAL_ARM.fdb.vel[3];
+    OutputPCData.packets[3].data = MECHANICAL_ARM.ref.vel[3];
 }
 
 /*-------------------- Reference --------------------*/
@@ -342,13 +341,13 @@ void MechanicalArmReference(void)
         MECHANICAL_ARM.ref.pos[0] = MECHANICAL_ARM.rc->rc.ch[4] * RC_TO_ONE * MAX_JOINT_0_POSITION;
         MECHANICAL_ARM.ref.pos[1] = MECHANICAL_ARM.rc->rc.ch[1] * RC_TO_ONE * (-M_PI_2);
         MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.rc->rc.ch[3] * RC_TO_ONE * (-M_PI_2 - 0.6f);
-        MECHANICAL_ARM.ref.pos[3] = M_PI_2;
+        MECHANICAL_ARM.ref.pos[3] = MECHANICAL_ARM.rc->rc.ch[2] * RC_TO_ONE * (-M_PI_2);
         MECHANICAL_ARM.ref.pos[4] = M_PI_2;
     } else if (MECHANICAL_ARM.ctrl_link == LINK_CUSTOM_CONTROLLER) {
-        MECHANICAL_ARM.ref.pos[0] = theta_transfrom(yaw, 0, 1, 1);
-        MECHANICAL_ARM.ref.pos[1] = theta_transfrom(big_arm_pitch, -M_PI_2, 1, 1);
-        MECHANICAL_ARM.ref.pos[2] = theta_transfrom(small_arm_pitch, 0, 1, 1);
-        MECHANICAL_ARM.ref.pos[3] = theta_transfrom(small_arm_roll, -M_PI_2, 1, 1);
+        MECHANICAL_ARM.ref.pos[0] = theta_transform(yaw, 0, 1, 1);
+        MECHANICAL_ARM.ref.pos[1] = theta_transform(big_arm_pitch, -M_PI_2 / 2, 1, 1);
+        MECHANICAL_ARM.ref.pos[2] = theta_transform(small_arm_pitch, 0, 1, 1);
+        MECHANICAL_ARM.ref.pos[3] = theta_transform(small_arm_roll, 0, 1, 1);
     }
 
     if (MECHANICAL_ARM.ref.pos[0] > MAX_JOINT_0_POSITION) {
@@ -375,9 +374,6 @@ void MechanicalArmReference(void)
     } else if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.fdb.pos[1] < J_1_J_2_DELTA_MIN) {
         MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.fdb.pos[1] + J_1_J_2_DELTA_MIN;
     }
-
-    // EngineerCustomControllerData_t engineer_custom_controller_data;
-    // EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
 }
 
 /*-------------------- Console --------------------*/
@@ -441,15 +437,23 @@ static void MechanicalArmInitConsole(void)
 
 static void MechanicalArmFollowConsole(void)
 {
-    MECHANICAL_ARM.joint_motor[0].set.pos = MECHANICAL_ARM.ref.pos[0];
+    // 关节0-2跟随
+    MECHANICAL_ARM.joint_motor[0].set.pos = -MECHANICAL_ARM.ref.pos[0];
 
     MECHANICAL_ARM.joint_motor[1].set.pos =
-        theta_transfrom(MECHANICAL_ARM.ref.pos[1], -J_1_ANGLE_OFFESET, 1, 1);
+        theta_transform(MECHANICAL_ARM.ref.pos[1], -J_1_ANGLE_TRANSFORM, 1, 1);
     MECHANICAL_ARM.joint_motor[1].mode = CYBERGEAR_MODE_POS;
 
     MECHANICAL_ARM.joint_motor[2].set.pos =
-        theta_transfrom(MECHANICAL_ARM.ref.pos[2], J_2_ANGLE_OFFESET, -1, 1);
+        theta_transform(MECHANICAL_ARM.ref.pos[2], J_2_ANGLE_TRANSFORM, -1, 1);
     MECHANICAL_ARM.joint_motor[2].mode = CYBERGEAR_MODE_POS;
+
+    // 关节3跟随
+    MECHANICAL_ARM.ref.vel[3] = PID_calc(
+        &MECHANICAL_ARM.pid.joint_angle[3], MECHANICAL_ARM.fdb.pos[3], MECHANICAL_ARM.ref.pos[3]);
+
+    MECHANICAL_ARM.joint_motor[3].set.value = PID_calc(
+        &MECHANICAL_ARM.pid.joint_speed[3], MECHANICAL_ARM.fdb.vel[3], MECHANICAL_ARM.ref.vel[3]);
 }
 
 static void MechanicalArmZeroForceConsole(void)
@@ -457,10 +461,14 @@ static void MechanicalArmZeroForceConsole(void)
     MECHANICAL_ARM.joint_motor[0].set.vel = 0.0f;
     MECHANICAL_ARM.joint_motor[1].set.vel = 0.0f;
     MECHANICAL_ARM.joint_motor[2].set.vel = 0.0f;
+    MECHANICAL_ARM.joint_motor[3].set.vel = 0.0f;
 
     MECHANICAL_ARM.joint_motor[0].set.tor = 0.0f;
     MECHANICAL_ARM.joint_motor[1].set.tor = 0.0f;
     MECHANICAL_ARM.joint_motor[2].set.tor = 0.0f;
+    MECHANICAL_ARM.joint_motor[3].set.tor = 0.0f;
+
+    MECHANICAL_ARM.joint_motor[3].set.value = 0.0f;
 }
 
 static void JointTorqueLimit(void)
@@ -564,6 +572,8 @@ static void ArmFollowSendCmd(void)
         }
         for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
     }
+
+    CanCmdDjiMotor(2, 0x2FF, MECHANICAL_ARM.joint_motor[3].set.value, 0, 0, 0);
 }
 
 static void ArmZeroForceSendCmd(void)
@@ -579,6 +589,8 @@ static void ArmZeroForceSendCmd(void)
 
     CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
     for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
+
+    CanCmdDjiMotor(2, 0x2FF, 0, 0, 0, 0);
 }
 
 #endif /* MECHANICAL_ARM_5_AXIS */
