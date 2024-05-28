@@ -195,6 +195,12 @@ void MechanicalArmSetMode(void)
 
     mode = RemoteControlSetMode();
 
+    if (mode == MECHANICAL_ARM_FOLLOW) {
+        if (!MECHANICAL_ARM.zero_setted) {
+            mode = MECHANICAL_ARM_INIT;
+        }
+    }
+
     if (mode == MECHANICAL_ARM_INIT) {
         if (MECHANICAL_ARM.mode != MECHANICAL_ARM_INIT &&
             MECHANICAL_ARM.mode != MECHANICAL_ARM_SET_ZERO) {  //从其他状态切入
@@ -208,10 +214,6 @@ void MechanicalArmSetMode(void)
 
         if (CheckInitCompleted()) {
             mode = MECHANICAL_ARM_SET_ZERO;
-        }
-    } else if (mode == MECHANICAL_ARM_FOLLOW) {
-        if (!MECHANICAL_ARM.zero_setted) {
-            mode = MECHANICAL_ARM_ZERO_FORCE;
         }
     }
 
