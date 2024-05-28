@@ -102,11 +102,7 @@ void MechanicalArmInit(void)
         &MECHANICAL_ARM.pid.joint_speed[4], PID_POSITION, pid_joint_4_speed, MAX_OUT_JOINT_4_SPEED,
         MAX_IOUT_JOINT_4_SPEED);
 
-    // #First order filter init ---------------------
-    // float num[1] = {10.725709860247969f};
-    // first_order_filter_init(
-    //     &MECHANICAL_ARM.FirstOrderFilter.filter[3], 1.0f / MECHANICAL_ARM_CONTROL_TIME, num);
-
+    // #Low pass filter init ---------------------
     LowPassFilterInit(&MECHANICAL_ARM.FirstOrderFilter.filter[3], 0.015f);
 }
 
@@ -296,9 +292,6 @@ void MechanicalArmObserver(void)
     }
 
     // 低通滤波
-    // first_order_filter_cali(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
-    // MECHANICAL_ARM.fdb.vel[3] = MECHANICAL_ARM.FirstOrderFilter.filter[3].out;
-
     MECHANICAL_ARM.fdb.vel[3] =
         LowPassFilterCalc(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
 
@@ -323,19 +316,6 @@ void MechanicalArmObserver(void)
     OutputPCData.packets[1].data = MECHANICAL_ARM.ref.pos[3];
     OutputPCData.packets[2].data = MECHANICAL_ARM.fdb.vel[3];
     OutputPCData.packets[3].data = MECHANICAL_ARM.ref.vel[3];
-    // OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[3].fdb.vel;
-    // OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
-    // OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
-    // OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
-    // OutputPCData.packets[8].data = MECHANICAL_ARM.joint_motor[2].fdb.tor;
-    // OutputPCData.packets[9].data = MECHANICAL_ARM.mode;
-    // OutputPCData.packets[10].data = MECHANICAL_ARM.zero_setted;
-    // OutputPCData.packets[11].data = MECHANICAL_ARM.fdb.pos[0];
-    // OutputPCData.packets[12].data = MECHANICAL_ARM.fdb.pos[1];
-    // OutputPCData.packets[13].data = MECHANICAL_ARM.fdb.pos[2];
-    // OutputPCData.packets[14].data = MECHANICAL_ARM.ref.pos[0];
-    // OutputPCData.packets[15].data = MECHANICAL_ARM.ref.pos[1];
-    // OutputPCData.packets[16].data = MECHANICAL_ARM.ref.pos[2];
 }
 
 /*-------------------- Reference --------------------*/
