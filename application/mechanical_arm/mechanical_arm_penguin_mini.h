@@ -29,6 +29,7 @@
 #include "struct_typedef.h"
 
 #define MECHANICAL_ARM_STATE_CHANNEL 1  // 机械臂状态切换通道
+#define MECHANICAL_ARM_LINK_CHANNEL 0   // 机械臂控制链路切换通道
 
 // clang-format off
 #define DBUS_ERROR_OFFSET         ((uint8_t)1 << 0)  // dbus错误偏移量
@@ -51,6 +52,12 @@ typedef enum {
     MECHANICAL_ARM_STAY,  // 保持之前状态
 } MechanicalArmMode_e;
 
+typedef enum {
+    LINK_NONE,
+    LINK_REMOTE_CONTROL,
+    LINK_CUSTOM_CONTROLLER,
+} CtrlDataLink_e;
+
 /**
  * @brief 状态、期望和限制值
  */
@@ -69,6 +76,7 @@ typedef struct
 {
     const RC_ctrl_t * rc;      // 遥控器指针
     MechanicalArmMode_e mode;  // 模式
+    CtrlDataLink_e ctrl_link;  // 控制数据链路
     uint8_t error_code;        // 错误码
     bool zero_setted;          // 零点设置标志
 

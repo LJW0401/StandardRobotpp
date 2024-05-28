@@ -32,6 +32,7 @@
 
 static MechanicalArm_s MECHANICAL_ARM = {
     .mode = MECHANICAL_ARM_ZERO_FORCE,
+    .ctrl_link = LINK_NONE,
     .error_code = 0,
     .zero_setted = false,
     .ref =
@@ -157,6 +158,7 @@ void MechanicalArmHandleException(void)
 
 bool CheckInitCompleted(void);
 static MechanicalArmMode_e RemoteControlSetMode(void);
+static void SetCtrlLink(void);
 
 /**
  * @brief          设置模式
@@ -170,6 +172,8 @@ void MechanicalArmSetMode(void)
         return;
     }
 
+    SetCtrlLink();
+
     if ((MECHANICAL_ARM.error_code & JOINT_0_ERROR_OFFSET) ||
         (MECHANICAL_ARM.error_code & JOINT_1_ERROR_OFFSET) ||
         (MECHANICAL_ARM.error_code & JOINT_2_ERROR_OFFSET)) {  // 关节出错时的状态处理
@@ -178,6 +182,11 @@ void MechanicalArmSetMode(void)
     }
 
     if (MECHANICAL_ARM.error_code & POS_MUTATION_ERROR_OFFSET) {  // 位置突变时的状态处理
+        MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
+        return;
+    }
+
+    if (MECHANICAL_ARM.ctrl_link == LINK_NONE) {
         MECHANICAL_ARM.mode = MECHANICAL_ARM_ZERO_FORCE;
         return;
     }
@@ -247,6 +256,17 @@ static MechanicalArmMode_e RemoteControlSetMode(void)
     return MECHANICAL_ARM_ZERO_FORCE;
 }
 
+static void SetCtrlLink(void)
+{
+    if (switch_is_up(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
+        MECHANICAL_ARM.ctrl_link = LINK_CUSTOM_CONTROLLER;
+    } else if (switch_is_mid(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
+        MECHANICAL_ARM.ctrl_link = LINK_REMOTE_CONTROL;
+    } else if (switch_is_down(MECHANICAL_ARM.rc->rc.s[MECHANICAL_ARM_LINK_CHANNEL])) {
+        MECHANICAL_ARM.ctrl_link = LINK_NONE;
+    }
+    MECHANICAL_ARM.ctrl_link = LINK_NONE;
+}
 /*-------------------- Observe --------------------*/
 
 /**
