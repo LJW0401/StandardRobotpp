@@ -4,7 +4,7 @@
 ![Logo](./doc/pic/Logo6.png)
 
 [![Author](https://img.shields.io/badge/Author-小企鹅-orange.svg)](https://gitee.com/Ljw0401)
-[![Author](https://img.shields.io/badge/Author-xxx-orange.svg)](https://gitee.com/Ljw0401)
+[![Author](https://img.shields.io/badge/Author-YZX-orange.svg)](https://gitee.com/yuan-zaixiu)
 
 ![language](https://img.shields.io/badge/language-C-blue.svg)
 ![license](https://img.shields.io/badge/license-MIT-green.svg)
