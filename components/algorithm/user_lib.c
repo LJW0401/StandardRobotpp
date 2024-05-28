@@ -175,7 +175,7 @@ fp32 theta_format(fp32 Ang) { return loop_fp32_constrain(Ang, -PI, PI); }
  * @param[in] duration 周期（1个周期-PI\\~PI, 2个周期-2*PI\\~2*PI, ...）
  * @return    转换后的角度
  */
-fp32 theta_transfrom(fp32 angle, fp32 dangle, int8_t direction, uint8_t duration)
+fp32 theta_transform(fp32 angle, fp32 dangle, int8_t direction, uint8_t duration)
 {
     return loop_fp32_constrain(angle * direction + dangle, -PI * duration, PI * duration);
 }
