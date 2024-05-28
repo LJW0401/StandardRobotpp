@@ -51,7 +51,7 @@
 #define JOINT_MOTOR_3_MODE 0
 #define JOINT_MOTOR_4_MODE 0
 //upper_limit parameters ---------------------
-#define MAX_JOINT_0_POSITION 0.5235987755f  // M_PI/6
+#define MAX_JOINT_0_POSITION 1.07f
 #define MAX_JOINT_1_POSITION 0.0f
 #define MAX_JOINT_2_POSITION 2.2f
 #define MAX_JOINT_3_POSITION 6.283185f
@@ -64,17 +64,17 @@
 #define MIN_JOINT_4_POSITION 0.0f
 //PID parameters ---------------------
 //J3角度环PID参数
-#define KP_JOINT_3_ANGLE 0.0f
-#define KI_JOINT_3_ANGLE 0.0f
-#define KD_JOINT_3_ANGLE 0.0f
-#define MAX_IOUT_JOINT_3_ANGLE 0.0f
-#define MAX_OUT_JOINT_3_ANGLE 0.0f
+#define KP_JOINT_3_ANGLE 10.0f
+#define KI_JOINT_3_ANGLE 1.0f
+#define KD_JOINT_3_ANGLE 0.5f
+#define MAX_IOUT_JOINT_3_ANGLE 1.0f
+#define MAX_OUT_JOINT_3_ANGLE 10.0f
 //J3速度环PID参数
-#define KP_JOINT_3_SPEED 0.0f
-#define KI_JOINT_3_SPEED 0.0f
+#define KP_JOINT_3_SPEED 1000.0f
+#define KI_JOINT_3_SPEED 15.0f
 #define KD_JOINT_3_SPEED 0.0f
-#define MAX_IOUT_JOINT_3_SPEED 0.0f
-#define MAX_OUT_JOINT_3_SPEED 0.0f
+#define MAX_IOUT_JOINT_3_SPEED 3000.0f
+#define MAX_OUT_JOINT_3_SPEED 15000.0f
 //J4角度环PID参数
 #define KP_JOINT_4_ANGLE 0.0f
 #define KI_JOINT_4_ANGLE 0.0f
@@ -98,8 +98,11 @@
 #define JOINT_ZERO_THRESHOLD_RUN 0.2f  //(rad)关节运行时的阈值
 #define J_1_J_2_DELTA_MAX 2.5f         //(rad)关节1和关节2之间的最大差值
 #define J_1_J_2_DELTA_MIN 1.15f        //(rad)关节1和关节2之间的最大差值
-#define J_1_ANGLE_OFFESET 0.0f         //(rad)关节1的角度偏移
-#define J_2_ANGLE_OFFESET 1.0f         //(rad)关节2的角度偏移
+#define J_0_ANGLE_TRANSFORM 0.0f       //(rad)关节0的角度偏移
+#define J_1_ANGLE_TRANSFORM 0.0f       //(rad)关节1的角度偏移
+#define J_2_ANGLE_TRANSFORM 1.0f       //(rad)关节2的角度偏移
+#define J_3_ANGLE_TRANSFORM 3.0f       //(rad)关节3的角度偏移
+#define J_4_ANGLE_TRANSFORM 0.0f       //(rad)关节4的角度偏移
 
 #define JOINT_0_MAX_TORQUE 4.0f  //(N*m)关节0最大输出力矩
 #define JOINT_1_MAX_TORQUE 2.5f  //(N*m)关节1最大输出力矩

@@ -27,6 +27,7 @@
 #include "remote_control.h"
 #include "stdbool.h"
 #include "struct_typedef.h"
+#include "user_lib.h"
 
 #define MECHANICAL_ARM_STATE_CHANNEL 1  // 机械臂状态切换通道
 #define MECHANICAL_ARM_LINK_CHANNEL 0   // 机械臂控制链路切换通道
@@ -65,7 +66,9 @@ typedef struct
 {
     float pos[5];        // (rad) 关节位置
     float pos_delta[5];  // (rad) 关节位置差
+    float vel[5];        // (rad/s) 关节速度
 } Values_t;
+
 typedef struct
 {
     pid_type_def joint_angle[5];
@@ -92,6 +95,10 @@ typedef struct
     bool init_completed[5];  // 初始化完成标志
 
     PID_t pid;  // PID控制器
+
+    struct FirstOrderFilter{
+        LowPassFilter_t filter[5];
+    } FirstOrderFilter;
 
 } MechanicalArm_s;
 
