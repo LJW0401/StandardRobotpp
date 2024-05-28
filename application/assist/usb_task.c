@@ -379,11 +379,11 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.packets[0].name, "pos3");
-    char_to_uint(OutputPCData.packets[1].name, "velfdb");
-    char_to_uint(OutputPCData.packets[2].name, "velset");
-    char_to_uint(OutputPCData.packets[3].name, "value");
-    char_to_uint(OutputPCData.packets[4].name, "vel");
+    char_to_uint(OutputPCData.packets[0].name, "posfdb");
+    char_to_uint(OutputPCData.packets[1].name, "posref");
+    char_to_uint(OutputPCData.packets[2].name, "velfdb");
+    char_to_uint(OutputPCData.packets[3].name, "velref");
+    // char_to_uint(OutputPCData.packets[4].name, "vel");
     // char_to_uint(OutputPCData.packets[5].name, "p_2");
     // char_to_uint(OutputPCData.packets[6].name, "tor_0");
     // char_to_uint(OutputPCData.packets[7].name, "tor_1");

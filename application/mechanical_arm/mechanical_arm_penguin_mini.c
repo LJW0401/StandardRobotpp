@@ -108,7 +108,6 @@ void MechanicalArmInit(void)
     //     &MECHANICAL_ARM.FirstOrderFilter.filter[3], 1.0f / MECHANICAL_ARM_CONTROL_TIME, num);
 
     LowPassFilterInit(&MECHANICAL_ARM.FirstOrderFilter.filter[3], 0.015f);
-
 }
 
 /*-------------------- Handle exception --------------------*/
@@ -300,7 +299,8 @@ void MechanicalArmObserver(void)
     // first_order_filter_cali(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
     // MECHANICAL_ARM.fdb.vel[3] = MECHANICAL_ARM.FirstOrderFilter.filter[3].out;
 
-    MECHANICAL_ARM.fdb.vel[3] = LowPassFilterCalc(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
+    MECHANICAL_ARM.fdb.vel[3] =
+        LowPassFilterCalc(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
 
     // 位置转换
     MECHANICAL_ARM.fdb.pos[0] = theta_transfrom(MECHANICAL_ARM.joint_motor[0].fdb.pos, 0, 1, 1);
@@ -316,11 +316,11 @@ void MechanicalArmObserver(void)
         MECHANICAL_ARM.fdb.pos_delta[i] = MECHANICAL_ARM.fdb.pos[i] - last_pos[i];
     }
 
-    OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[3].fdb.pos;
-    OutputPCData.packets[1].data = MECHANICAL_ARM.fdb.vel[3];
-    OutputPCData.packets[2].data = MECHANICAL_ARM.ref.vel[3];
-    OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[3].set.value;
-    OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[3].fdb.vel;
+    OutputPCData.packets[0].data = MECHANICAL_ARM.fdb.pos[3];
+    OutputPCData.packets[1].data = MECHANICAL_ARM.ref.pos[3];
+    OutputPCData.packets[2].data = MECHANICAL_ARM.fdb.vel[3];
+    OutputPCData.packets[3].data = MECHANICAL_ARM.ref.vel[3];
+    // OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[3].fdb.vel;
     // OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
     // OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
     // OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
@@ -394,7 +394,8 @@ void MechanicalArmReference(void)
 
     // 测试ing
     // MECHANICAL_ARM.ref.vel[3] = GenerateSinWave(2, 0, 10);
-    MECHANICAL_ARM.ref.vel[3] = GeneratePulseWave(0, 3, 3, 3);
+    MECHANICAL_ARM.ref.pos[3] = GenerateSinWave(2, 0, 10);
+    // MECHANICAL_ARM.ref.vel[3] = GeneratePulseWave(0, 3, 3, 3);
 }
 
 /*-------------------- Console --------------------*/
@@ -470,9 +471,11 @@ static void MechanicalArmFollowConsole(void)
     MECHANICAL_ARM.joint_motor[2].mode = CYBERGEAR_MODE_POS;
 
     // 关节3跟随
+    MECHANICAL_ARM.ref.vel[3] = PID_calc(
+        &MECHANICAL_ARM.pid.joint_angle[3], MECHANICAL_ARM.fdb.pos[3], MECHANICAL_ARM.ref.pos[3]);
+
     MECHANICAL_ARM.joint_motor[3].set.value = PID_calc(
         &MECHANICAL_ARM.pid.joint_speed[3], MECHANICAL_ARM.fdb.vel[3], MECHANICAL_ARM.ref.vel[3]);
-    // MECHANICAL_ARM.joint_motor[3].set.value = GenerateSinWave(2500, 0, 4);
 }
 
 static void MechanicalArmZeroForceConsole(void)

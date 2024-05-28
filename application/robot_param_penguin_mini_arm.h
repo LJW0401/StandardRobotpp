@@ -64,11 +64,11 @@
 #define MIN_JOINT_4_POSITION 0.0f
 //PID parameters ---------------------
 //J3角度环PID参数
-#define KP_JOINT_3_ANGLE 0.0f
-#define KI_JOINT_3_ANGLE 0.0f
-#define KD_JOINT_3_ANGLE 0.0f
-#define MAX_IOUT_JOINT_3_ANGLE 0.0f
-#define MAX_OUT_JOINT_3_ANGLE 0.0f
+#define KP_JOINT_3_ANGLE 10.0f
+#define KI_JOINT_3_ANGLE 1.0f
+#define KD_JOINT_3_ANGLE 0.5f
+#define MAX_IOUT_JOINT_3_ANGLE 1.0f
+#define MAX_OUT_JOINT_3_ANGLE 10.0f
 //J3速度环PID参数
 #define KP_JOINT_3_SPEED 1000.0f
 #define KI_JOINT_3_SPEED 15.0f
