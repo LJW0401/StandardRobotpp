@@ -22,6 +22,10 @@
 #define MECHANICAL_ARM_NONE              0  // 无机械臂
 #define MECHANICAL_ARM_PENGUIN_MINI_ARM  1  // 企鹅mini机械臂
 
+// 可用自定义控制器硬件类型
+#define CUSTOM_CONTROLLER_NONE 0          // 无自定义控制器
+#define CUSTOM_CONTROLLER_PENGUIN_MINI 1  // 企鹅mini自定义控制器
+
 // 控制类型（板间通信时用到）
 #define CHASSIS_ONLY       0  // 只控制底盘
 #define GIMBAL_ONLY        1  // 只控制云台
