@@ -300,23 +300,23 @@ void MechanicalArmObserver(void)
         MECHANICAL_ARM.fdb.pos_delta[i] = MECHANICAL_ARM.fdb.pos[i] - last_pos[i];
     }
 
-    OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[0].mode;
-    OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[1].mode;
-    OutputPCData.packets[2].data = MECHANICAL_ARM.joint_motor[2].mode;
-    OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[0].fdb.pos;
-    OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[1].fdb.pos;
-    OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
-    OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
-    OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
-    OutputPCData.packets[8].data = MECHANICAL_ARM.joint_motor[2].fdb.tor;
-    OutputPCData.packets[9].data = MECHANICAL_ARM.mode;
-    OutputPCData.packets[10].data = MECHANICAL_ARM.zero_setted;
-    OutputPCData.packets[11].data = MECHANICAL_ARM.fdb.pos[0];
-    OutputPCData.packets[12].data = MECHANICAL_ARM.fdb.pos[1];
-    OutputPCData.packets[13].data = MECHANICAL_ARM.fdb.pos[2];
-    OutputPCData.packets[14].data = MECHANICAL_ARM.ref.pos[0];
-    OutputPCData.packets[15].data = MECHANICAL_ARM.ref.pos[1];
-    OutputPCData.packets[16].data = MECHANICAL_ARM.ref.pos[2];
+    OutputPCData.packets[0].data = MECHANICAL_ARM.joint_motor[3].fdb.pos;
+    // OutputPCData.packets[1].data = MECHANICAL_ARM.joint_motor[1].mode;
+    // OutputPCData.packets[2].data = MECHANICAL_ARM.joint_motor[2].mode;
+    // OutputPCData.packets[3].data = MECHANICAL_ARM.joint_motor[0].fdb.pos;
+    // OutputPCData.packets[4].data = MECHANICAL_ARM.joint_motor[1].fdb.pos;
+    // OutputPCData.packets[5].data = MECHANICAL_ARM.joint_motor[2].fdb.pos;
+    // OutputPCData.packets[6].data = MECHANICAL_ARM.joint_motor[0].fdb.tor;
+    // OutputPCData.packets[7].data = MECHANICAL_ARM.joint_motor[1].fdb.tor;
+    // OutputPCData.packets[8].data = MECHANICAL_ARM.joint_motor[2].fdb.tor;
+    // OutputPCData.packets[9].data = MECHANICAL_ARM.mode;
+    // OutputPCData.packets[10].data = MECHANICAL_ARM.zero_setted;
+    // OutputPCData.packets[11].data = MECHANICAL_ARM.fdb.pos[0];
+    // OutputPCData.packets[12].data = MECHANICAL_ARM.fdb.pos[1];
+    // OutputPCData.packets[13].data = MECHANICAL_ARM.fdb.pos[2];
+    // OutputPCData.packets[14].data = MECHANICAL_ARM.ref.pos[0];
+    // OutputPCData.packets[15].data = MECHANICAL_ARM.ref.pos[1];
+    // OutputPCData.packets[16].data = MECHANICAL_ARM.ref.pos[2];
 }
 
 /*-------------------- Reference --------------------*/
@@ -342,7 +342,7 @@ void MechanicalArmReference(void)
         MECHANICAL_ARM.ref.pos[0] = MECHANICAL_ARM.rc->rc.ch[4] * RC_TO_ONE * MAX_JOINT_0_POSITION;
         MECHANICAL_ARM.ref.pos[1] = MECHANICAL_ARM.rc->rc.ch[1] * RC_TO_ONE * (-M_PI_2);
         MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.rc->rc.ch[3] * RC_TO_ONE * (-M_PI_2 - 0.6f);
-        MECHANICAL_ARM.ref.pos[3] = M_PI_2;
+        MECHANICAL_ARM.ref.pos[3] = MECHANICAL_ARM.rc->rc.ch[2] * RC_TO_ONE * (-M_PI_2);
         MECHANICAL_ARM.ref.pos[4] = M_PI_2;
     } else if (MECHANICAL_ARM.ctrl_link == LINK_CUSTOM_CONTROLLER) {
         MECHANICAL_ARM.ref.pos[0] = theta_transfrom(yaw, 0, 1, 1);
@@ -375,9 +375,6 @@ void MechanicalArmReference(void)
     } else if (MECHANICAL_ARM.ref.pos[2] - MECHANICAL_ARM.fdb.pos[1] < J_1_J_2_DELTA_MIN) {
         MECHANICAL_ARM.ref.pos[2] = MECHANICAL_ARM.fdb.pos[1] + J_1_J_2_DELTA_MIN;
     }
-
-    // EngineerCustomControllerData_t engineer_custom_controller_data;
-    // EngineeringCustomControllerRxDecode(&engineer_custom_controller_data);
 }
 
 /*-------------------- Console --------------------*/
@@ -408,6 +405,8 @@ void MechanicalArmConsole(void)
     }
 
     JointTorqueLimit();
+
+    MECHANICAL_ARM.joint_motor[3].set.value = 1000;
 }
 
 static void MechanicalArmInitConsole(void)
@@ -564,6 +563,8 @@ static void ArmFollowSendCmd(void)
         }
         for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[1], 0X302d);
     }
+    
+    CanCmdDjiMotor(2, 0x2FF, MECHANICAL_ARM.joint_motor[3].set.value, 0, 0, 0);
 }
 
 static void ArmZeroForceSendCmd(void)
@@ -579,6 +580,8 @@ static void ArmZeroForceSendCmd(void)
 
     CybergearTorqueControl(&MECHANICAL_ARM.joint_motor[2]);
     for (int i = 0; i < 1; i++) CybergearReadParam(&MECHANICAL_ARM.joint_motor[2], 0X302d);
+
+    CanCmdDjiMotor(2, 0x2FF, 0, 0, 0, 0);
 }
 
 #endif /* MECHANICAL_ARM_5_AXIS */
