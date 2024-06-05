@@ -245,29 +245,12 @@ void ChassisSetMode(void)
         return;
     }
 
-    // if (CHASSIS.state == CHASSIS_STATE_ERROR) {  //底盘出错时的状态处理
-    //     if ((CHASSIS.error_code | JOINT_ERROR_OFFSET) ||
-    //         (CHASSIS.error_code | WHEEL_ERROR_OFFSET)) {
-    //         CHASSIS.mode = CHASSIS_OFF;
-    //     }
-    //     return;
-    // }
-
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_AUTO;
     } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        CHASSIS.mode = CHASSIS_FOLLOW_GIMBAL_YAW;
+        CHASSIS.mode = CHASSIS_CALIBRATE;  // use for test, delete when release
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        CHASSIS.mode = CHASSIS_FREE;
-    }
-
-    // use for test, delete when release
-    if (switch_is_up(CHASSIS.rc->rc.s[1])) {
-        CHASSIS.mode = CHASSIS_CALIBRATE;
-    } else if (switch_is_mid(CHASSIS.rc->rc.s[1])) {
-        ;
-    } else if (switch_is_down(CHASSIS.rc->rc.s[1])) {
-        ;
+        CHASSIS.mode = CHASSIS_ZERO_FORCE;
     }
 }
 
@@ -306,25 +289,24 @@ void ChassisObserver(void)
     CHASSIS.fdb.phi_dot = CHASSIS.imu->pitch_vel;
     // clang-format on
 
-    // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
-    OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.pos;
-    OutputPCData.packets[1].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, 1, 1);
-    OutputPCData.packets[2].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, -1, 1);
-    OutputPCData.packets[3].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI / 4, 1, 1);
-    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.pos;
-    OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
-    OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
-    OutputPCData.packets[7].data = CHASSIS.joint_motor[2].fdb.pos;
-    OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
-    OutputPCData.packets[9].data = CHASSIS.imu->pitch;
-    OutputPCData.packets[10].data = CHASSIS.imu->pitch_vel;
-    OutputPCData.packets[11].data = CHASSIS.imu->roll;
-    OutputPCData.packets[12].data = CHASSIS.imu->roll_vel;
-    OutputPCData.packets[13].data = CHASSIS.imu->yaw;
-    OutputPCData.packets[14].data = CHASSIS.imu->yaw_vel;
-    OutputPCData.packets[15].data = CHASSIS.imu->x_accel;
-    OutputPCData.packets[16].data = CHASSIS.imu->y_accel;
-    OutputPCData.packets[17].data = CHASSIS.imu->z_accel;
+    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.pos;
+    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.pos;
+    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.pos;
+    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.pos;
+    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].fdb.tor;
+    OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
+    OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
+    OutputPCData.packets[7].data = CHASSIS.joint_motor[3].fdb.tor;
+    // OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
+    // OutputPCData.packets[9].data = CHASSIS.imu->pitch;
+    // OutputPCData.packets[10].data = CHASSIS.imu->pitch_vel;
+    // OutputPCData.packets[11].data = CHASSIS.imu->roll;
+    // OutputPCData.packets[12].data = CHASSIS.imu->roll_vel;
+    // OutputPCData.packets[13].data = CHASSIS.imu->yaw;
+    // OutputPCData.packets[14].data = CHASSIS.imu->yaw_vel;
+    // OutputPCData.packets[15].data = CHASSIS.imu->x_accel;
+    // OutputPCData.packets[16].data = CHASSIS.imu->y_accel;
+    // OutputPCData.packets[17].data = CHASSIS.imu->z_accel;
 }
 
 /**
@@ -645,13 +627,13 @@ static void ConsoleZeroForce(void)
 
 static void ConsoleCalibrate(void)
 {
-    CHASSIS.joint_motor[0].set.pos = 0;
-    CHASSIS.joint_motor[1].set.pos = 0;
-    CHASSIS.joint_motor[2].set.pos = 0;
-    CHASSIS.joint_motor[3].set.pos = 0;
+    CHASSIS.joint_motor[0].set.vel = CHASSIS.rc->rc.ch[0] * RC_TO_ONE;
+    CHASSIS.joint_motor[1].set.vel = CHASSIS.rc->rc.ch[1] * RC_TO_ONE;
+    CHASSIS.joint_motor[2].set.vel = CHASSIS.rc->rc.ch[2] * RC_TO_ONE;
+    CHASSIS.joint_motor[3].set.vel = CHASSIS.rc->rc.ch[3] * RC_TO_ONE;
 
-    CHASSIS.wheel_motor[0].set.pos = 0;
-    CHASSIS.wheel_motor[0].set.pos = 0;
+    CHASSIS.wheel_motor[0].set.tor = 0;
+    CHASSIS.wheel_motor[0].set.tor = 0;
 }
 
 static void ConsoleNormal(void)
@@ -711,11 +693,23 @@ static void SendJointMotorCmd(void)
             delay_us(200);
         }
 
-        DmMitCtrlPosition(&CHASSIS.joint_motor[0], 2, 1);
-        DmMitCtrlPosition(&CHASSIS.joint_motor[1], 2, 1);
-        delay_us(200);
-        DmMitCtrlPosition(&CHASSIS.joint_motor[2], 2, 1);
-        DmMitCtrlPosition(&CHASSIS.joint_motor[3], 2, 1);
+        switch (CHASSIS.mode) {
+            case CHASSIS_CALIBRATE: {
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], 2);
+                delay_us(200);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], 2);
+            } break;
+            case CHASSIS_ZERO_FORCE:
+            default: {
+                DmMitCtrlTorque(&CHASSIS.joint_motor[0]);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[1]);
+                delay_us(200);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
+            }
+        }
     }
 }
 

@@ -379,14 +379,14 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.packets[0].name, "posfdb");
-    char_to_uint(OutputPCData.packets[1].name, "posref");
-    char_to_uint(OutputPCData.packets[2].name, "velfdb");
-    char_to_uint(OutputPCData.packets[3].name, "velref");
-    // char_to_uint(OutputPCData.packets[4].name, "vel");
-    // char_to_uint(OutputPCData.packets[5].name, "p_2");
-    // char_to_uint(OutputPCData.packets[6].name, "tor_0");
-    // char_to_uint(OutputPCData.packets[7].name, "tor_1");
+    char_to_uint(OutputPCData.packets[0].name, "posfdb0");
+    char_to_uint(OutputPCData.packets[1].name, "posfdb1");
+    char_to_uint(OutputPCData.packets[2].name, "posfdb2");
+    char_to_uint(OutputPCData.packets[3].name, "posfdb3");
+    char_to_uint(OutputPCData.packets[4].name, "torfdb0");
+    char_to_uint(OutputPCData.packets[5].name, "torfdb1");
+    char_to_uint(OutputPCData.packets[6].name, "torfdb2");
+    char_to_uint(OutputPCData.packets[7].name, "torfdb3");
     // char_to_uint(OutputPCData.packets[8].name, "tor_2");
     // char_to_uint(OutputPCData.packets[9].name, "mode");
     // char_to_uint(OutputPCData.packets[10].name, "zeroseted");
@@ -396,10 +396,10 @@ static void usb_send_outputPC(uint8_t t)
     // char_to_uint(OutputPCData.packets[14].name, "refpos_0");
     // char_to_uint(OutputPCData.packets[15].name, "refpos_1");
     // char_to_uint(OutputPCData.packets[16].name, "refpos_2");
-    char_to_uint(OutputPCData.packets[17].name, "data1");
-    char_to_uint(OutputPCData.packets[18].name, "data2");
-    char_to_uint(OutputPCData.packets[19].name, "data3");
-    char_to_uint(OutputPCData.packets[20].name, "data4");
+    // char_to_uint(OutputPCData.packets[17].name, "data1");
+    // char_to_uint(OutputPCData.packets[18].name, "data2");
+    // char_to_uint(OutputPCData.packets[19].name, "data3");
+    // char_to_uint(OutputPCData.packets[20].name, "data4");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));
