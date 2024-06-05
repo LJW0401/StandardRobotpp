@@ -260,6 +260,15 @@ void ChassisSetMode(void)
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_FREE;
     }
+
+    // use for test, delete when release
+    if (switch_is_up(CHASSIS.rc->rc.s[1])) {
+        CHASSIS.mode = CHASSIS_CALIBRATE;
+    } else if (switch_is_mid(CHASSIS.rc->rc.s[1])) {
+        ;
+    } else if (switch_is_down(CHASSIS.rc->rc.s[1])) {
+        ;
+    }
 }
 
 /*-------------------- Observe --------------------*/
