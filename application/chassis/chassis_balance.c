@@ -299,9 +299,9 @@ void ChassisObserver(void)
 
     // CHASSIS.dyaw = (CHASSIS.yaw_motor.motor_measure->ecd * DJI_GM6020_ECD_TO_RAD - CHASSIS.yaw_mid);
     OutputPCData.packets[0].data = CHASSIS.wheel_motor[0].fdb.pos;
-    OutputPCData.packets[1].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, 1);
-    OutputPCData.packets[2].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, -1);
-    OutputPCData.packets[3].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI / 4, 1);
+    OutputPCData.packets[1].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, 1, 1);
+    OutputPCData.packets[2].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI_2, -1, 1);
+    OutputPCData.packets[3].data = theta_transform(CHASSIS.wheel_motor[0].fdb.pos, M_PI / 4, 1, 1);
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].set.pos;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[1].fdb.pos;
