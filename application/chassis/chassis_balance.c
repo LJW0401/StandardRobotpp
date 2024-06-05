@@ -29,6 +29,15 @@
 
 #define LOCATION_CONTROL
 
+#define CALIBRATE_STOP_VELOCITY 0.05f  // rad/s
+#define CALIBRATE_STOP_TIME 50         // ms
+
+static Calibrate_s CALIBRATE = {
+    .velocity = {0.0f, 0.0f, 0.0f, 0.0f},
+    .stpo_time = {0, 0, 0, 0},
+    .reached = {false, false, false, false},
+};
+
 static Chassis_s CHASSIS = {
     .mode = CHASSIS_OFF,
     .state = CHASSIS_STATE_ERROR,
@@ -246,7 +255,7 @@ void ChassisSetMode(void)
     }
 
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        CHASSIS.mode = CHASSIS_AUTO;
+        CHASSIS.mode = CHASSIS_DEBUG;
     } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_CALIBRATE;  // use for test, delete when release
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
@@ -289,6 +298,21 @@ void ChassisObserver(void)
     CHASSIS.fdb.phi_dot = CHASSIS.imu->pitch_vel;
     // clang-format on
 
+    uint32_t now = HAL_GetTick();
+    if (CHASSIS.mode == CHASSIS_CALIBRATE) {
+        for (uint8_t i = 0; i < 4; i++) {
+            CALIBRATE.velocity[i] = CHASSIS.joint_motor[i].fdb.vel;
+            if (CALIBRATE.velocity[i] > CALIBRATE_STOP_VELOCITY) {  // 速度大于阈值时重置计时
+                CALIBRATE.reached[i] = false;
+                CALIBRATE.stpo_time[i] = now;
+            } else {
+                if (now - CALIBRATE.stpo_time[i] > CALIBRATE_STOP_TIME) {
+                    CALIBRATE.reached[i] = true;
+                }
+            }
+        }
+    }
+
     OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.pos;
     OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.pos;
@@ -297,14 +321,14 @@ void ChassisObserver(void)
     OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[3].fdb.tor;
-    // OutputPCData.packets[8].data = CHASSIS.joint_motor[3].fdb.pos;
-    // OutputPCData.packets[9].data = CHASSIS.imu->pitch;
-    // OutputPCData.packets[10].data = CHASSIS.imu->pitch_vel;
-    // OutputPCData.packets[11].data = CHASSIS.imu->roll;
-    // OutputPCData.packets[12].data = CHASSIS.imu->roll_vel;
-    // OutputPCData.packets[13].data = CHASSIS.imu->yaw;
-    // OutputPCData.packets[14].data = CHASSIS.imu->yaw_vel;
-    // OutputPCData.packets[15].data = CHASSIS.imu->x_accel;
+    OutputPCData.packets[8].data = CALIBRATE.reached[0];
+    OutputPCData.packets[9].data = CALIBRATE.reached[1];
+    OutputPCData.packets[10].data = CALIBRATE.reached[2];
+    OutputPCData.packets[11].data = CALIBRATE.reached[3];
+    OutputPCData.packets[12].data = CHASSIS.joint_motor[0].fdb.vel;
+    OutputPCData.packets[13].data = CHASSIS.joint_motor[1].fdb.vel;
+    OutputPCData.packets[14].data = CHASSIS.joint_motor[2].fdb.vel;
+    OutputPCData.packets[15].data = CHASSIS.joint_motor[3].fdb.vel;
     // OutputPCData.packets[16].data = CHASSIS.imu->y_accel;
     // OutputPCData.packets[17].data = CHASSIS.imu->z_accel;
 }
@@ -465,6 +489,7 @@ static void SetK(float leg_length, float k[2][6]);
 static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
 
 static void ConsoleZeroForce(void);
+static void ConsoleDebug(void);
 static void ConsoleCalibrate(void);
 static void ConsoleNormal(void);
 
@@ -484,6 +509,9 @@ void ChassisConsole(void)
         case CHASSIS_SPIN:
         case CHASSIS_FREE: {
             ConsoleNormal();
+        }
+        case CHASSIS_DEBUG: {
+            ConsoleDebug();
         }
         case CHASSIS_ZERO_FORCE:
         default: {
@@ -627,6 +655,17 @@ static void ConsoleZeroForce(void)
 
 static void ConsoleCalibrate(void)
 {
+    CHASSIS.joint_motor[0].set.vel = 1;
+    CHASSIS.joint_motor[1].set.vel = -1;
+    CHASSIS.joint_motor[2].set.vel = -1;
+    CHASSIS.joint_motor[3].set.vel = 1;
+
+    CHASSIS.wheel_motor[0].set.tor = 0;
+    CHASSIS.wheel_motor[0].set.tor = 0;
+}
+
+static void ConsoleDebug(void)
+{
     CHASSIS.joint_motor[0].set.vel = CHASSIS.rc->rc.ch[0] * RC_TO_ONE;
     CHASSIS.joint_motor[1].set.vel = CHASSIS.rc->rc.ch[1] * RC_TO_ONE;
     CHASSIS.joint_motor[2].set.vel = CHASSIS.rc->rc.ch[2] * RC_TO_ONE;
@@ -695,6 +734,13 @@ static void SendJointMotorCmd(void)
 
         switch (CHASSIS.mode) {
             case CHASSIS_CALIBRATE: {
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], 2);
+                delay_us(200);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], 2);
+            } break;
+            case CHASSIS_DEBUG: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], 2);
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[1], 2);
                 delay_us(200);

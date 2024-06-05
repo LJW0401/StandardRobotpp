@@ -46,7 +46,8 @@ typedef enum {
     CHASSIS_FREE,  // 底盘不跟随云台
     CHASSIS_SPIN,  // 底盘小陀螺模式
     CHASSIS_AUTO,  // 底盘自动模式
-    CHASSIS_OPEN   // 遥控器的值乘以比例成电流值开环控制
+    CHASSIS_OPEN,  // 遥控器的值乘以比例成电流值开环控制
+    CHASSIS_DEBUG  // 调试模式
 } ChassisMode_e;
 
 typedef struct
@@ -152,6 +153,13 @@ typedef struct
     float dyaw;  // (rad)(feedback)当前位置与云台中值角度差（用于坐标转换）
     uint16_t yaw_mid;  // (ecd)(preset)云台中值角度
 } Chassis_s;
+
+typedef struct Calibrate
+{
+    float velocity[4];      //关节电机速度
+    uint32_t stpo_time[4];  //停止时间
+    bool reached[4];        //是否到达限位
+} Calibrate_s;
 
 extern void ChassisInit(void);
 
