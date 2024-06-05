@@ -482,6 +482,10 @@ static void LegController(float F[2]);
 static void SetK(float leg_length, float k[2][6]);
 static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
 
+static void ConsoleZeroForce(void);
+static void ConsoleCalibrate(void);
+static void ConsoleNormal(void);
+
 /**
  * @brief          计算控制量
  * @param[in]      none
@@ -490,33 +494,19 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
 void ChassisConsole(void)
 {
     switch (CHASSIS.mode) {
-        case CHASSIS_ZERO_FORCE:
-            break;
-        default: {
-            float tp[2], t[2];
-            LocomotionController(tp, t);
-#ifdef LOCATION_CONTROL
-            double joint_pos_l[2], joint_pos_r[2];
-            LegController(joint_pos_l, joint_pos_r);
-#else
-            LegController(float F[2]);
-#endif
-            break;
+        case CHASSIS_CALIBRATE: {
+            ConsoleCalibrate();
+        } break;
+        case CHASSIS_FOLLOW_GIMBAL_YAW:
+        case CHASSIS_STOP:
+        case CHASSIS_SPIN:
+        case CHASSIS_FREE: {
+            ConsoleNormal();
         }
-    }
-
-    for (uint8_t i = 0; i < 4; i++) {
-        CHASSIS.joint_motor[i].set.pos = GenerateSinWave(1, 0, 2);
-        CHASSIS.joint_motor[i].set.tor = 0;
-        CHASSIS.joint_motor[i].set.vel = 0;
-        CHASSIS.joint_motor[i].set.curr = 0;
-    }
-
-    for (uint8_t i = 0; i < 2; i++) {
-        CHASSIS.wheel_motor[i].set.pos = 0;
-        CHASSIS.wheel_motor[i].set.tor = 0;  //GenerateSinWave(0.3, 0, 2);
-        CHASSIS.wheel_motor[i].set.vel = 0;
-        CHASSIS.wheel_motor[i].set.curr = 0;
+        case CHASSIS_ZERO_FORCE:
+        default: {
+            ConsoleZeroForce();
+        }
     }
 }
 
@@ -639,6 +629,42 @@ static void LegController(float F[2])
     F[1] = CHASSIS.pid.leg_length_right_length.out + fdf_right - CHASSIS.pid.roll_velocity.out;
 }
 #endif
+
+//* 各个模式下的控制
+
+static void ConsoleZeroForce(void)
+{
+    CHASSIS.joint_motor[0].set.tor = 0;
+    CHASSIS.joint_motor[1].set.tor = 0;
+    CHASSIS.joint_motor[2].set.tor = 0;
+    CHASSIS.joint_motor[3].set.tor = 0;
+
+    CHASSIS.wheel_motor[0].set.tor = 0;
+    CHASSIS.wheel_motor[0].set.tor = 0;
+}
+
+static void ConsoleCalibrate(void)
+{
+    CHASSIS.joint_motor[0].set.pos = 0;
+    CHASSIS.joint_motor[1].set.pos = 0;
+    CHASSIS.joint_motor[2].set.pos = 0;
+    CHASSIS.joint_motor[3].set.pos = 0;
+
+    CHASSIS.wheel_motor[0].set.pos = 0;
+    CHASSIS.wheel_motor[0].set.pos = 0;
+}
+
+static void ConsoleNormal(void)
+{
+    float tp[2], t[2];
+    LocomotionController(tp, t);
+#ifdef LOCATION_CONTROL
+    double joint_pos_l[2], joint_pos_r[2];
+    LegController(joint_pos_l, joint_pos_r);
+#else
+    LegController(float F[2]);
+#endif
+}
 
 /*-------------------- Cmd --------------------*/
 static void SendJointMotorCmd(void);
