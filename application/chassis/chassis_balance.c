@@ -31,7 +31,7 @@
 
 #define CALIBRATE_STOP_VELOCITY 0.05f  // rad/s
 #define CALIBRATE_STOP_TIME 50         // ms
-#define CALIBRATE_VELOCITY 1.0f        // rad/s
+#define CALIBRATE_VELOCITY 2.0f        // rad/s
 
 static Calibrate_s CALIBRATE = {
     .velocity = {0.0f, 0.0f, 0.0f, 0.0f},
@@ -665,6 +665,11 @@ static void ConsoleZeroForce(void)
     CHASSIS.joint_motor[2].set.tor = 0;
     CHASSIS.joint_motor[3].set.tor = 0;
 
+    CHASSIS.joint_motor[0].set.vel = 0;
+    CHASSIS.joint_motor[1].set.vel = 0;
+    CHASSIS.joint_motor[2].set.vel = 0;
+    CHASSIS.joint_motor[3].set.vel = 0;
+
     CHASSIS.wheel_motor[0].set.tor = 0;
     CHASSIS.wheel_motor[0].set.tor = 0;
 }
@@ -704,6 +709,11 @@ static void ConsoleNormal(void)
 }
 
 /*-------------------- Cmd --------------------*/
+
+#define CALIBRATE_VEL_KP 2.5f
+
+#define ZERO_FORCE_VEL_KP 0.5f
+
 static void SendJointMotorCmd(void);
 static void SendWheelMotorCmd(void);
 
@@ -750,11 +760,11 @@ static void SendJointMotorCmd(void)
 
         switch (CHASSIS.mode) {
             case CHASSIS_CALIBRATE: {
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], 2);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], CALIBRATE_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], CALIBRATE_VEL_KP);
                 delay_us(200);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], 2);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], CALIBRATE_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], CALIBRATE_VEL_KP);
             } break;
             case CHASSIS_DEBUG: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], 2);
@@ -765,11 +775,11 @@ static void SendJointMotorCmd(void)
             } break;
             case CHASSIS_ZERO_FORCE:
             default: {
-                DmMitCtrlTorque(&CHASSIS.joint_motor[0]);
-                DmMitCtrlTorque(&CHASSIS.joint_motor[1]);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], ZERO_FORCE_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], ZERO_FORCE_VEL_KP);
                 delay_us(200);
-                DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
-                DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], ZERO_FORCE_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], ZERO_FORCE_VEL_KP);
             }
         }
     }
