@@ -31,6 +31,7 @@
 
 #define CALIBRATE_STOP_VELOCITY 0.05f  // rad/s
 #define CALIBRATE_STOP_TIME 50         // ms
+#define CALIBRATE_VELOCITY 1.0f        // rad/s
 
 static Calibrate_s CALIBRATE = {
     .velocity = {0.0f, 0.0f, 0.0f, 0.0f},
@@ -670,10 +671,10 @@ static void ConsoleZeroForce(void)
 
 static void ConsoleCalibrate(void)
 {
-    CHASSIS.joint_motor[0].set.vel = 1;
-    CHASSIS.joint_motor[1].set.vel = -1;
-    CHASSIS.joint_motor[2].set.vel = -1;
-    CHASSIS.joint_motor[3].set.vel = 1;
+    CHASSIS.joint_motor[0].set.vel = -CALIBRATE_VELOCITY;
+    CHASSIS.joint_motor[1].set.vel = CALIBRATE_VELOCITY;
+    CHASSIS.joint_motor[2].set.vel = CALIBRATE_VELOCITY;
+    CHASSIS.joint_motor[3].set.vel = -CALIBRATE_VELOCITY;
 
     CHASSIS.wheel_motor[0].set.tor = 0;
     CHASSIS.wheel_motor[0].set.tor = 0;
