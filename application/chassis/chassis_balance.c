@@ -238,6 +238,15 @@ void ChassisHandleException(void)
     } else {
         CHASSIS.error_code &= ~DBUS_ERROR_OFFSET;
     }
+
+    for (uint8_t i = 0; i < 4; i++) {
+        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > 2.0f) {
+            CHASSIS.error_code |= JOINT_ERROR_OFFSET;
+            break;
+        } else {
+            CHASSIS.error_code &= ~JOINT_ERROR_OFFSET;
+        }
+    }
 }
 
 /*-------------------- Set mode --------------------*/
@@ -251,6 +260,11 @@ void ChassisSetMode(void)
 {
     if (CHASSIS.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
         CHASSIS.mode = CHASSIS_OFF;
+        return;
+    }
+
+    if (CHASSIS.error_code & JOINT_ERROR_OFFSET) {  // 关节电机出错时的状态处理
+        CHASSIS.mode = CHASSIS_ZERO_FORCE;
         return;
     }
 
@@ -513,6 +527,7 @@ void ChassisConsole(void)
         case CHASSIS_DEBUG: {
             ConsoleDebug();
         }
+        case CHASSIS_OFF:
         case CHASSIS_ZERO_FORCE:
         default: {
             ConsoleZeroForce();
