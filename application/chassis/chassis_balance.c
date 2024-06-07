@@ -261,7 +261,7 @@ void ChassisSetMode(void)
     }
 
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        CHASSIS.mode = CHASSIS_DEBUG;
+        CHASSIS.mode = CHASSIS_FREE;
     } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_DEBUG;  // use for test, delete when release
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
@@ -628,17 +628,19 @@ static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 static void LegController(float F[2])
 {
     PID_calc(
-        &CHASSIS.pid.leg_length_left_length, CHASSIS.fdb.leg_l.length, CHASSIS.ref.leg_l.length);
-    float theta_l = CHASSIS.fdb.leg_l.angle - M_PI_2 - CHASSIS.imu.pitch;
-    float fdf_left = LegFeedforward(CHASSIS.fdb.x[0]);
+        &CHASSIS.pid.leg_length_left_length, CHASSIS.fdb.leg[0].rod.Length,
+        CHASSIS.ref.leg[0].rod.Length);
+    float theta_l = CHASSIS.fdb.leg[0].rod.Angle - M_PI_2 - CHASSIS.imu->pitch;
+    float fdf_left = LegFeedforward(theta_l);
 
     PID_calc(
-        &CHASSIS.pid.leg_length_right_length, CHASSIS.fdb.leg_r.length, CHASSIS.ref.leg_r.length);
-    float theta_r = CHASSIS.fdb.leg_r.angle - M_PI_2 - CHASSIS.imu.pitch;
-    float fdf_right = LegFeedforward(CHASSIS.fdb.x[1]);
+        &CHASSIS.pid.leg_length_right_length, CHASSIS.fdb.leg[1].rod.Length,
+        CHASSIS.ref.leg[1].rod.Length);
+    float theta_r = CHASSIS.fdb.leg[1].rod.Angle - M_PI_2 - CHASSIS.imu->pitch;
+    float fdf_right = LegFeedforward(theta_r);
 
-    PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);
-    PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, CHASSIS.pid.roll_angle.out);
+    // PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);
+    // PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, CHASSIS.pid.roll_angle.out);
 
     F[0] = CHASSIS.pid.leg_length_left_length.out + fdf_left + CHASSIS.pid.roll_velocity.out;
     F[1] = CHASSIS.pid.leg_length_right_length.out + fdf_right - CHASSIS.pid.roll_velocity.out;
@@ -693,7 +695,8 @@ static void ConsoleNormal(void)
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
 #else
-    LegController(float F[2]);
+    float F[2];
+    LegController(F);
 #endif
 }
 
@@ -702,6 +705,9 @@ static void ConsoleNormal(void)
 #define CALIBRATE_VEL_KP 4.0f
 #define DEBUG_VEL_KP 4.0f
 #define ZERO_FORCE_VEL_KP 1.0f
+
+#define NORMAL_POS_KP 4.0f
+#define NORMAL_POS_KD 1.0f
 
 static void SendJointMotorCmd(void);
 static void SendWheelMotorCmd(void);
@@ -748,6 +754,24 @@ static void SendJointMotorCmd(void)
         }
 
         switch (CHASSIS.mode) {
+            case CHASSIS_FOLLOW_GIMBAL_YAW:
+            case CHASSIS_STOP:
+            case CHASSIS_SPIN:
+            case CHASSIS_FREE: {
+#ifdef LOCATION_CONTROL
+                DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
+                delay_us(200);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[2], NORMAL_POS_KP, NORMAL_POS_KD);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[3], NORMAL_POS_KP, NORMAL_POS_KD);
+#else
+                DmMitCtrlTorque(&CHASSIS.joint_motor[0]);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[1]);
+                delay_us(200);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
+#endif
+            } break;
             case CHASSIS_CALIBRATE: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], CALIBRATE_VEL_KP);
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[1], CALIBRATE_VEL_KP);
