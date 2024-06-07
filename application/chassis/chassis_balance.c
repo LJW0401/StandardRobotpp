@@ -350,15 +350,15 @@ void ChassisObserver(void)
     OutputPCData.packets[9].data = CHASSIS.fdb.leg[0].joint.Angle[1];
     OutputPCData.packets[10].data = CHASSIS.fdb.leg[1].joint.Angle[0];
     OutputPCData.packets[11].data = CHASSIS.fdb.leg[1].joint.Angle[1];
-    OutputPCData.packets[12].data = CHASSIS.fdb.leg[0].rod.dAngle;
-    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.dLength;
-    OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.dAngle;
-    OutputPCData.packets[15].data = CHASSIS.fdb.leg[1].rod.dLength;
-    OutputPCData.packets[16].data = CHASSIS.rc->rc.ch[0];
-    OutputPCData.packets[17].data = CHASSIS.rc->rc.ch[1];
-    OutputPCData.packets[18].data = CHASSIS.rc->rc.ch[2];
-    OutputPCData.packets[19].data = CHASSIS.rc->rc.ch[3];
-    OutputPCData.packets[20].data = CHASSIS.mode;
+    // OutputPCData.packets[12].data = CHASSIS.joint_motor[0].set.pos;
+    // OutputPCData.packets[13].data = CHASSIS.joint_motor[1].set.pos;
+    // OutputPCData.packets[14].data = CHASSIS.joint_motor[2].set.pos;
+    // OutputPCData.packets[15].data = CHASSIS.joint_motor[3].set.pos;
+    // OutputPCData.packets[16].data = CHASSIS.rc->rc.ch[0];
+    // OutputPCData.packets[17].data = CHASSIS.rc->rc.ch[1];
+    // OutputPCData.packets[18].data = CHASSIS.rc->rc.ch[2];
+    // OutputPCData.packets[19].data = CHASSIS.rc->rc.ch[3];
+    // OutputPCData.packets[20].data = CHASSIS.mode;
 }
 
 /**
@@ -478,9 +478,18 @@ void ChassisReference(void)
     CHASSIS.ref.phi_dot   = 0;
     // clang-format on
 
-    float length = 0.2f;
+    // TODO:用于测试，后续删除
+    float length = CHASSIS.rc->rc.ch[1] * RC_TO_ONE * (MAX_LEG_LENGTH - MIN_LEG_LENGTH) / 2 +
+                   (MAX_LEG_LENGTH + MIN_LEG_LENGTH) / 2;
     CHASSIS.ref.leg[0].rod.Length = length;
     CHASSIS.ref.leg[1].rod.Length = length;
+
+    float angle = CHASSIS.rc->rc.ch[3] * RC_TO_ONE * M_PI / 6 + M_PI_2;
+    CHASSIS.ref.leg[0].rod.Angle = angle;
+    CHASSIS.ref.leg[1].rod.Angle = angle;
+
+    OutputPCData.packets[20].data = length;
+    OutputPCData.packets[21].data = angle;
 }
 
 /*-------------------- Console --------------------*/
@@ -616,9 +625,8 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
-    for (uint8_t i = 0; i < 2; i++) {
-        LegIKine(CHASSIS.ref.leg[i].rod.Length, CHASSIS.ref.leg[i].rod.Angle, joint_pos_l);
-    }
+    LegIKine(CHASSIS.ref.leg[0].rod.Length, CHASSIS.ref.leg[0].rod.Angle, joint_pos_l);
+    LegIKine(CHASSIS.ref.leg[1].rod.Length, CHASSIS.ref.leg[1].rod.Angle, joint_pos_r);
 }
 #else
 /**
@@ -694,10 +702,33 @@ static void ConsoleNormal(void)
 #ifdef LOCATION_CONTROL
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
+
+    CHASSIS.joint_motor[0].set.pos =
+        theta_transform(joint_pos_l[1], -J0_ANGLE_OFFSET, J0_DIRECTION, 1);
+    CHASSIS.joint_motor[1].set.pos =
+        theta_transform(joint_pos_l[0], -J1_ANGLE_OFFSET, J1_DIRECTION, 1);
+    CHASSIS.joint_motor[2].set.pos =
+        theta_transform(joint_pos_r[1], -J2_ANGLE_OFFSET, J2_DIRECTION, 1);
+    CHASSIS.joint_motor[3].set.pos =
+        theta_transform(joint_pos_r[0], -J3_ANGLE_OFFSET, J3_DIRECTION, 1);
+
+    OutputPCData.packets[12].data = CHASSIS.joint_motor[0].set.pos;
+    OutputPCData.packets[13].data = CHASSIS.joint_motor[1].set.pos;
+    OutputPCData.packets[14].data = CHASSIS.joint_motor[2].set.pos;
+    OutputPCData.packets[15].data = CHASSIS.joint_motor[3].set.pos;
+    OutputPCData.packets[16].data = joint_pos_l[1];
+    OutputPCData.packets[17].data = joint_pos_l[0];
+    OutputPCData.packets[18].data = joint_pos_r[1];
+    OutputPCData.packets[19].data = joint_pos_r[0];
 #else
     float F[2];
     LegController(F);
 #endif
+
+    CHASSIS.joint_motor[0].set.vel = 0;
+    CHASSIS.joint_motor[1].set.vel = 0;
+    CHASSIS.joint_motor[2].set.vel = 0;
+    CHASSIS.joint_motor[3].set.vel = 0;
 }
 
 /*-------------------- Cmd --------------------*/
@@ -758,19 +789,24 @@ static void SendJointMotorCmd(void)
             case CHASSIS_STOP:
             case CHASSIS_SPIN:
             case CHASSIS_FREE: {
-#ifdef LOCATION_CONTROL
-                DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
-                DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], DEBUG_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], DEBUG_VEL_KP);
                 delay_us(200);
-                DmMitCtrlPosition(&CHASSIS.joint_motor[2], NORMAL_POS_KP, NORMAL_POS_KD);
-                DmMitCtrlPosition(&CHASSIS.joint_motor[3], NORMAL_POS_KP, NORMAL_POS_KD);
-#else
-                DmMitCtrlTorque(&CHASSIS.joint_motor[0]);
-                DmMitCtrlTorque(&CHASSIS.joint_motor[1]);
-                delay_us(200);
-                DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
-                DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
-#endif
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], DEBUG_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], DEBUG_VEL_KP);
+                // #ifdef LOCATION_CONTROL
+                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
+                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
+                //                 delay_us(200);
+                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[2], NORMAL_POS_KP, NORMAL_POS_KD);
+                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[3], NORMAL_POS_KP, NORMAL_POS_KD);
+                // #else
+                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[0]);
+                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[1]);
+                //                 delay_us(200);
+                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
+                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
+                // #endif
             } break;
             case CHASSIS_CALIBRATE: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], CALIBRATE_VEL_KP);
