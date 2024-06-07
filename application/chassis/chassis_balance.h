@@ -50,23 +50,6 @@ typedef enum {
     CHASSIS_DEBUG  // 调试模式
 } ChassisMode_e;
 
-typedef struct
-{
-    float angle;     // rad
-    float length;    // m
-    float dAngle;    // rad/s
-    float dLength;   // m/s
-    float ddLength;  // m/s^2
-
-    float last_dLength;  // m/s
-} LegPos_t;
-
-typedef struct JointPos
-{
-    float Angle[2];   // rad 0-前 1-后
-    float dAngle[2];  // rad/s 0-前 1-后
-} JointPos_t;
-
 typedef struct Leg
 {
     struct rod
