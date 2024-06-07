@@ -177,7 +177,7 @@ fp32 theta_format(fp32 Ang) { return loop_fp32_constrain(Ang, -PI, PI); }
  */
 fp32 theta_transform(fp32 angle, fp32 dangle, int8_t direction, uint8_t duration)
 {
-    return loop_fp32_constrain(angle * direction + dangle, -PI * duration, PI * duration);
+    return loop_fp32_constrain((angle + dangle) * direction, -PI * duration, PI * duration);
 }
 
 /**
