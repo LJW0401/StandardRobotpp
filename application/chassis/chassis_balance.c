@@ -369,13 +369,13 @@ static void UpdateJointStatus(void)
     // TODO: 电机角度转换
     CHASSIS.fdb.leg[0].joint.Angle[0] = theta_transform(CHASSIS.joint_motor[0].fdb.pos, 0, 1, 1);
     CHASSIS.fdb.leg[0].joint.Angle[1] = theta_transform(CHASSIS.joint_motor[1].fdb.pos, 0, 1, 1);
-    CHASSIS.fdb.leg[1].joint.Angle[0] = theta_transform(CHASSIS.joint_motor[3].fdb.pos, 0, 1, 1);
-    CHASSIS.fdb.leg[1].joint.Angle[1] = theta_transform(CHASSIS.joint_motor[4].fdb.pos, 0, 1, 1);
+    CHASSIS.fdb.leg[1].joint.Angle[0] = theta_transform(CHASSIS.joint_motor[2].fdb.pos, 0, 1, 1);
+    CHASSIS.fdb.leg[1].joint.Angle[1] = theta_transform(CHASSIS.joint_motor[3].fdb.pos, 0, 1, 1);
 
     CHASSIS.fdb.leg[0].joint.dAngle[0] = CHASSIS.joint_motor[0].fdb.vel;
     CHASSIS.fdb.leg[0].joint.dAngle[1] = CHASSIS.joint_motor[1].fdb.vel;
-    CHASSIS.fdb.leg[1].joint.dAngle[0] = CHASSIS.joint_motor[3].fdb.vel;
-    CHASSIS.fdb.leg[1].joint.dAngle[1] = CHASSIS.joint_motor[4].fdb.vel;
+    CHASSIS.fdb.leg[1].joint.dAngle[0] = CHASSIS.joint_motor[2].fdb.vel;
+    CHASSIS.fdb.leg[1].joint.dAngle[1] = CHASSIS.joint_motor[3].fdb.vel;
 }
 
 /**
