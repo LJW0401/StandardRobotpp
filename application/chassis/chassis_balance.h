@@ -71,8 +71,8 @@ typedef struct Leg
 {
     struct rod
     {
-        float angle;     // rad
-        float length;    // m
+        float Angle;     // rad
+        float Length;    // m
         float dAngle;    // rad/s
         float dLength;   // m/s
         float ddLength;  // m/s^2
@@ -88,7 +88,7 @@ typedef struct Leg
 
     struct wheel
     {
-        float angle;   // rad
+        float Angle;   // rad
         float dAngle;  // rad/s
     } wheel;
 } Leg_t;
