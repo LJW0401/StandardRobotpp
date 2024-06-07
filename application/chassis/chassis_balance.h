@@ -120,13 +120,7 @@ typedef struct
     float yaw;
     float yaw_velocity;
 
-    LegPos_t leg_l;
-    LegPos_t leg_r;
-
-    JointPos_t joint_l;
-    JointPos_t joint_r;
-
-    Leg_t leg[2];
+    Leg_t leg[2]; // 0-左 1-右
 
     ChassisSpeedVector_t speed_vector;
 } Values_t;
