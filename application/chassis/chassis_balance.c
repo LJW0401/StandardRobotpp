@@ -30,7 +30,7 @@
 #define LOCATION_CONTROL
 
 #define CALIBRATE_STOP_VELOCITY 0.05f  // rad/s
-#define CALIBRATE_STOP_TIME 50         // ms
+#define CALIBRATE_STOP_TIME 200         // ms
 #define CALIBRATE_VELOCITY 2.0f        // rad/s
 
 static Calibrate_s CALIBRATE = {
@@ -262,7 +262,7 @@ void ChassisHandleException(void)
 void ChassisSetMode(void)
 {
     if (CHASSIS.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
-        CHASSIS.mode = CHASSIS_OFF;
+        CHASSIS.mode = CHASSIS_ZERO_FORCE;
         return;
     }
 
@@ -279,6 +279,13 @@ void ChassisSetMode(void)
         CALIBRATE.cali_cnt > 100) {  // 切入底盘校准
         CHASSIS.mode = CHASSIS_CALIBRATE;
         CALIBRATE.calibrated = false;
+
+        uint32_t now = HAL_GetTick();
+        for (uint8_t i = 0; i < 4; i++) {
+            CALIBRATE.reached[i] = false;
+            CALIBRATE.stpo_time[i] = now;
+        }
+
         return;
     }
 
@@ -292,6 +299,8 @@ void ChassisSetMode(void)
 }
 
 /*-------------------- Observe --------------------*/
+
+#define ZERO_POS_THRESHOLD 0.001f
 
 static void UpdateLegStatus(void);
 static void UpdateJointStatus(void);
@@ -308,12 +317,20 @@ void ChassisObserver(void)
     UpdateJointStatus();
     UpdateLegStatus();
 
-    // 更新遥控器相关的数据
+    // 更新校准相关的数据
     if ((CHASSIS.rc->rc.ch[0] < -655) && (CHASSIS.rc->rc.ch[1] < -655) &&
         (CHASSIS.rc->rc.ch[2] > 655) && (CHASSIS.rc->rc.ch[3] < -655)) {
         CALIBRATE.cali_cnt++;  // 遥控器下内八进入底盘校准
     } else {
         CALIBRATE.cali_cnt = 0;
+    }
+
+    if ((CHASSIS.mode == CHASSIS_CALIBRATE) &&
+        fabs(CHASSIS.joint_motor[0].fdb.pos) < ZERO_POS_THRESHOLD &&
+        fabs(CHASSIS.joint_motor[1].fdb.pos) < ZERO_POS_THRESHOLD &&
+        fabs(CHASSIS.joint_motor[2].fdb.pos) < ZERO_POS_THRESHOLD &&
+        fabs(CHASSIS.joint_motor[3].fdb.pos) < ZERO_POS_THRESHOLD) {
+        CALIBRATE.calibrated = true;
     }
 
     // 更新fdb数据
@@ -548,10 +565,10 @@ void ChassisConsole(void)
         case CHASSIS_SPIN:
         case CHASSIS_FREE: {
             ConsoleNormal();
-        }
+        } break;
         case CHASSIS_DEBUG: {
             ConsoleDebug();
-        }
+        } break;
         case CHASSIS_OFF:
         case CHASSIS_ZERO_FORCE:
         default: {
@@ -789,6 +806,16 @@ static void SendJointMotorCmd(void)
                 delay_us(200);
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[2], CALIBRATE_VEL_KP);
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[3], CALIBRATE_VEL_KP);
+
+                if (CALIBRATE.reached[0] && CALIBRATE.reached[1] && CALIBRATE.reached[2] &&
+                    CALIBRATE.reached[3]) {
+                    delay_us(200);
+                    DmSavePosZero(&CHASSIS.joint_motor[0]);
+                    DmSavePosZero(&CHASSIS.joint_motor[1]);
+                    delay_us(200);
+                    DmSavePosZero(&CHASSIS.joint_motor[2]);
+                    DmSavePosZero(&CHASSIS.joint_motor[3]);
+                }
             } break;
             case CHASSIS_DEBUG: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], 2);
