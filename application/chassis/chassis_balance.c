@@ -703,6 +703,19 @@ static void ConsoleNormal(void)
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
 
+    if (isnan(joint_pos_l[0])) {
+        joint_pos_l[0] = 10;
+    }
+    if (isnan(joint_pos_l[1])) {
+        joint_pos_l[1] = 10;
+    }
+    if (isnan(joint_pos_r[0])) {
+        joint_pos_r[0] = 10;
+    }
+    if (isnan(joint_pos_r[1])) {
+        joint_pos_r[1] = 10;
+    }
+
     CHASSIS.joint_motor[0].set.pos =
         theta_transform(joint_pos_l[1], -J0_ANGLE_OFFSET, J0_DIRECTION, 1);
     CHASSIS.joint_motor[1].set.pos =
