@@ -444,11 +444,6 @@ static void UpdateLegStatus(void)
         leg_speed);
     CHASSIS.fdb.leg_l.dLength = leg_speed[0];
     CHASSIS.fdb.leg_l.dAngle  = leg_speed[1];
-
-    // 计算腿长加速度
-    CHASSIS.fdb.leg_l.ddLength =
-        ((CHASSIS.fdb.leg_l.dLength - CHASSIS.fdb.leg_l.last_dLength) * 1000 / 4) * LEG_DDLENGTH_LPF_RATIO
-        + CHASSIS.fdb.leg_l.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
     // clang-format on
 
     /*-------------------- 更新右腿 --------------------*/
@@ -466,11 +461,6 @@ static void UpdateLegStatus(void)
         leg_speed);
     CHASSIS.fdb.leg_r.dLength = leg_speed[0];
     CHASSIS.fdb.leg_r.dAngle  = leg_speed[1];
-
-    // 计算腿长加速度
-    CHASSIS.fdb.leg_r.ddLength =
-        ((CHASSIS.fdb.leg_r.dLength - CHASSIS.fdb.leg_r.last_dLength) * 1000 / 4) * LEG_DDLENGTH_LPF_RATIO 
-        + CHASSIS.fdb.leg_r.ddLength * (1 - LEG_DDLENGTH_LPF_RATIO);
     // clang-format on
 }
 
