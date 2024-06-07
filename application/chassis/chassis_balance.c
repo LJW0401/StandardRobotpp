@@ -142,9 +142,10 @@ void ChassisInit(void)
     CHASSIS.rc = get_remote_control_point();  // 获取遥控器指针
     CHASSIS.imu = GetImuDataPoint();          // 获取IMU指针
     /*-------------------- 初始化底盘电机 --------------------*/
-    for (uint8_t i = 0; i < 4; i++) {
-        MotorInit(&CHASSIS.joint_motor[i], i + 1, JOINT_CAN, DM_8009, 1, 1, DM_MODE_MIT);
-    }
+    MotorInit(&CHASSIS.joint_motor[0], 1, JOINT_CAN, DM_8009, J0_DIRECTION, 1, DM_MODE_MIT);
+    MotorInit(&CHASSIS.joint_motor[1], 2, JOINT_CAN, DM_8009, J1_DIRECTION, 1, DM_MODE_MIT);
+    MotorInit(&CHASSIS.joint_motor[2], 3, JOINT_CAN, DM_8009, J2_DIRECTION, 1, DM_MODE_MIT);
+    MotorInit(&CHASSIS.joint_motor[3], 4, JOINT_CAN, DM_8009, J3_DIRECTION, 1, DM_MODE_MIT);
 
     for (uint8_t i = 0; i < 2; i++) {
         MotorInit(&CHASSIS.wheel_motor[i], i + 1, WHEEL_CAN, MF_9025, 1, 1, 0);
@@ -213,7 +214,7 @@ void ChassisHandleException(void)
     }
 
     for (uint8_t i = 0; i < 4; i++) {
-        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > 2.0f) {
+        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > 3.0f) {
             CHASSIS.error_code |= JOINT_ERROR_OFFSET;
             break;
         } else {
@@ -345,10 +346,10 @@ void ChassisObserver(void)
     OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[3].fdb.tor;
-    OutputPCData.packets[8].data = CALIBRATE.reached[0];
-    OutputPCData.packets[9].data = CALIBRATE.reached[1];
-    OutputPCData.packets[10].data = CALIBRATE.reached[2];
-    OutputPCData.packets[11].data = CALIBRATE.reached[3];
+    OutputPCData.packets[8].data = CHASSIS.fdb.leg[0].joint.Angle[0];
+    OutputPCData.packets[9].data = CHASSIS.fdb.leg[0].joint.Angle[1];
+    OutputPCData.packets[10].data = CHASSIS.fdb.leg[1].joint.Angle[0];
+    OutputPCData.packets[11].data = CHASSIS.fdb.leg[1].joint.Angle[1];
     OutputPCData.packets[12].data = CHASSIS.joint_motor[0].fdb.vel;
     OutputPCData.packets[13].data = CHASSIS.joint_motor[1].fdb.vel;
     OutputPCData.packets[14].data = CHASSIS.joint_motor[2].fdb.vel;
@@ -366,11 +367,14 @@ void ChassisObserver(void)
  */
 static void UpdateJointStatus(void)
 {
-    // TODO: 电机角度转换
-    CHASSIS.fdb.leg[0].joint.Angle[0] = theta_transform(CHASSIS.joint_motor[0].fdb.pos, 0, 1, 1);
-    CHASSIS.fdb.leg[0].joint.Angle[1] = theta_transform(CHASSIS.joint_motor[1].fdb.pos, 0, 1, 1);
-    CHASSIS.fdb.leg[1].joint.Angle[0] = theta_transform(CHASSIS.joint_motor[2].fdb.pos, 0, 1, 1);
-    CHASSIS.fdb.leg[1].joint.Angle[1] = theta_transform(CHASSIS.joint_motor[3].fdb.pos, 0, 1, 1);
+    CHASSIS.fdb.leg[0].joint.Angle[0] =
+        theta_transform(CHASSIS.joint_motor[0].fdb.pos, J0_ANGLE_OFFSET, J0_DIRECTION, 1);
+    CHASSIS.fdb.leg[0].joint.Angle[1] =
+        theta_transform(CHASSIS.joint_motor[1].fdb.pos, J1_ANGLE_OFFSET, J1_DIRECTION, 1);
+    CHASSIS.fdb.leg[1].joint.Angle[0] =
+        theta_transform(CHASSIS.joint_motor[2].fdb.pos, J2_ANGLE_OFFSET, J2_DIRECTION, 1);
+    CHASSIS.fdb.leg[1].joint.Angle[1] =
+        theta_transform(CHASSIS.joint_motor[3].fdb.pos, J3_ANGLE_OFFSET, J3_DIRECTION, 1);
 
     CHASSIS.fdb.leg[0].joint.dAngle[0] = CHASSIS.joint_motor[0].fdb.vel;
     CHASSIS.fdb.leg[0].joint.dAngle[1] = CHASSIS.joint_motor[1].fdb.vel;
@@ -695,9 +699,9 @@ static void ConsoleNormal(void)
 
 /*-------------------- Cmd --------------------*/
 
-#define CALIBRATE_VEL_KP 2.5f
-
-#define ZERO_FORCE_VEL_KP 0.5f
+#define CALIBRATE_VEL_KP 4.0f
+#define DEBUG_VEL_KP 4.0f
+#define ZERO_FORCE_VEL_KP 1.0f
 
 static void SendJointMotorCmd(void);
 static void SendWheelMotorCmd(void);
@@ -762,11 +766,11 @@ static void SendJointMotorCmd(void)
                 }
             } break;
             case CHASSIS_DEBUG: {
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], 2);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], DEBUG_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], DEBUG_VEL_KP);
                 delay_us(200);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], 2);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], 2);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], DEBUG_VEL_KP);
+                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], DEBUG_VEL_KP);
             } break;
             case CHASSIS_ZERO_FORCE:
             default: {
