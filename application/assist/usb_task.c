@@ -395,11 +395,11 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[13].name, "velfdb1");
     char_to_uint(OutputPCData.packets[14].name, "velfdb2");
     char_to_uint(OutputPCData.packets[15].name, "velfdb3");
-    // char_to_uint(OutputPCData.packets[16].name, "refpos_2");
-    // char_to_uint(OutputPCData.packets[17].name, "data1");
-    // char_to_uint(OutputPCData.packets[18].name, "data2");
-    // char_to_uint(OutputPCData.packets[19].name, "data3");
-    // char_to_uint(OutputPCData.packets[20].name, "data4");
+    char_to_uint(OutputPCData.packets[16].name, "ch0");
+    char_to_uint(OutputPCData.packets[17].name, "ch1");
+    char_to_uint(OutputPCData.packets[18].name, "ch2");
+    char_to_uint(OutputPCData.packets[19].name, "ch3");
+    char_to_uint(OutputPCData.packets[20].name, "mode");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));

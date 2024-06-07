@@ -156,9 +156,11 @@ typedef struct
 
 typedef struct Calibrate
 {
+    uint32_t cali_cnt;      //记录遥控器摇杆保持校准姿态的次数（等效于时间）
     float velocity[4];      //关节电机速度
     uint32_t stpo_time[4];  //停止时间
     bool reached[4];        //是否到达限位
+    bool calibrated;        //完成校准
 } Calibrate_s;
 
 extern void ChassisInit(void);

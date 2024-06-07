@@ -34,9 +34,11 @@
 #define CALIBRATE_VELOCITY 2.0f        // rad/s
 
 static Calibrate_s CALIBRATE = {
+    .cali_cnt = 0,
     .velocity = {0.0f, 0.0f, 0.0f, 0.0f},
     .stpo_time = {0, 0, 0, 0},
     .reached = {false, false, false, false},
+    .calibrated = false,
 };
 
 static Chassis_s CHASSIS = {
@@ -269,10 +271,21 @@ void ChassisSetMode(void)
         return;
     }
 
+    if (CHASSIS.mode == CHASSIS_CALIBRATE && (!CALIBRATE.calibrated)) {  //校准完成后才退出校准
+        return;
+    }
+
+    if (switch_is_down(CHASSIS.rc->rc.s[0]) && switch_is_down(CHASSIS.rc->rc.s[1]) &&
+        CALIBRATE.cali_cnt > 100) {  // 切入底盘校准
+        CHASSIS.mode = CHASSIS_CALIBRATE;
+        CALIBRATE.calibrated = false;
+        return;
+    }
+
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_DEBUG;
     } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        CHASSIS.mode = CHASSIS_CALIBRATE;  // use for test, delete when release
+        CHASSIS.mode = CHASSIS_DEBUG;  // use for test, delete when release
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_ZERO_FORCE;
     }
@@ -294,6 +307,14 @@ void ChassisObserver(void)
     UpdateMotorStatus();
     UpdateJointStatus();
     UpdateLegStatus();
+
+    // 更新遥控器相关的数据
+    if ((CHASSIS.rc->rc.ch[0] < -655) && (CHASSIS.rc->rc.ch[1] < -655) &&
+        (CHASSIS.rc->rc.ch[2] > 655) && (CHASSIS.rc->rc.ch[3] < -655)) {
+        CALIBRATE.cali_cnt++;  // 遥控器下内八进入底盘校准
+    } else {
+        CALIBRATE.cali_cnt = 0;
+    }
 
     // 更新fdb数据
     CHASSIS.fdb.roll = CHASSIS.imu->roll;
@@ -344,8 +365,11 @@ void ChassisObserver(void)
     OutputPCData.packets[13].data = CHASSIS.joint_motor[1].fdb.vel;
     OutputPCData.packets[14].data = CHASSIS.joint_motor[2].fdb.vel;
     OutputPCData.packets[15].data = CHASSIS.joint_motor[3].fdb.vel;
-    // OutputPCData.packets[16].data = CHASSIS.imu->y_accel;
-    // OutputPCData.packets[17].data = CHASSIS.imu->z_accel;
+    OutputPCData.packets[16].data = CHASSIS.rc->rc.ch[0];
+    OutputPCData.packets[17].data = CHASSIS.rc->rc.ch[1];
+    OutputPCData.packets[18].data = CHASSIS.rc->rc.ch[2];
+    OutputPCData.packets[19].data = CHASSIS.rc->rc.ch[3];
+    OutputPCData.packets[20].data = CHASSIS.mode;
 }
 
 /**
