@@ -391,10 +391,10 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[9].name, "j1_angle");
     char_to_uint(OutputPCData.packets[10].name, "j2_angle");
     char_to_uint(OutputPCData.packets[11].name, "j3_angle");
-    char_to_uint(OutputPCData.packets[12].name, "Angle0");
-    char_to_uint(OutputPCData.packets[13].name, "Length0");
-    char_to_uint(OutputPCData.packets[14].name, "Angle1");
-    char_to_uint(OutputPCData.packets[15].name, "Length1");
+    char_to_uint(OutputPCData.packets[12].name, "dAngle0");
+    char_to_uint(OutputPCData.packets[13].name, "dLength0");
+    char_to_uint(OutputPCData.packets[14].name, "dAngle1");
+    char_to_uint(OutputPCData.packets[15].name, "dLength1");
     // char_to_uint(OutputPCData.packets[16].name, "ch0");
     // char_to_uint(OutputPCData.packets[17].name, "ch1");
     // char_to_uint(OutputPCData.packets[18].name, "ch2");

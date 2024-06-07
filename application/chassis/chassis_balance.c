@@ -350,10 +350,10 @@ void ChassisObserver(void)
     OutputPCData.packets[9].data = CHASSIS.fdb.leg[0].joint.Angle[1];
     OutputPCData.packets[10].data = CHASSIS.fdb.leg[1].joint.Angle[0];
     OutputPCData.packets[11].data = CHASSIS.fdb.leg[1].joint.Angle[1];
-    OutputPCData.packets[12].data = CHASSIS.fdb.leg[0].rod.Angle;
-    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.Length;
-    OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.Angle;
-    OutputPCData.packets[15].data = CHASSIS.fdb.leg[1].rod.Length;
+    OutputPCData.packets[12].data = CHASSIS.fdb.leg[0].rod.dAngle;
+    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.dLength;
+    OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.dAngle;
+    OutputPCData.packets[15].data = CHASSIS.fdb.leg[1].rod.dLength;
     OutputPCData.packets[16].data = CHASSIS.rc->rc.ch[0];
     OutputPCData.packets[17].data = CHASSIS.rc->rc.ch[1];
     OutputPCData.packets[18].data = CHASSIS.rc->rc.ch[2];
