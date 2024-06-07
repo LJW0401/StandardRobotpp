@@ -296,6 +296,8 @@ void MechanicalArmObserver(void)
         LowPassFilterCalc(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
 
     // 位置转换
+
+    // TODO: 位置转换函数更新于2024-6-8，需测试转换效果
     MECHANICAL_ARM.fdb.pos[0] =
         theta_transform(MECHANICAL_ARM.joint_motor[0].fdb.pos, J_0_ANGLE_TRANSFORM, 1, 1);
     MECHANICAL_ARM.fdb.pos[1] =
