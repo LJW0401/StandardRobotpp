@@ -67,6 +67,32 @@ typedef struct JointPos
     float dAngle[2];  // rad/s 0-前 1-后
 } JointPos_t;
 
+typedef struct Leg
+{
+    struct rod
+    {
+        float angle;     // rad
+        float length;    // m
+        float dAngle;    // rad/s
+        float dLength;   // m/s
+        float ddLength;  // m/s^2
+
+        float last_dLength;  // m/s
+    } rod;
+
+    struct joint
+    {
+        float Angle[2];   // rad 0-前 1-后
+        float dAngle[2];  // rad/s 0-前 1-后
+    } joint;
+
+    struct wheel
+    {
+        float angle;   // rad
+        float dAngle;  // rad/s
+    } wheel;
+} Leg_t;
+
 /**
  * @brief      比例系数结构体
  * @note       比例系数，用于手动优化控制效果
@@ -102,6 +128,8 @@ typedef struct
 
     JointPos_t joint_l;
     JointPos_t joint_r;
+
+    Leg_t leg[2];
 
     ChassisSpeedVector_t speed_vector;
 } Values_t;
