@@ -395,11 +395,11 @@ static void usb_send_outputPC(uint8_t t)
     // char_to_uint(OutputPCData.packets[13].name, "angle_l");
     // char_to_uint(OutputPCData.packets[14].name, "length_r");
     // char_to_uint(OutputPCData.packets[15].name, "angle_r");
-    char_to_uint(OutputPCData.packets[16].name, "w0_vel");
-    char_to_uint(OutputPCData.packets[17].name, "w1_vel");
-    char_to_uint(OutputPCData.packets[18].name, "tor0");
-    char_to_uint(OutputPCData.packets[19].name, "tor1");
-    char_to_uint(OutputPCData.packets[20].name, "ch");
+    // char_to_uint(OutputPCData.packets[16].name, "w0_vel");
+    // char_to_uint(OutputPCData.packets[17].name, "w1_vel");
+    // char_to_uint(OutputPCData.packets[18].name, "tor0");
+    // char_to_uint(OutputPCData.packets[19].name, "tor1");
+    char_to_uint(OutputPCData.packets[20].name, "pitch");
     // char_to_uint(OutputPCData.packets[21].name, "Angle");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));

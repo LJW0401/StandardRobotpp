@@ -239,15 +239,14 @@ void ChassisObserver(void)
 
     // 更新LQR状态向量
     // clang-format off
-    CHASSIS.fdb.theta = (CHASSIS.fdb.leg[0].rod.Angle + CHASSIS.fdb.leg[1].rod.Angle) / 2 
-                        - M_PI_2 - CHASSIS.imu->pitch;
+    CHASSIS.fdb.theta     = (CHASSIS.fdb.leg[0].rod.Angle + CHASSIS.fdb.leg[1].rod.Angle) / 2 
+                            - M_PI_2 - CHASSIS.imu->pitch;
     CHASSIS.fdb.theta_dot = (CHASSIS.fdb.leg[0].rod.dAngle + CHASSIS.fdb.leg[1].rod.dAngle) / 2 
                             - CHASSIS.imu->pitch_vel;
-    CHASSIS.fdb.x       = 0;
-    // TODO: 检测速度方向是否正确
-    CHASSIS.fdb.x_dot   = WHEEL_RADIUS * (CHASSIS.wheel_motor[0].fdb.vel + CHASSIS.wheel_motor[1].fdb.vel) / 2;
-    CHASSIS.fdb.phi     = CHASSIS.imu->pitch;
-    CHASSIS.fdb.phi_dot = CHASSIS.imu->pitch_vel;
+    CHASSIS.fdb.x         = 0;//(CHASSIS.fdb.leg[0].wheel.Angle + CHASSIS.fdb.leg[1].wheel.Angle) / 2;
+    CHASSIS.fdb.x_dot     = WHEEL_RADIUS * (CHASSIS.fdb.leg[0].wheel.Velocity + CHASSIS.fdb.leg[1].wheel.Velocity) / 2;
+    CHASSIS.fdb.phi       = CHASSIS.imu->pitch;
+    CHASSIS.fdb.phi_dot   = CHASSIS.imu->pitch_vel;
     // clang-format on
 
     uint32_t now = HAL_GetTick();
@@ -285,7 +284,7 @@ void ChassisObserver(void)
     OutputPCData.packets[17].data = CHASSIS.fdb.leg[1].wheel.Velocity;
     OutputPCData.packets[18].data = CHASSIS.wheel_motor[0].set.tor;
     OutputPCData.packets[19].data = CHASSIS.wheel_motor[1].set.tor;
-    OutputPCData.packets[20].data = CHASSIS.rc->rc.ch[4];
+    OutputPCData.packets[20].data = CHASSIS.imu->pitch;
 }
 
 /**
@@ -396,7 +395,7 @@ void ChassisReference(void)
     CHASSIS.ref.theta     = 0;
     CHASSIS.ref.theta_dot = 0;
     CHASSIS.ref.x         = 0;
-    CHASSIS.ref.x_dot     = v;
+    CHASSIS.ref.x_dot     = fp32_constrain(v, MIN_SPEED, MAX_SPEED) ;
     CHASSIS.ref.phi       = 0;
     CHASSIS.ref.phi_dot   = 0;
     // clang-format on
@@ -464,7 +463,6 @@ void ChassisConsole(void)
 static void LocomotionController(float Tp[2], float T_w[2])
 {
     float x[6];
-
     x[0] = CHASSIS.fdb.theta - CHASSIS.ref.theta;
     x[1] = CHASSIS.fdb.theta_dot - CHASSIS.ref.theta_dot;
     x[2] = CHASSIS.fdb.x - CHASSIS.ref.x;

@@ -55,6 +55,7 @@
 
 #define MAX_LEG_LENGTH       0.35f
 #define MAX_LEG_ANGLE        M_PI_2 + 0.1f
+#define MAX_SPEED            5.0f
 #define MAX_SPEED_VECTOR_VX  5.0f
 #define MAX_SPEED_VECTOR_VY  5.0f
 #define MAX_SPEED_VECTOR_WZ  1.0f
@@ -80,6 +81,7 @@
 
 #define MIN_LEG_LENGTH        0.11f
 #define MIN_LEG_ANGLE         M_PI_2 - 0.1f
+#define MIN_SPEED            -MAX_SPEED
 #define MIN_SPEED_VECTOR_VX  -MAX_SPEED_VECTOR_VX
 #define MIN_SPEED_VECTOR_VY  -MAX_SPEED_VECTOR_VY
 #define MIN_SPEED_VECTOR_WZ  -MAX_SPEED_VECTOR_WZ
