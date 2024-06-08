@@ -19,10 +19,13 @@
 #define JOINT_CAN 1
 #define WHEEL_CAN 2
 
-#define J0_DIRECTION 1
-#define J1_DIRECTION 1
+#define J0_DIRECTION  1
+#define J1_DIRECTION  1
 #define J2_DIRECTION -1
 #define J3_DIRECTION -1
+
+#define W0_DIRECTION  1
+#define W1_DIRECTION -1
 
 //physical parameters ---------------------
 #define WHEEL_RADIUS 0.106f  //(m)轮子半径

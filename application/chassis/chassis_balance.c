@@ -77,9 +77,8 @@ void ChassisInit(void)
     MotorInit(&CHASSIS.joint_motor[2], 3, JOINT_CAN, DM_8009, J2_DIRECTION, 1, DM_MODE_MIT);
     MotorInit(&CHASSIS.joint_motor[3], 4, JOINT_CAN, DM_8009, J3_DIRECTION, 1, DM_MODE_MIT);
 
-    for (uint8_t i = 0; i < 2; i++) {
-        MotorInit(&CHASSIS.wheel_motor[i], i + 1, WHEEL_CAN, MF_9025, 1, 1, 0);
-    }
+    MotorInit(&CHASSIS.wheel_motor[0], 1, WHEEL_CAN, MF_9025, W0_DIRECTION, 1, 0);
+    MotorInit(&CHASSIS.wheel_motor[1], 2, WHEEL_CAN, MF_9025, W1_DIRECTION, 1, 0);
 
     /*-------------------- 值归零 --------------------*/
     memset(&CHASSIS.fdb, 0, sizeof(CHASSIS.fdb));
@@ -204,7 +203,6 @@ void ChassisSetMode(void)
 #define ZERO_POS_THRESHOLD 0.001f
 
 static void UpdateLegStatus(void);
-static void UpdateJointStatus(void);
 static void UpdateMotorStatus(void);
 
 /**
@@ -215,7 +213,6 @@ static void UpdateMotorStatus(void);
 void ChassisObserver(void)
 {
     UpdateMotorStatus();
-    UpdateJointStatus();
     UpdateLegStatus();
 
     // 更新校准相关的数据
@@ -284,32 +281,11 @@ void ChassisObserver(void)
     OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.Angle;
     OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.Length;
     OutputPCData.packets[15].data = CHASSIS.fdb.leg[1].rod.Angle;
-    // OutputPCData.packets[16].data = CHASSIS.rc->rc.ch[0];
-    // OutputPCData.packets[17].data = CHASSIS.rc->rc.ch[1];
-    // OutputPCData.packets[18].data = CHASSIS.rc->rc.ch[2];
-    // OutputPCData.packets[19].data = CHASSIS.rc->rc.ch[3];
-    // OutputPCData.packets[20].data = CHASSIS.mode;
-}
-
-/**
- * @brief 更新关节状态
- * @param  none
- */
-static void UpdateJointStatus(void)
-{
-    CHASSIS.fdb.leg[0].joint.Angle[0] =
-        theta_transform(CHASSIS.joint_motor[0].fdb.pos, J0_ANGLE_OFFSET, J0_DIRECTION, 1);
-    CHASSIS.fdb.leg[0].joint.Angle[1] =
-        theta_transform(CHASSIS.joint_motor[1].fdb.pos, J1_ANGLE_OFFSET, J1_DIRECTION, 1);
-    CHASSIS.fdb.leg[1].joint.Angle[0] =
-        theta_transform(CHASSIS.joint_motor[2].fdb.pos, J2_ANGLE_OFFSET, J2_DIRECTION, 1);
-    CHASSIS.fdb.leg[1].joint.Angle[1] =
-        theta_transform(CHASSIS.joint_motor[3].fdb.pos, J3_ANGLE_OFFSET, J3_DIRECTION, 1);
-
-    CHASSIS.fdb.leg[0].joint.dAngle[0] = CHASSIS.joint_motor[0].fdb.vel;
-    CHASSIS.fdb.leg[0].joint.dAngle[1] = CHASSIS.joint_motor[1].fdb.vel;
-    CHASSIS.fdb.leg[1].joint.dAngle[0] = CHASSIS.joint_motor[2].fdb.vel;
-    CHASSIS.fdb.leg[1].joint.dAngle[1] = CHASSIS.joint_motor[3].fdb.vel;
+    OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
+    OutputPCData.packets[17].data = CHASSIS.fdb.leg[1].wheel.Velocity;
+    OutputPCData.packets[18].data = CHASSIS.wheel_motor[0].set.tor;
+    OutputPCData.packets[19].data = CHASSIS.wheel_motor[1].set.tor;
+    OutputPCData.packets[20].data = CHASSIS.rc->rc.ch[4];
 }
 
 /**
@@ -333,6 +309,26 @@ static void UpdateMotorStatus(void)
  */
 static void UpdateLegStatus(void)
 {
+    // =====更新关节姿态=====
+    CHASSIS.fdb.leg[0].joint.Angle[0] =
+        theta_transform(CHASSIS.joint_motor[0].fdb.pos, J0_ANGLE_OFFSET, J0_DIRECTION, 1);
+    CHASSIS.fdb.leg[0].joint.Angle[1] =
+        theta_transform(CHASSIS.joint_motor[1].fdb.pos, J1_ANGLE_OFFSET, J1_DIRECTION, 1);
+    CHASSIS.fdb.leg[1].joint.Angle[0] =
+        theta_transform(CHASSIS.joint_motor[2].fdb.pos, J2_ANGLE_OFFSET, J2_DIRECTION, 1);
+    CHASSIS.fdb.leg[1].joint.Angle[1] =
+        theta_transform(CHASSIS.joint_motor[3].fdb.pos, J3_ANGLE_OFFSET, J3_DIRECTION, 1);
+
+    CHASSIS.fdb.leg[0].joint.dAngle[0] = CHASSIS.joint_motor[0].fdb.vel;
+    CHASSIS.fdb.leg[0].joint.dAngle[1] = CHASSIS.joint_motor[1].fdb.vel;
+    CHASSIS.fdb.leg[1].joint.dAngle[0] = CHASSIS.joint_motor[2].fdb.vel;
+    CHASSIS.fdb.leg[1].joint.dAngle[1] = CHASSIS.joint_motor[3].fdb.vel;
+
+    // =====更新驱动轮姿态=====
+    CHASSIS.fdb.leg[0].wheel.Velocity = CHASSIS.wheel_motor[0].fdb.vel * (W0_DIRECTION);
+    CHASSIS.fdb.leg[1].wheel.Velocity = CHASSIS.wheel_motor[1].fdb.vel * (W1_DIRECTION);
+
+    // =====更新摆杆姿态=====
     double leg_pos[2];
     double leg_speed[2];
 
@@ -414,9 +410,6 @@ void ChassisReference(void)
     float angle = CHASSIS.rc->rc.ch[3] * RC_TO_ONE * M_PI / 6 + M_PI_2;
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
-
-    OutputPCData.packets[20].data = length;
-    OutputPCData.packets[21].data = angle;
 }
 
 /*-------------------- Console --------------------*/
@@ -597,7 +590,7 @@ static void ConsoleZeroForce(void)
     CHASSIS.joint_motor[3].set.vel = 0;
 
     CHASSIS.wheel_motor[0].set.tor = 0;
-    CHASSIS.wheel_motor[0].set.tor = 0;
+    CHASSIS.wheel_motor[1].set.tor = 0;
 }
 
 static void ConsoleCalibrate(void)
@@ -608,7 +601,7 @@ static void ConsoleCalibrate(void)
     CHASSIS.joint_motor[3].set.vel = -CALIBRATE_VELOCITY;
 
     CHASSIS.wheel_motor[0].set.tor = 0;
-    CHASSIS.wheel_motor[0].set.tor = 0;
+    CHASSIS.wheel_motor[1].set.tor = 0;
 }
 
 static void ConsoleDebug(void)
@@ -618,8 +611,8 @@ static void ConsoleDebug(void)
     CHASSIS.joint_motor[2].set.vel = CHASSIS.rc->rc.ch[2] * RC_TO_ONE;
     CHASSIS.joint_motor[3].set.vel = CHASSIS.rc->rc.ch[3] * RC_TO_ONE;
 
-    CHASSIS.wheel_motor[0].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 200;
-    CHASSIS.wheel_motor[1].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 200;
+    CHASSIS.wheel_motor[0].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 2 * (W0_DIRECTION);
+    CHASSIS.wheel_motor[1].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 2 * (W1_DIRECTION);
 }
 
 static void ConsoleNormal(void)
@@ -791,8 +784,8 @@ static void SendWheelMotorCmd(void)
         case CHASSIS_STOP:
         case CHASSIS_SPIN:
         case CHASSIS_FREE: {
-            LkMultipleTorqueControl(WHEEL_CAN, 100, 100, 0, 0);
-
+            LkMultipleTorqueControl(
+                WHEEL_CAN, CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
         } break;
         case CHASSIS_CALIBRATE: {
             LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);

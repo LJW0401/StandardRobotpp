@@ -69,7 +69,7 @@ typedef struct Leg
     struct wheel
     {
         float Angle;   // rad
-        float dAngle;  // rad/s
+        float Velocity;  // rad/s
     } wheel;
 } Leg_t;
 
