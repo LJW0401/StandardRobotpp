@@ -379,10 +379,10 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.packets[0].name, "posfdb0");
-    char_to_uint(OutputPCData.packets[1].name, "posfdb1");
-    char_to_uint(OutputPCData.packets[2].name, "posfdb2");
-    char_to_uint(OutputPCData.packets[3].name, "posfdb3");
+    // char_to_uint(OutputPCData.packets[0].name, "posfdb0");
+    // char_to_uint(OutputPCData.packets[1].name, "posfdb1");
+    // char_to_uint(OutputPCData.packets[2].name, "posfdb2");
+    // char_to_uint(OutputPCData.packets[3].name, "posfdb3");
     // char_to_uint(OutputPCData.packets[4].name, "torfdb0");
     // char_to_uint(OutputPCData.packets[5].name, "torfdb1");
     // char_to_uint(OutputPCData.packets[6].name, "torfdb2");
@@ -391,16 +391,16 @@ static void usb_send_outputPC(uint8_t t)
     // char_to_uint(OutputPCData.packets[9].name, "j1_angle");
     // char_to_uint(OutputPCData.packets[10].name, "j2_angle");
     // char_to_uint(OutputPCData.packets[11].name, "j3_angle");
-    char_to_uint(OutputPCData.packets[12].name, "setpos0");
-    char_to_uint(OutputPCData.packets[13].name, "setpos1");
-    char_to_uint(OutputPCData.packets[14].name, "setpos2");
-    char_to_uint(OutputPCData.packets[15].name, "setpos3");
-    char_to_uint(OutputPCData.packets[16].name, "lposf");
-    char_to_uint(OutputPCData.packets[17].name, "lposb");
-    char_to_uint(OutputPCData.packets[18].name, "rposf");
-    char_to_uint(OutputPCData.packets[19].name, "rposb");
-    char_to_uint(OutputPCData.packets[20].name, "Length");
-    char_to_uint(OutputPCData.packets[21].name, "Angle");
+    // char_to_uint(OutputPCData.packets[12].name, "setpos0");
+    // char_to_uint(OutputPCData.packets[13].name, "setpos1");
+    // char_to_uint(OutputPCData.packets[14].name, "setpos2");
+    // char_to_uint(OutputPCData.packets[15].name, "setpos3");
+    // char_to_uint(OutputPCData.packets[16].name, "lposf");
+    // char_to_uint(OutputPCData.packets[17].name, "lposb");
+    // char_to_uint(OutputPCData.packets[18].name, "rposf");
+    // char_to_uint(OutputPCData.packets[19].name, "rposb");
+    char_to_uint(OutputPCData.packets[20].name, "in");
+    char_to_uint(OutputPCData.packets[21].name, "out");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));

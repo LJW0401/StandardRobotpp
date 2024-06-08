@@ -488,8 +488,8 @@ void ChassisReference(void)
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
 
-    OutputPCData.packets[20].data = length;
-    OutputPCData.packets[21].data = angle;
+    // OutputPCData.packets[20].data = length;
+    // OutputPCData.packets[21].data = angle;
 }
 
 /*-------------------- Console --------------------*/
