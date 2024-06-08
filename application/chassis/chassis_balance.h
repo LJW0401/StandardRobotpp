@@ -145,8 +145,6 @@ typedef struct
 
     Values_t ref;          // 期望值
     Values_t fdb;          // 状态值
-    Values_t upper_limit;  // 上限值
-    Values_t lower_limit;  // 下限值
 
     PID_t pid;  // PID控制器
 

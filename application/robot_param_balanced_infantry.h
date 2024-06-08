@@ -45,7 +45,10 @@
 #define MAX_YAW             M_PI
 #define MAX_YAW_VELOCITY    3.0f
 
-#define MAX_JOINT_ANGLE     3.0f
+#define MAX_J0_ANGLE  1.8f // (rad)关节角度上限
+#define MAX_J1_ANGLE  0.0f // (rad)关节角度上限
+#define MAX_J2_ANGLE  0.6f // (rad)关节角度上限
+#define MAX_J3_ANGLE  1.8f // (rad)关节角度上限
 
 #define MAX_LEG_LENGTH       0.35f
 #define MAX_LEG_ANGLE        M_PI_2 + 0.1f
@@ -67,7 +70,10 @@
 #define MIN_YAW             -MAX_YAW
 #define MIN_YAW_VELOCITY    -MAX_YAW_VELOCITY
 
-#define MIN_JOINT_ANGLE     -MAX_JOINT_ANGLE
+#define MIN_J0_ANGLE -0.6f // (rad)关节角度下限
+#define MIN_J1_ANGLE -1.8f // (rad)关节角度下限
+#define MIN_J2_ANGLE -1.8f // (rad)关节角度下限
+#define MIN_J3_ANGLE  0.0f // (rad)关节角度下限
 
 #define MIN_LEG_LENGTH        0.11f
 #define MIN_LEG_ANGLE         M_PI_2 - 0.1f

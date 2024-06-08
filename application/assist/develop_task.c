@@ -16,8 +16,6 @@ void develop_task(void const * pvParameters)
         float in = GenerateSawtoothWave(-M_PI, M_PI, 3);
         float out = ThetaRangeLimit(in, -2.0f, 1.55f, 1);
 
-        OutputPCData.packets[20].data = in;
-        OutputPCData.packets[21].data = out;
         // code here
         vTaskDelay(1);
     }

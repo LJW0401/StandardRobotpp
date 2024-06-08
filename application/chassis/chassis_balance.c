@@ -47,76 +47,6 @@ static Chassis_s CHASSIS = {
     .error_code = 0,
     .yaw_mid = 0,
 
-    .upper_limit =
-        {
-            .theta = MAX_THETA,
-            .theta_dot = MAX_THETA_DOT,
-            .x = MAX_X,
-            .x_dot = MAX_X_DOT,
-            .phi = MAX_PHI,
-            .phi_dot = MAX_PHI_DOT,
-
-            .speed_integral = MAX_SPEED_INTEGRAL,
-            .roll = MAX_ROLL,
-            .roll_velocity = MAX_ROLL_VELOCITY,
-            .yaw = MAX_YAW,
-            .yaw_velocity = MAX_YAW_VELOCITY,
-
-            .leg = {{
-                .rod =
-                    {
-                        .Length = MAX_LEG_LENGTH,
-                        .Angle = MAX_LEG_ANGLE,
-                    },
-                .joint =
-                    {
-                        .Angle = MAX_JOINT_ANGLE,
-                    },
-            }},
-
-            .speed_vector =
-                {
-                    .vx = MAX_SPEED_VECTOR_VX,
-                    .vy = MAX_SPEED_VECTOR_VY,
-                    .wz = MAX_SPEED_VECTOR_WZ,
-                },
-        },
-
-    .lower_limit =
-        {
-            .theta = MIN_THETA,
-            .theta_dot = MIN_THETA_DOT,
-            .x = MIN_X,
-            .x_dot = MIN_X_DOT,
-            .phi = MIN_PHI,
-            .phi_dot = MIN_PHI_DOT,
-
-            .speed_integral = MIN_SPEED_INTEGRAL,
-            .roll = MIN_ROLL,
-            .roll_velocity = MIN_ROLL_VELOCITY,
-            .yaw = MIN_YAW,
-            .yaw_velocity = MIN_YAW_VELOCITY,
-
-            .leg = {{
-                .rod =
-                    {
-                        .Length = MIN_LEG_LENGTH,
-                        .Angle = MIN_LEG_ANGLE,
-                    },
-                .joint =
-                    {
-                        .Angle = MIN_JOINT_ANGLE,
-                    },
-            }},
-
-            .speed_vector =
-                {
-                    .vx = MIN_SPEED_VECTOR_VX,
-                    .vy = MIN_SPEED_VECTOR_VY,
-                    .wz = MIN_SPEED_VECTOR_WZ,
-                },
-        },
-
     .ratio =
         {
             // clang-format off
@@ -214,7 +144,7 @@ void ChassisHandleException(void)
     }
 
     for (uint8_t i = 0; i < 4; i++) {
-        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > 3.0f) {
+        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > 5.0f) {
             CHASSIS.error_code |= JOINT_ERROR_OFFSET;
             break;
         } else {
@@ -346,14 +276,14 @@ void ChassisObserver(void)
     OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[3].fdb.tor;
-    OutputPCData.packets[8].data = CHASSIS.fdb.leg[0].joint.Angle[0];
-    OutputPCData.packets[9].data = CHASSIS.fdb.leg[0].joint.Angle[1];
-    OutputPCData.packets[10].data = CHASSIS.fdb.leg[1].joint.Angle[0];
-    OutputPCData.packets[11].data = CHASSIS.fdb.leg[1].joint.Angle[1];
-    // OutputPCData.packets[12].data = CHASSIS.joint_motor[0].set.pos;
-    // OutputPCData.packets[13].data = CHASSIS.joint_motor[1].set.pos;
-    // OutputPCData.packets[14].data = CHASSIS.joint_motor[2].set.pos;
-    // OutputPCData.packets[15].data = CHASSIS.joint_motor[3].set.pos;
+    OutputPCData.packets[8].data = CHASSIS.joint_motor[0].set.pos;
+    OutputPCData.packets[9].data = CHASSIS.joint_motor[1].set.pos;
+    OutputPCData.packets[10].data = CHASSIS.joint_motor[2].set.pos;
+    OutputPCData.packets[11].data = CHASSIS.joint_motor[3].set.pos;
+    OutputPCData.packets[12].data = CHASSIS.fdb.leg[0].rod.Length;
+    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.Angle;
+    OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.Length;
+    OutputPCData.packets[15].data = CHASSIS.fdb.leg[1].rod.Angle;
     // OutputPCData.packets[16].data = CHASSIS.rc->rc.ch[0];
     // OutputPCData.packets[17].data = CHASSIS.rc->rc.ch[1];
     // OutputPCData.packets[18].data = CHASSIS.rc->rc.ch[2];
@@ -440,17 +370,14 @@ void ChassisReference(void)
 
     ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
 
-    v_set.vx = rc_x * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vx;
-    v_set.vy = rc_y * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vy;
-    v_set.wz = rc_wz * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.wz;
+    v_set.vx = rc_x * RC_TO_ONE * MAX_SPEED_VECTOR_VX;
+    v_set.vy = rc_y * RC_TO_ONE * MAX_SPEED_VECTOR_VY;
+    v_set.wz = rc_wz * RC_TO_ONE * MAX_SPEED_VECTOR_WZ;
     switch (CHASSIS.mode) {
         case CHASSIS_FREE: {  // 底盘自由模式下，控制量为底盘坐标系下的速度
             break;
         }
         case CHASSIS_FOLLOW_GIMBAL_YAW: {  // 云台跟随模式下，控制量为云台坐标系下的速度，需要进行坐标转换
-            v_set.vx = rc_x * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vx;
-            v_set.vy = rc_y * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.vy;
-            v_set.wz = rc_wz * RC_TO_ONE * CHASSIS.upper_limit.speed_vector.wz;
             GimbalSpeedVectorToChassisSpeedVector(&v_set, CHASSIS.dyaw);
             break;
         }
@@ -488,8 +415,8 @@ void ChassisReference(void)
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
 
-    // OutputPCData.packets[20].data = length;
-    // OutputPCData.packets[21].data = angle;
+    OutputPCData.packets[20].data = length;
+    OutputPCData.packets[21].data = angle;
 }
 
 /*-------------------- Console --------------------*/
@@ -703,36 +630,37 @@ static void ConsoleNormal(void)
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
 
-    if (isnan(joint_pos_l[0])) {
-        joint_pos_l[0] = 10;
-    }
-    if (isnan(joint_pos_l[1])) {
-        joint_pos_l[1] = 10;
-    }
-    if (isnan(joint_pos_r[0])) {
-        joint_pos_r[0] = 10;
-    }
-    if (isnan(joint_pos_r[1])) {
-        joint_pos_r[1] = 10;
+    // 当解算出的角度正常时，设置目标角度
+    if (!(isnan(joint_pos_l[0]) || isnan(joint_pos_l[1]) || isnan(joint_pos_r[0]) ||
+          isnan(joint_pos_r[1]))) {
+        CHASSIS.joint_motor[0].set.pos =
+            theta_transform(joint_pos_l[1], -J0_ANGLE_OFFSET, J0_DIRECTION, 1);
+        CHASSIS.joint_motor[1].set.pos =
+            theta_transform(joint_pos_l[0], -J1_ANGLE_OFFSET, J1_DIRECTION, 1);
+        CHASSIS.joint_motor[2].set.pos =
+            theta_transform(joint_pos_r[1], -J2_ANGLE_OFFSET, J2_DIRECTION, 1);
+        CHASSIS.joint_motor[3].set.pos =
+            theta_transform(joint_pos_r[0], -J3_ANGLE_OFFSET, J3_DIRECTION, 1);
+
+        // 检测设定角度是否超过电机角度限制
+        CHASSIS.joint_motor[0].set.pos =
+            fp32_constrain(CHASSIS.joint_motor[0].set.pos, MIN_J0_ANGLE, MAX_J0_ANGLE);
+        CHASSIS.joint_motor[1].set.pos =
+            fp32_constrain(CHASSIS.joint_motor[1].set.pos, MIN_J1_ANGLE, MAX_J1_ANGLE);
+        CHASSIS.joint_motor[2].set.pos =
+            fp32_constrain(CHASSIS.joint_motor[2].set.pos, MIN_J2_ANGLE, MAX_J2_ANGLE);
+        CHASSIS.joint_motor[3].set.pos =
+            fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
     }
 
-    CHASSIS.joint_motor[0].set.pos =
-        theta_transform(joint_pos_l[1], -J0_ANGLE_OFFSET, J0_DIRECTION, 1);
-    CHASSIS.joint_motor[1].set.pos =
-        theta_transform(joint_pos_l[0], -J1_ANGLE_OFFSET, J1_DIRECTION, 1);
-    CHASSIS.joint_motor[2].set.pos =
-        theta_transform(joint_pos_r[1], -J2_ANGLE_OFFSET, J2_DIRECTION, 1);
-    CHASSIS.joint_motor[3].set.pos =
-        theta_transform(joint_pos_r[0], -J3_ANGLE_OFFSET, J3_DIRECTION, 1);
-
-    OutputPCData.packets[12].data = CHASSIS.joint_motor[0].set.pos;
-    OutputPCData.packets[13].data = CHASSIS.joint_motor[1].set.pos;
-    OutputPCData.packets[14].data = CHASSIS.joint_motor[2].set.pos;
-    OutputPCData.packets[15].data = CHASSIS.joint_motor[3].set.pos;
-    OutputPCData.packets[16].data = joint_pos_l[1];
-    OutputPCData.packets[17].data = joint_pos_l[0];
-    OutputPCData.packets[18].data = joint_pos_r[1];
-    OutputPCData.packets[19].data = joint_pos_r[0];
+    // OutputPCData.packets[12].data = CHASSIS.joint_motor[0].set.pos;
+    // OutputPCData.packets[13].data = CHASSIS.joint_motor[1].set.pos;
+    // OutputPCData.packets[14].data = CHASSIS.joint_motor[2].set.pos;
+    // OutputPCData.packets[15].data = CHASSIS.joint_motor[3].set.pos;
+    // OutputPCData.packets[16].data = joint_pos_l[1];
+    // OutputPCData.packets[17].data = joint_pos_l[0];
+    // OutputPCData.packets[18].data = joint_pos_r[1];
+    // OutputPCData.packets[19].data = joint_pos_r[0];
 #else
     float F[2];
     LegController(F);
@@ -750,8 +678,8 @@ static void ConsoleNormal(void)
 #define DEBUG_VEL_KP 4.0f
 #define ZERO_FORCE_VEL_KP 1.0f
 
-#define NORMAL_POS_KP 4.0f
-#define NORMAL_POS_KD 1.0f
+#define NORMAL_POS_KP 20.0f
+#define NORMAL_POS_KD 1.5f
 
 static void SendJointMotorCmd(void);
 static void SendWheelMotorCmd(void);
@@ -802,24 +730,24 @@ static void SendJointMotorCmd(void)
             case CHASSIS_STOP:
             case CHASSIS_SPIN:
             case CHASSIS_FREE: {
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[0], DEBUG_VEL_KP);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[1], DEBUG_VEL_KP);
+// DmMitCtrlVelocity(&CHASSIS.joint_motor[0], DEBUG_VEL_KP);
+// DmMitCtrlVelocity(&CHASSIS.joint_motor[1], DEBUG_VEL_KP);
+// delay_us(200);
+// DmMitCtrlVelocity(&CHASSIS.joint_motor[2], DEBUG_VEL_KP);
+// DmMitCtrlVelocity(&CHASSIS.joint_motor[3], DEBUG_VEL_KP);
+#ifdef LOCATION_CONTROL
+                DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
                 delay_us(200);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[2], DEBUG_VEL_KP);
-                DmMitCtrlVelocity(&CHASSIS.joint_motor[3], DEBUG_VEL_KP);
-                // #ifdef LOCATION_CONTROL
-                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
-                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
-                //                 delay_us(200);
-                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[2], NORMAL_POS_KP, NORMAL_POS_KD);
-                //                 DmMitCtrlPosition(&CHASSIS.joint_motor[3], NORMAL_POS_KP, NORMAL_POS_KD);
-                // #else
-                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[0]);
-                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[1]);
-                //                 delay_us(200);
-                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
-                //                 DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
-                // #endif
+                DmMitCtrlPosition(&CHASSIS.joint_motor[2], NORMAL_POS_KP, NORMAL_POS_KD);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[3], NORMAL_POS_KP, NORMAL_POS_KD);
+#else
+                DmMitCtrlTorque(&CHASSIS.joint_motor[0]);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[1]);
+                delay_us(200);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
+                DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
+#endif
             } break;
             case CHASSIS_CALIBRATE: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], CALIBRATE_VEL_KP);
