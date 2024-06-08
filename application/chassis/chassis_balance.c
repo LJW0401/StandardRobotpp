@@ -618,8 +618,8 @@ static void ConsoleDebug(void)
     CHASSIS.joint_motor[2].set.vel = CHASSIS.rc->rc.ch[2] * RC_TO_ONE;
     CHASSIS.joint_motor[3].set.vel = CHASSIS.rc->rc.ch[3] * RC_TO_ONE;
 
-    CHASSIS.wheel_motor[0].set.tor = 0;
-    CHASSIS.wheel_motor[0].set.tor = 0;
+    CHASSIS.wheel_motor[0].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 200;
+    CHASSIS.wheel_motor[1].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 200;
 }
 
 static void ConsoleNormal(void)
@@ -730,11 +730,6 @@ static void SendJointMotorCmd(void)
             case CHASSIS_STOP:
             case CHASSIS_SPIN:
             case CHASSIS_FREE: {
-// DmMitCtrlVelocity(&CHASSIS.joint_motor[0], DEBUG_VEL_KP);
-// DmMitCtrlVelocity(&CHASSIS.joint_motor[1], DEBUG_VEL_KP);
-// delay_us(200);
-// DmMitCtrlVelocity(&CHASSIS.joint_motor[2], DEBUG_VEL_KP);
-// DmMitCtrlVelocity(&CHASSIS.joint_motor[3], DEBUG_VEL_KP);
 #ifdef LOCATION_CONTROL
                 DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
                 DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
@@ -791,13 +786,26 @@ static void SendJointMotorCmd(void)
  */
 static void SendWheelMotorCmd(void)
 {
-    if (CHASSIS.mode == CHASSIS_OFF) {
-        LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
-    } else {
-        // clang-format off
-        LkMultipleTorqueControl(WHEEL_CAN,
-            CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
-        // clang-format on
+    switch (CHASSIS.mode) {
+        case CHASSIS_FOLLOW_GIMBAL_YAW:
+        case CHASSIS_STOP:
+        case CHASSIS_SPIN:
+        case CHASSIS_FREE: {
+            LkMultipleTorqueControl(WHEEL_CAN, 100, 100, 0, 0);
+
+        } break;
+        case CHASSIS_CALIBRATE: {
+            LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
+        } break;
+        case CHASSIS_DEBUG: {
+            LkMultipleTorqueControl(
+                WHEEL_CAN, CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
+        } break;
+        case CHASSIS_OFF:
+        case CHASSIS_ZERO_FORCE:
+        default: {
+            LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
+        }
     }
 }
 
