@@ -111,11 +111,11 @@
 
 //PID parameters ---------------------
 //yaw轴跟踪角度环PID参数
-#define KP_CHASSIS_YAW_ANGLE 0.0f
-#define KI_CHASSIS_YAW_ANGLE 0.0f
+#define KP_CHASSIS_YAW_ANGLE 2.3f
+#define KI_CHASSIS_YAW_ANGLE 1.0f
 #define KD_CHASSIS_YAW_ANGLE 0.0f
-#define MAX_IOUT_CHASSIS_YAW_ANGLE 0.0f
-#define MAX_OUT_CHASSIS_YAW_ANGLE 0.0f
+#define MAX_IOUT_CHASSIS_YAW_ANGLE 0.5f
+#define MAX_OUT_CHASSIS_YAW_ANGLE 5.0f
 
 //yaw轴跟踪速度环PID参数
 #define KP_CHASSIS_YAW_VELOCITY 2.2f

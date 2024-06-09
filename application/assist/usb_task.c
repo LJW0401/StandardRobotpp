@@ -379,9 +379,9 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    char_to_uint(OutputPCData.packets[0].name, "yaw_vel");
-    char_to_uint(OutputPCData.packets[1].name, "ref");
-    // char_to_uint(OutputPCData.packets[2].name, "posfdb2");
+    char_to_uint(OutputPCData.packets[0].name, "yaw_ref");
+    char_to_uint(OutputPCData.packets[1].name, "yaw_fdb");
+    char_to_uint(OutputPCData.packets[2].name, "yaw_out");
     // char_to_uint(OutputPCData.packets[3].name, "posfdb3");
     // char_to_uint(OutputPCData.packets[4].name, "torfdb0");
     // char_to_uint(OutputPCData.packets[5].name, "torfdb1");

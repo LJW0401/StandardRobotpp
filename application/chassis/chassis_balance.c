@@ -266,10 +266,10 @@ void ChassisObserver(void)
 
     // OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.pos;
     // OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.pos;
-    OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.pos;
-    OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.pos;
-    OutputPCData.packets[4].data = CHASSIS.joint_motor[0].fdb.tor;
-    OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
+    // OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.pos;
+    // OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.pos;
+    // OutputPCData.packets[4].data = CHASSIS.joint_motor[0].fdb.tor;
+    // OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[3].fdb.tor;
     OutputPCData.packets[8].data = CHASSIS.joint_motor[0].set.pos;
@@ -417,6 +417,8 @@ void ChassisReference(void)
     float angle = M_PI_2;
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
+
+    CHASSIS.ref.yaw = GenerateSinWave(0.5f, 0, 3);
 }
 
 /*-------------------- Console --------------------*/
@@ -504,13 +506,12 @@ static void LocomotionController(float Tp[2], float T_w[2])
     } else if (dyaw < -M_PI) {
         dyaw += 2 * M_PI;
     }
-    PID_calc(&CHASSIS.pid.yaw_angle, dyaw, 0);
-    // PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
-    float yaw_vel_ref = GenerateSinWave(0.5f, 0, 3);
-    PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, yaw_vel_ref);
+    PID_calc(&CHASSIS.pid.yaw_angle, -dyaw, 0);//这里输入的dyaw是需要取反的原因还不是很清楚
+    PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
 
-    OutputPCData.packets[0].data = CHASSIS.fdb.yaw_velocity;
-    OutputPCData.packets[1].data = yaw_vel_ref;
+    OutputPCData.packets[0].data = CHASSIS.ref.yaw;
+    OutputPCData.packets[1].data = CHASSIS.fdb.yaw;
+    OutputPCData.packets[2].data = CHASSIS.pid.yaw_angle.out;
 
     T_w[0] = t + CHASSIS.pid.yaw_velocity.out;
     T_w[1] = t - CHASSIS.pid.yaw_velocity.out;
