@@ -54,7 +54,7 @@ static Chassis_s CHASSIS = {
                   {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}},
             // clang-format on
             .Tp = 1.0f,
-            .T = 1.0f,
+            .T = 0.5f,
             .length = 1.0f,
         },
     .dyaw = 0.0f,
@@ -367,7 +367,7 @@ void ChassisReference(void)
 
     v_set.vx = rc_x * RC_TO_ONE * MAX_SPEED_VECTOR_VX;
     v_set.vy = rc_y * RC_TO_ONE * MAX_SPEED_VECTOR_VY;
-    v_set.wz = rc_wz * RC_TO_ONE * MAX_SPEED_VECTOR_WZ;
+    v_set.wz = -rc_wz * RC_TO_ONE * MAX_SPEED_VECTOR_WZ;
     switch (CHASSIS.mode) {
         case CHASSIS_FREE: {  // 底盘自由模式下，控制量为底盘坐标系下的速度
             break;
@@ -384,7 +384,7 @@ void ChassisReference(void)
     }
 
     CHASSIS.ref.speed_vector.vx = v_set.vx;
-    CHASSIS.ref.speed_vector.vy = v_set.vy;
+    CHASSIS.ref.speed_vector.vy = 0;
     CHASSIS.ref.speed_vector.wz = v_set.wz;
 
     // clang-format off
@@ -476,8 +476,8 @@ static void LocomotionController(float Tp[2], float T_w[2])
 
     OutputPCData.packets[21].data = t;
 
-    T_w[0] = t;
-    T_w[1] = t;
+    T_w[0] = t + CHASSIS.ref.speed_vector.wz * 0.5f;
+    T_w[1] = t - CHASSIS.ref.speed_vector.wz * 0.5f;
     Tp[0] = tp;
     Tp[1] = tp;
 
@@ -654,8 +654,8 @@ static void ConsoleNormal(void)
 #endif
 
     // TODO: 排查电机发送的力矩要反向的问题，这种情况下控制正常
-    CHASSIS.wheel_motor[0].set.tor = -(t[0] * (W0_DIRECTION));//不知道为什么要反向，待后续研究
-    CHASSIS.wheel_motor[1].set.tor = -(t[1] * (W1_DIRECTION));//不知道为什么要反向，待后续研究
+    CHASSIS.wheel_motor[0].set.tor = -(t[0] * (W0_DIRECTION));  //不知道为什么要反向，待后续研究
+    CHASSIS.wheel_motor[1].set.tor = -(t[1] * (W1_DIRECTION));  //不知道为什么要反向，待后续研究
 }
 
 /*-------------------- Cmd --------------------*/
