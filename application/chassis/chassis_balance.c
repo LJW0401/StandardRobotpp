@@ -279,12 +279,12 @@ void ChassisObserver(void)
     OutputPCData.packets[12].data = CHASSIS.fdb.leg[0].rod.Length;
     OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.Angle;
     OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.Length;
-    OutputPCData.packets[15].data = CHASSIS.fdb.leg[1].rod.Angle;
+    OutputPCData.packets[15].data = CHASSIS.imu->pitch;
     OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
     OutputPCData.packets[17].data = CHASSIS.fdb.leg[1].wheel.Velocity;
     OutputPCData.packets[18].data = CHASSIS.wheel_motor[0].set.tor;
     OutputPCData.packets[19].data = CHASSIS.wheel_motor[1].set.tor;
-    OutputPCData.packets[20].data = CHASSIS.imu->pitch;
+    OutputPCData.packets[20].data = CHASSIS.wheel_motor[1].fdb.curr * 0.32f;
 }
 
 /**
@@ -387,26 +387,20 @@ void ChassisReference(void)
     CHASSIS.ref.speed_vector.vy = v_set.vy;
     CHASSIS.ref.speed_vector.wz = v_set.wz;
 
-    float v = sqrtf(
-        CHASSIS.ref.speed_vector.vx * CHASSIS.ref.speed_vector.vx +
-        CHASSIS.ref.speed_vector.vy * CHASSIS.ref.speed_vector.vy);
-
     // clang-format off
     CHASSIS.ref.theta     = 0;
     CHASSIS.ref.theta_dot = 0;
     CHASSIS.ref.x         = 0;
-    CHASSIS.ref.x_dot     = fp32_constrain(v, MIN_SPEED, MAX_SPEED) ;
+    CHASSIS.ref.x_dot     = fp32_constrain(CHASSIS.ref.speed_vector.vx, MIN_SPEED, MAX_SPEED);
     CHASSIS.ref.phi       = 0;
     CHASSIS.ref.phi_dot   = 0;
     // clang-format on
 
-    // TODO:用于测试，后续删除
-    float length = CHASSIS.rc->rc.ch[1] * RC_TO_ONE * (MAX_LEG_LENGTH - MIN_LEG_LENGTH) / 2 +
-                   (MAX_LEG_LENGTH + MIN_LEG_LENGTH) / 2;
+    float length = 0.11f;
     CHASSIS.ref.leg[0].rod.Length = length;
     CHASSIS.ref.leg[1].rod.Length = length;
 
-    float angle = CHASSIS.rc->rc.ch[3] * RC_TO_ONE * M_PI / 6 + M_PI_2;
+    float angle = M_PI_2;
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
 }
@@ -457,49 +451,60 @@ void ChassisConsole(void)
 
 /**
  * @brief      运动控制器
- * @param[out]  Tp 输出的髋关节力矩
- * @param[out]  T_w 输出的驱动轮力矩
+ * @param[out]  Tp 输出的髋关节力矩 0-左，1-右
+ * @param[out]  T_w 输出的驱动轮力矩  0-左，1-右
  */
 static void LocomotionController(float Tp[2], float T_w[2])
 {
     float x[6];
-    x[0] = CHASSIS.fdb.theta - CHASSIS.ref.theta;
+    // clang-format off
+    x[0] = CHASSIS.fdb.theta     - CHASSIS.ref.theta;
     x[1] = CHASSIS.fdb.theta_dot - CHASSIS.ref.theta_dot;
-    x[2] = CHASSIS.fdb.x - CHASSIS.ref.x;
-    x[3] = CHASSIS.fdb.x_dot - CHASSIS.ref.x_dot;
-    x[4] = CHASSIS.fdb.phi - CHASSIS.ref.phi;
-    x[5] = CHASSIS.fdb.phi_dot - CHASSIS.ref.phi_dot;
+    x[2] = CHASSIS.fdb.x         - CHASSIS.ref.x;
+    x[3] = CHASSIS.fdb.x_dot     - CHASSIS.ref.x_dot;
+    x[4] = CHASSIS.fdb.phi       - CHASSIS.ref.phi;
+    x[5] = CHASSIS.fdb.phi_dot   - CHASSIS.ref.phi_dot;
+    // clang-format on
 
     float leg_length = (CHASSIS.fdb.leg[0].rod.Length + CHASSIS.fdb.leg[1].rod.Length) / 2;
     float k[2][6];
     SetK(leg_length, k);
     float t_tp[2];
     LQRFeedbackCalc(k, x, t_tp);
-    float t = t_tp[0];
-    float tp = t_tp[1];
+    float t = t_tp[0] * CHASSIS.ratio.T;
+    float tp = t_tp[1] * CHASSIS.ratio.Tp;
 
-    float dyaw;
-    switch (CHASSIS.mode) {
-        case CHASSIS_FOLLOW_GIMBAL_YAW: {
-            dyaw = CHASSIS.dyaw;
-            break;
-        }
-        default: {
-            dyaw = CHASSIS.ref.yaw - CHASSIS.fdb.yaw;
-            break;
-        }
-    }
-    dyaw = theta_format(dyaw);
-    PID_calc(&CHASSIS.pid.yaw_angle, dyaw, 0);
-    PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
+    OutputPCData.packets[21].data = t;
 
-    float dangle = CHASSIS.fdb.leg[0].rod.Angle - CHASSIS.fdb.leg[1].rod.Angle;
-    PID_calc(&CHASSIS.pid.leg_angle_angle, dangle, 0);
+    T_w[0] = t;
+    T_w[1] = t;
+    Tp[0] = tp;
+    Tp[1] = tp;
 
-    T_w[0] = t + CHASSIS.pid.yaw_velocity.out;
-    T_w[1] = t - CHASSIS.pid.yaw_velocity.out;
-    Tp[0] = tp + CHASSIS.pid.leg_angle_angle.out;
-    Tp[1] = tp - CHASSIS.pid.leg_angle_angle.out;
+    // 后续测试内容，暂时不用
+
+    // float dyaw;
+    // switch (CHASSIS.mode) {
+    //     case CHASSIS_FOLLOW_GIMBAL_YAW: {
+    //         dyaw = CHASSIS.dyaw;
+    //         break;
+    //     }
+    //     default: {
+    //         dyaw = CHASSIS.ref.yaw - CHASSIS.fdb.yaw;
+    //         break;
+    //     }
+    // }
+    // dyaw = theta_format(dyaw);
+    // PID_calc(&CHASSIS.pid.yaw_angle, dyaw, 0);
+    // PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
+
+    // float dangle = CHASSIS.fdb.leg[0].rod.Angle - CHASSIS.fdb.leg[1].rod.Angle;
+    // PID_calc(&CHASSIS.pid.leg_angle_angle, dangle, 0);
+
+    // T_w[0] = t + CHASSIS.pid.yaw_velocity.out;
+    // T_w[1] = t - CHASSIS.pid.yaw_velocity.out;
+    // Tp[0] = tp + CHASSIS.pid.leg_angle_angle.out;
+    // Tp[1] = tp - CHASSIS.pid.leg_angle_angle.out;
 }
 
 /**
@@ -609,8 +614,8 @@ static void ConsoleDebug(void)
     CHASSIS.joint_motor[2].set.vel = CHASSIS.rc->rc.ch[2] * RC_TO_ONE;
     CHASSIS.joint_motor[3].set.vel = CHASSIS.rc->rc.ch[3] * RC_TO_ONE;
 
-    CHASSIS.wheel_motor[0].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 2 * (W0_DIRECTION);
-    CHASSIS.wheel_motor[1].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 2 * (W1_DIRECTION);
+    CHASSIS.wheel_motor[0].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 1 * (W0_DIRECTION);
+    CHASSIS.wheel_motor[1].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 1 * (W1_DIRECTION);
 }
 
 static void ConsoleNormal(void)
@@ -643,24 +648,14 @@ static void ConsoleNormal(void)
         CHASSIS.joint_motor[3].set.pos =
             fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
     }
-
-    // OutputPCData.packets[12].data = CHASSIS.joint_motor[0].set.pos;
-    // OutputPCData.packets[13].data = CHASSIS.joint_motor[1].set.pos;
-    // OutputPCData.packets[14].data = CHASSIS.joint_motor[2].set.pos;
-    // OutputPCData.packets[15].data = CHASSIS.joint_motor[3].set.pos;
-    // OutputPCData.packets[16].data = joint_pos_l[1];
-    // OutputPCData.packets[17].data = joint_pos_l[0];
-    // OutputPCData.packets[18].data = joint_pos_r[1];
-    // OutputPCData.packets[19].data = joint_pos_r[0];
 #else
     float F[2];
     LegController(F);
 #endif
 
-    CHASSIS.joint_motor[0].set.vel = 0;
-    CHASSIS.joint_motor[1].set.vel = 0;
-    CHASSIS.joint_motor[2].set.vel = 0;
-    CHASSIS.joint_motor[3].set.vel = 0;
+    // TODO: 排查电机发送的力矩要反向的问题，这种情况下控制正常
+    CHASSIS.wheel_motor[0].set.tor = -(t[0] * (W0_DIRECTION));//不知道为什么要反向，待后续研究
+    CHASSIS.wheel_motor[1].set.tor = -(t[1] * (W1_DIRECTION));//不知道为什么要反向，待后续研究
 }
 
 /*-------------------- Cmd --------------------*/
@@ -669,8 +664,8 @@ static void ConsoleNormal(void)
 #define DEBUG_VEL_KP 4.0f
 #define ZERO_FORCE_VEL_KP 1.0f
 
-#define NORMAL_POS_KP 20.0f
-#define NORMAL_POS_KD 1.5f
+#define NORMAL_POS_KP 10.0f
+#define NORMAL_POS_KD 1.0f
 
 static void SendJointMotorCmd(void);
 static void SendWheelMotorCmd(void);

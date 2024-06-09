@@ -28,7 +28,7 @@
 #define CHASSIS_X_CHANNEL 1     // 前后的遥控器通道号码
 #define CHASSIS_Y_CHANNEL 0     // 左右的遥控器通道号码
 #define CHASSIS_WZ_CHANNEL 4    // 旋转的遥控器通道号码
-#define CHASSIS_RC_DEADLINE 10  // 摇杆死区
+#define CHASSIS_RC_DEADLINE 5  // 摇杆死区
 
 #define rc_deadband_limit(input, output, dealine)          \
     {                                                      \

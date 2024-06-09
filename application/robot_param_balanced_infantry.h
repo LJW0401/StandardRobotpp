@@ -29,6 +29,7 @@
 
 //physical parameters ---------------------
 #define WHEEL_RADIUS 0.106f  //(m)轮子半径
+#define WHEEL_START_TORQUE 0.3f  // (Nm)轮子起动力矩
 #define J0_ANGLE_OFFSET -0.19163715f  // (rad)关节0角度偏移量(电机0点到水平线的夹角)
 #define J1_ANGLE_OFFSET M_PI + 0.19163715f  // (rad)关节1角度偏移量(电机0点到水平线的夹角)
 #define J2_ANGLE_OFFSET 0.19163715f  // (rad)关节2角度偏移量(电机0点到水平线的夹角)
