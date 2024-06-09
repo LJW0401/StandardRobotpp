@@ -264,8 +264,8 @@ void ChassisObserver(void)
         }
     }
 
-    OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.pos;
-    OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.pos;
+    // OutputPCData.packets[0].data = CHASSIS.joint_motor[0].fdb.pos;
+    // OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.pos;
     OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.pos;
     OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.pos;
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].fdb.tor;
@@ -473,6 +473,8 @@ static void LocomotionController(float Tp[2], float T_w[2])
     static float vel_add;  // 速度增量，用于适应重心位置变化
     if (fabs(CHASSIS.ref.speed_vector.vx) < WHEEL_DEADZONE) {
         vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
+    } else {
+        vel_add = 0;
     }
     vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
     CHASSIS.ref.x_dot += vel_add;
@@ -495,29 +497,27 @@ static void LocomotionController(float Tp[2], float T_w[2])
     float t = t_tp[0] * CHASSIS.ratio.T;
     float tp = t_tp[1] * CHASSIS.ratio.Tp;
 
-    OutputPCData.packets[21].data = t;
+    float dyaw;
+    dyaw = CHASSIS.ref.yaw - CHASSIS.fdb.yaw;
+    if (dyaw > M_PI) {
+        dyaw -= 2 * M_PI;
+    } else if (dyaw < -M_PI) {
+        dyaw += 2 * M_PI;
+    }
+    PID_calc(&CHASSIS.pid.yaw_angle, dyaw, 0);
+    // PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
+    float yaw_vel_ref = GenerateSinWave(0.5f, 0, 3);
+    PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, yaw_vel_ref);
 
-    T_w[0] = t + CHASSIS.ref.speed_vector.wz * 0.5f;
-    T_w[1] = t - CHASSIS.ref.speed_vector.wz * 0.5f;
+    OutputPCData.packets[0].data = CHASSIS.fdb.yaw_velocity;
+    OutputPCData.packets[1].data = yaw_vel_ref;
+
+    T_w[0] = t + CHASSIS.pid.yaw_velocity.out;
+    T_w[1] = t - CHASSIS.pid.yaw_velocity.out;
     Tp[0] = tp;
     Tp[1] = tp;
 
     // 后续测试内容，暂时不用
-
-    // float dyaw;
-    // switch (CHASSIS.mode) {
-    //     case CHASSIS_FOLLOW_GIMBAL_YAW: {
-    //         dyaw = CHASSIS.dyaw;
-    //         break;
-    //     }
-    //     default: {
-    //         dyaw = CHASSIS.ref.yaw - CHASSIS.fdb.yaw;
-    //         break;
-    //     }
-    // }
-    // dyaw = theta_format(dyaw);
-    // PID_calc(&CHASSIS.pid.yaw_angle, dyaw, 0);
-    // PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
 
     // float dangle = CHASSIS.fdb.leg[0].rod.Angle - CHASSIS.fdb.leg[1].rod.Angle;
     // PID_calc(&CHASSIS.pid.leg_angle_angle, dangle, 0);

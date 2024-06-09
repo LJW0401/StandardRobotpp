@@ -28,10 +28,10 @@
 #define CHASSIS_RC_DEADLINE 5  // 摇杆死区
 
 // deadzone parameters ---------------------
-#define WHEEL_DEADZONE 0.02f  // (m/s)轮子速度死区
+#define WHEEL_DEADZONE 0.01f  // (m/s)轮子速度死区
 
 // ratio parameters ---------------------
-#define VEL_ADD_RATIO 0.01f  // 速度增量比例系数
+#define VEL_ADD_RATIO 0.005f  // 速度增量比例系数
 
 // motor parameters ---------------------
 #define JOINT_CAN 1
@@ -74,9 +74,9 @@
 
 #define MAX_LEG_LENGTH       0.35f
 #define MAX_LEG_ANGLE        M_PI_2 + 0.1f
-#define MAX_SPEED            5.0f
-#define MAX_SPEED_VECTOR_VX  5.0f
-#define MAX_SPEED_VECTOR_VY  5.0f
+#define MAX_SPEED            1.5f
+#define MAX_SPEED_VECTOR_VX  1.5f
+#define MAX_SPEED_VECTOR_VY  1.5f
 #define MAX_SPEED_VECTOR_WZ  1.0f
 
 #define MAX_VEL_ADD  0.5f  // (m/s)速度增量上限
@@ -118,11 +118,11 @@
 #define MAX_OUT_CHASSIS_YAW_ANGLE 0.0f
 
 //yaw轴跟踪速度环PID参数
-#define KP_CHASSIS_YAW_VELOCITY 0.0f
-#define KI_CHASSIS_YAW_VELOCITY 0.0f
+#define KP_CHASSIS_YAW_VELOCITY 2.2f
+#define KI_CHASSIS_YAW_VELOCITY 0.5f
 #define KD_CHASSIS_YAW_VELOCITY 0.0f
-#define MAX_IOUT_CHASSIS_YAW_VELOCITY 0.0f
-#define MAX_OUT_CHASSIS_YAW_VELOCITY 0.0f
+#define MAX_IOUT_CHASSIS_YAW_VELOCITY 0.5f
+#define MAX_OUT_CHASSIS_YAW_VELOCITY 1.0f
 
 //roll轴跟踪角度环PID参数
 #define KP_CHASSIS_ROLL_ANGLE 0.0f

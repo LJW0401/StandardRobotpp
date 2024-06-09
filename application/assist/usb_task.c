@@ -379,8 +379,8 @@ static void usb_send_outputPC(uint8_t t)
     OutputPCData.header = SET_OUTPUT_PC_HEDER;
     OutputPCData.length = sizeof(OutputPCData_s);
 
-    // char_to_uint(OutputPCData.packets[0].name, "posfdb0");
-    // char_to_uint(OutputPCData.packets[1].name, "posfdb1");
+    char_to_uint(OutputPCData.packets[0].name, "yaw_vel");
+    char_to_uint(OutputPCData.packets[1].name, "ref");
     // char_to_uint(OutputPCData.packets[2].name, "posfdb2");
     // char_to_uint(OutputPCData.packets[3].name, "posfdb3");
     // char_to_uint(OutputPCData.packets[4].name, "torfdb0");
@@ -394,13 +394,13 @@ static void usb_send_outputPC(uint8_t t)
     // char_to_uint(OutputPCData.packets[12].name, "length_l");
     // char_to_uint(OutputPCData.packets[13].name, "angle_l");
     // char_to_uint(OutputPCData.packets[14].name, "length_r");
-    char_to_uint(OutputPCData.packets[15].name, "pitch");
-    char_to_uint(OutputPCData.packets[16].name, "w0_vel");
-    char_to_uint(OutputPCData.packets[17].name, "w1_vel");
-    char_to_uint(OutputPCData.packets[18].name, "tor0");
-    char_to_uint(OutputPCData.packets[19].name, "tor1");
-    char_to_uint(OutputPCData.packets[20].name, "Tfdb");
-    char_to_uint(OutputPCData.packets[21].name, "t");
+    // char_to_uint(OutputPCData.packets[15].name, "pitch");
+    // char_to_uint(OutputPCData.packets[16].name, "w0_vel");
+    // char_to_uint(OutputPCData.packets[17].name, "w1_vel");
+    // char_to_uint(OutputPCData.packets[18].name, "tor0");
+    // char_to_uint(OutputPCData.packets[19].name, "tor1");
+    // char_to_uint(OutputPCData.packets[20].name, "Tfdb");
+    // char_to_uint(OutputPCData.packets[21].name, "t");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
     memcpy(usb_tx_buf, &OutputPCData, sizeof(OutputPCData_s));
