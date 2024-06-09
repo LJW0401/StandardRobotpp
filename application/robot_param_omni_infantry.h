@@ -7,8 +7,8 @@
 #define INCLUDED_ROBOT_PARAM_H
 #include "robot_typedef.h"
 
-#define CHASSIS_TYPE CHASSIS_OMNI_WHEEL  // 选择底盘类型
-#define GIMBAL_TYPE GIMBAL_YAW_PITCH     // 选择云台类型
+#define CHASSIS_TYPE CHASSIS_NONE  // 选择底盘类型
+#define GIMBAL_TYPE GIMBAL_YAW_PITCH_DIRECT    // 选择云台类型
 #define SHOOT_TYPE SHOOT_FRIC            // 选择发射机构类型
 #define CONTROL_TYPE CHASSIS_AND_GIMBAL  // 选择控制类型
 
@@ -58,8 +58,36 @@ typedef enum {
 
 /*-------------------- Gimbal --------------------*/
 //physical parameters ---------------------
+#define GIMBAL_UPPER_LIMIT_PITCH 0.0f
+#define GIMBAL_UPPER_LIMIT_YAW 0.0f
+#define GIMBAL_LOWER_LIMIT_PITCH 0.0f
+#define GIMBAL_LOWER_LIMIT_YAW 0.0f
 //PID parameters ---------------------
+//YAW ANGLE
+#define KP_GIMBAL_YAW_ANGLE 0.0f
+#define KI_GIMBAL_YAW_ANGLE 0.0f
+#define KD_GIMBAL_YAW_ANGLE 0.0f
+#define MAX_IOUT_GIMBAL_YAW_ANGLE 0.0f
+#define MAX_OUT_GIMBAL_YAW_ANGLE 0.0f
+//VELOCITY:角速度
+#define KP_GIMBAL_YAW_VELOCITY 0.0f
+#define KI_GIMBAL_YAW_VELOCITY 0.0f
+#define KD_GIMBAL_YAW_VELOCITY 0.0f
+#define MAX_IOUT_GIMBAL_YAW_VELOCITY 0.0f
+#define MAX_OUT_GIMBAL_YAW_VELOCITY 0.0f
 
+//PITCH ANGLE
+#define KP_GIMBAL_PITCH_ANGLE 0.0f
+#define KI_GIMBAL_PITCH_ANGLE 0.0f
+#define KD_GIMBAL_PITCH_ANGLE 0.0f
+#define MAX_IOUT_GIMBAL_PITCH_ANGLE 0.0f
+#define MAX_OUT_GIMBAL_PITCH_ANGLE 0.0f
+//VELOCITY:角速度
+#define KP_GIMBAL_PITCH_VELOCITY 0.0f
+#define KI_GIMBAL_PITCH_VELOCITY 0.0f
+#define KD_GIMBAL_PITCH_VELOCITY 0.0f
+#define MAX_IOUT_GIMBAL_PITCH_VELOCITY 0.0f
+#define MAX_OUT_GIMBAL_PITCH_VELOCITY 0.0f
 /*-------------------- Shoot --------------------*/
 //physical parameters ---------------------
 #define FRIC_RADIUS 0.03f  // (m)摩擦轮半径
