@@ -243,7 +243,7 @@ void ChassisObserver(void)
                             - M_PI_2 - CHASSIS.imu->pitch;
     CHASSIS.fdb.theta_dot = (CHASSIS.fdb.leg[0].rod.dAngle + CHASSIS.fdb.leg[1].rod.dAngle) / 2 
                             - CHASSIS.imu->pitch_vel;
-    CHASSIS.fdb.x         = 0;//(CHASSIS.fdb.leg[0].wheel.Angle + CHASSIS.fdb.leg[1].wheel.Angle) / 2;
+    CHASSIS.fdb.x         = (CHASSIS.fdb.leg[0].wheel.Angle + CHASSIS.fdb.leg[1].wheel.Angle) / 2;
     CHASSIS.fdb.x_dot     = WHEEL_RADIUS * (CHASSIS.fdb.leg[0].wheel.Velocity + CHASSIS.fdb.leg[1].wheel.Velocity) / 2;
     CHASSIS.fdb.phi       = CHASSIS.imu->pitch;
     CHASSIS.fdb.phi_dot   = CHASSIS.imu->pitch_vel;
@@ -383,6 +383,20 @@ void ChassisReference(void)
             break;
     }
 
+    float v = v_set.vx;
+    float x;
+
+    if (fabs(v) > WHEEL_DEADZONE) {  // 运动状态，只需控制速度
+        x = CHASSIS.fdb.x;
+    } else {
+        if (CHASSIS.ref.speed_vector.vx > WHEEL_DEADZONE) {
+            // 进入停止状态，需要加入位置控制
+            x = (CHASSIS.fdb.leg[0].wheel.Angle + CHASSIS.fdb.leg[1].wheel.Angle) / 2;
+        } else { // 还是停止状态，保留原位置
+            x = CHASSIS.ref.x;
+        }
+    }
+
     CHASSIS.ref.speed_vector.vx = v_set.vx;
     CHASSIS.ref.speed_vector.vy = 0;
     CHASSIS.ref.speed_vector.wz = v_set.wz;
@@ -390,7 +404,7 @@ void ChassisReference(void)
     // clang-format off
     CHASSIS.ref.theta     = 0;
     CHASSIS.ref.theta_dot = 0;
-    CHASSIS.ref.x         = 0;
+    CHASSIS.ref.x         = x;
     CHASSIS.ref.x_dot     = fp32_constrain(CHASSIS.ref.speed_vector.vx, MIN_SPEED, MAX_SPEED);
     CHASSIS.ref.phi       = 0;
     CHASSIS.ref.phi_dot   = 0;

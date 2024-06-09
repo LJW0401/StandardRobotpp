@@ -27,6 +27,9 @@
 #define CHASSIS_WZ_CHANNEL 0    // 旋转的遥控器通道号码
 #define CHASSIS_RC_DEADLINE 5  // 摇杆死区
 
+// deadzone parameters ---------------------
+#define WHEEL_DEADZONE 0.02f  // (m/s)轮子速度死区
+
 // motor parameters ---------------------
 #define JOINT_CAN 1
 #define WHEEL_CAN 2
@@ -40,12 +43,12 @@
 #define W1_DIRECTION -1
 
 //physical parameters ---------------------
-#define WHEEL_RADIUS 0.106f  //(m)轮子半径
-#define WHEEL_START_TORQUE 0.3f  // (Nm)轮子起动力矩
-#define J0_ANGLE_OFFSET -0.19163715f  // (rad)关节0角度偏移量(电机0点到水平线的夹角)
-#define J1_ANGLE_OFFSET M_PI + 0.19163715f  // (rad)关节1角度偏移量(电机0点到水平线的夹角)
-#define J2_ANGLE_OFFSET 0.19163715f  // (rad)关节2角度偏移量(电机0点到水平线的夹角)
-#define J3_ANGLE_OFFSET -(M_PI + 0.19163715f)  // (rad)关节3角度偏移量(电机0点到水平线的夹角)
+#define WHEEL_RADIUS         0.106f  //(m)轮子半径
+#define WHEEL_START_TORQUE   0.3f  // (Nm)轮子起动力矩
+#define J0_ANGLE_OFFSET     -0.19163715f  // (rad)关节0角度偏移量(电机0点到水平线的夹角)
+#define J1_ANGLE_OFFSET      M_PI + 0.19163715f  // (rad)关节1角度偏移量(电机0点到水平线的夹角)
+#define J2_ANGLE_OFFSET      0.19163715f  // (rad)关节2角度偏移量(电机0点到水平线的夹角)
+#define J3_ANGLE_OFFSET     -(M_PI + 0.19163715f)  // (rad)关节3角度偏移量(电机0点到水平线的夹角)
 
 //upper_limit parameters ---------------------
 #define MAX_THETA      1.0f
