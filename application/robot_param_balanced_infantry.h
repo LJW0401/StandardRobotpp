@@ -30,6 +30,9 @@
 // deadzone parameters ---------------------
 #define WHEEL_DEADZONE 0.02f  // (m/s)轮子速度死区
 
+// ratio parameters ---------------------
+#define VEL_ADD_RATIO 0.01f  // 速度增量比例系数
+
 // motor parameters ---------------------
 #define JOINT_CAN 1
 #define WHEEL_CAN 2
@@ -76,6 +79,7 @@
 #define MAX_SPEED_VECTOR_VY  5.0f
 #define MAX_SPEED_VECTOR_WZ  1.0f
 
+#define MAX_VEL_ADD  0.5f  // (m/s)速度增量上限
 //lower_limit parameters ---------------------
 #define MIN_THETA      -MAX_THETA
 #define MIN_THETA_DOT  -MAX_THETA_DOT
@@ -102,6 +106,7 @@
 #define MIN_SPEED_VECTOR_VY  -MAX_SPEED_VECTOR_VY
 #define MIN_SPEED_VECTOR_WZ  -MAX_SPEED_VECTOR_WZ
 
+#define MIN_VEL_ADD  -MAX_VEL_ADD  // (m/s)速度增量下限
 
 
 //PID parameters ---------------------

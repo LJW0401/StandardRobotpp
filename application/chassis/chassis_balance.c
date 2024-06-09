@@ -392,7 +392,7 @@ void ChassisReference(void)
         if (CHASSIS.ref.speed_vector.vx > WHEEL_DEADZONE) {
             // 进入停止状态，需要加入位置控制
             x = (CHASSIS.fdb.leg[0].wheel.Angle + CHASSIS.fdb.leg[1].wheel.Angle) / 2;
-        } else { // 还是停止状态，保留原位置
+        } else {  // 还是停止状态，保留原位置
             x = CHASSIS.ref.x;
         }
     }
@@ -470,6 +470,13 @@ void ChassisConsole(void)
  */
 static void LocomotionController(float Tp[2], float T_w[2])
 {
+    static float vel_add;  // 速度增量，用于适应重心位置变化
+    if (fabs(CHASSIS.ref.speed_vector.vx) < WHEEL_DEADZONE) {
+        vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
+    }
+    vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
+    CHASSIS.ref.x_dot += vel_add;
+
     float x[6];
     // clang-format off
     x[0] = CHASSIS.fdb.theta     - CHASSIS.ref.theta;
