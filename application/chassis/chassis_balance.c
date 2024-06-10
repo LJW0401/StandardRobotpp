@@ -481,10 +481,9 @@ void ChassisConsole(void)
 static void LocomotionController(float Tp[2], float T_w[2])
 {
     static float vel_add;  // 速度增量，用于适应重心位置变化
-    if (fabs(CHASSIS.ref.speed_vector.vx) < WHEEL_DEADZONE) {
+    if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.5f) {
+        // 当目标速度为0，且速度小于阈值时，增加速度增量
         vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
-    } else {
-        vel_add = 0;
     }
     vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
     CHASSIS.ref.x_dot += vel_add;
