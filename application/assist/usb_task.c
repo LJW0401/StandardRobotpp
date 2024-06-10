@@ -383,11 +383,11 @@ static void usb_send_outputPC(uint8_t t)
     char_to_uint(OutputPCData.packets[1].name, "yaw_fdb");
     char_to_uint(OutputPCData.packets[2].name, "yaw_out");
     // char_to_uint(OutputPCData.packets[3].name, "posfdb3");
-    // char_to_uint(OutputPCData.packets[4].name, "torfdb0");
-    // char_to_uint(OutputPCData.packets[5].name, "torfdb1");
-    char_to_uint(OutputPCData.packets[6].name, "yaw");
-    char_to_uint(OutputPCData.packets[7].name, "pitch");
-    char_to_uint(OutputPCData.packets[8].name, "roll");
+    char_to_uint(OutputPCData.packets[4].name, "yaw");
+    char_to_uint(OutputPCData.packets[5].name, "pitch");
+    char_to_uint(OutputPCData.packets[6].name, "roll");
+    // char_to_uint(OutputPCData.packets[7].name, "pitch");
+    // char_to_uint(OutputPCData.packets[8].name, "roll");
     // char_to_uint(OutputPCData.packets[9].name, "posset1");
     // char_to_uint(OutputPCData.packets[10].name, "posset2");
     // char_to_uint(OutputPCData.packets[11].name, "posset3");

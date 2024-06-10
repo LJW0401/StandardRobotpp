@@ -8,7 +8,7 @@
 #include "usb_task.h"
 #include "user_lib.h"
 
-Imu_t * imu;
+const Imu_t * imu;
 
 void develop_task(void const * pvParameters)
 {
@@ -18,10 +18,6 @@ void develop_task(void const * pvParameters)
     imu = Subscribe("imu_data");
 
     while (1) {
-        OutputPCData.packets[6].data = imu->yaw;
-        OutputPCData.packets[7].data = imu->pitch;
-        OutputPCData.packets[8].data = imu->roll;
-
         // code here
         vTaskDelay(1);
     }

@@ -403,8 +403,6 @@ static void UpdateImuData(void)
     // clang-format on
 }
 
-const Imu_t * GetImuDataPoint(void) { return &IMU_DATA; }
-
 // clang-format off
 
 /**

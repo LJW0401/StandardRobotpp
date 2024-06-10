@@ -63,7 +63,7 @@ uint8_t Publish(void * address, uint32_t size, char * name)
  * @param[in]      name 数据名称
  * @retval         订阅数据的地址
  */
-void * Subscribe(char * name)
+const void * Subscribe(char * name)
 {
     for (uint8_t i = 0; i < USED_LEN; i++) {
         if (strcmp(DATA_LIST[i].data_name, name) == 0) {

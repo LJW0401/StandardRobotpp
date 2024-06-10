@@ -70,7 +70,8 @@ static Chassis_s CHASSIS = {
 void ChassisInit(void)
 {
     CHASSIS.rc = get_remote_control_point();  // 获取遥控器指针
-    CHASSIS.imu = GetImuDataPoint();          // 获取IMU指针
+    CHASSIS.imu = Subscribe("imu_data");      // 获取IMU数据指针
+
     /*-------------------- 初始化底盘电机 --------------------*/
     MotorInit(&CHASSIS.joint_motor[0], 1, JOINT_CAN, DM_8009, J0_DIRECTION, 1, DM_MODE_MIT);
     MotorInit(&CHASSIS.joint_motor[1], 2, JOINT_CAN, DM_8009, J1_DIRECTION, 1, DM_MODE_MIT);
@@ -142,6 +143,12 @@ void ChassisHandleException(void)
         CHASSIS.error_code &= ~DBUS_ERROR_OFFSET;
     }
 
+    if (CHASSIS.imu == NULL) {
+        CHASSIS.error_code |= IMU_ERROR_OFFSET;
+    } else {
+        CHASSIS.error_code &= ~IMU_ERROR_OFFSET;
+    }
+
     for (uint8_t i = 0; i < 4; i++) {
         if (fabs(CHASSIS.joint_motor[i].fdb.tor) > 5.0f) {
             CHASSIS.error_code |= JOINT_ERROR_OFFSET;
@@ -162,6 +169,11 @@ void ChassisHandleException(void)
 void ChassisSetMode(void)
 {
     if (CHASSIS.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
+        CHASSIS.mode = CHASSIS_ZERO_FORCE;
+        return;
+    }
+
+    if (CHASSIS.error_code & IMU_ERROR_OFFSET) {  // IMU出错时的状态处理
         CHASSIS.mode = CHASSIS_ZERO_FORCE;
         return;
     }
@@ -268,9 +280,9 @@ void ChassisObserver(void)
     // OutputPCData.packets[1].data = CHASSIS.joint_motor[1].fdb.pos;
     // OutputPCData.packets[2].data = CHASSIS.joint_motor[2].fdb.pos;
     // OutputPCData.packets[3].data = CHASSIS.joint_motor[3].fdb.pos;
-    // OutputPCData.packets[4].data = CHASSIS.joint_motor[0].fdb.tor;
-    // OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
-    // OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
+    OutputPCData.packets[4].data = CHASSIS.imu->yaw;
+    OutputPCData.packets[5].data = CHASSIS.imu->pitch;
+    OutputPCData.packets[6].data = CHASSIS.imu->roll;
     // OutputPCData.packets[7].data = CHASSIS.joint_motor[3].fdb.tor;
     // OutputPCData.packets[8].data = CHASSIS.joint_motor[0].set.pos;
     // OutputPCData.packets[9].data = CHASSIS.joint_motor[1].set.pos;

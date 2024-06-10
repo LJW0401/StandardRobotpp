@@ -52,6 +52,6 @@ typedef struct __Imu
 } Imu_t;
 
 extern uint8_t Publish(void * address, uint32_t size, char * name);
-extern void * Subscribe(char * name);
+extern const void * Subscribe(char * name);
 
 #endif  // __DATA_EXCHANGE_H
