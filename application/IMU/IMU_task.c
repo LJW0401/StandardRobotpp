@@ -35,6 +35,7 @@
 #include "math.h"
 #include "pid.h"
 #include "usb_task.h"
+#include "data_exchange.h"
 
 // clang-format off
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
@@ -220,6 +221,9 @@ static Imu_t IMU_DATA = {
   */
 void IMU_task(void const * pvParameters)
 {
+    // 发布IMU数据
+    Publish(&IMU_DATA, sizeof(Imu_t), "imu_data");
+
     // clang-format off
     //wait a time
     osDelay(INS_TASK_INIT_TIME);

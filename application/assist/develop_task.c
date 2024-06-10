@@ -3,18 +3,24 @@
 #include "develop_task.h"
 
 #include "cmsis_os.h"
+#include "data_exchange.h"
 #include "signal_generator.h"
-#include "user_lib.h"
 #include "usb_task.h"
+#include "user_lib.h"
+
+Imu_t * imu;
 
 void develop_task(void const * pvParameters)
 {
     // 空闲一段时间
-    vTaskDelay(10);
+    vTaskDelay(500);
+
+    Subscribe(&imu, "imu_data");
 
     while (1) {
-        float in = GenerateSawtoothWave(-M_PI, M_PI, 3);
-        float out = ThetaRangeLimit(in, -2.0f, 1.55f, 1);
+        OutputPCData.packets[6].data = imu->yaw;
+        OutputPCData.packets[7].data = imu->pitch;
+        OutputPCData.packets[8].data = imu->roll;
 
         // code here
         vTaskDelay(1);

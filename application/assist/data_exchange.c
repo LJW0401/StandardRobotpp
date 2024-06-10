@@ -17,53 +17,66 @@
 
 #include "string.h"
 
-#define DATA_LEN 4
+#define DATA_LIST_LEN 10
+#define NAME_LEN 16
+
 typedef struct
 {
-    uint8_t data[DATA_LEN];
-    DataType_e data_type;
+    void * data_address;
+    uint32_t data_size;
+    char data_name[NAME_LEN];
 } Data_t;
 
-static Data_t DATA_BUFFER[Data_Exchange_INDEX_NUM] = {0};
+static Data_t DATA_LIST[DATA_LIST_LEN] = {0};
+static uint8_t USED_LEN = 0;  // 已经使用的数据量
 
 /**
  * @brief          发布数据
- * @param[in]      index 数据索引
- * @param[in]      data 发布的数据（统一存储为4个字节）
+ * @param[in]      address 数据地址
+ * @param[in]      size 数据大小
+ * @param[in]      name 数据名称(最大长度为15字符)
  * @retval         none
  */
-void Publish(DataExchangeIndex_e index, uint8_t * data, DataType_e data_type)
+uint8_t Publish(void * address, uint32_t size, char * name)
 {
-    memcpy(&DATA_BUFFER[index], data, DATA_LEN);
-    DATA_BUFFER[index].data_type = data_type;
+    if (USED_LEN >= DATA_LIST_LEN) {  // 判断数据列表已满
+        return PUBLISH_ALREADY_FULL;
+    }
+
+    for (uint8_t i = 0; i < USED_LEN; i++) {  // 判断数据是否已经存在
+        if (DATA_LIST[i].data_address == address) {
+            return PUBLISH_ALREADY_EXIST;
+        }
+    }
+
+    // 保存数据
+    // DATA_LIST[USED_LEN].data_address = address;
+    memcpy(&DATA_LIST[USED_LEN].data_address, &address, 4);
+    DATA_LIST[USED_LEN].data_size = size;
+    memcpy(DATA_LIST[USED_LEN].data_name, name, NAME_LEN);
+    USED_LEN++;
+    return PUBLISH_OK;
 }
 
 /**
  * @brief          订阅数据
- * @param[in]      index 数据索引
  * @param[in]      out 输出数据的地址
- * @retval         订阅数据的起始地址，需使用memcpy将值拷贝出来
+ * @param[in]      name 数据名称
+ * @retval         订阅数据的地址
  */
-void Subscribe(DataExchangeIndex_e index, uint8_t * out)
+uint8_t Subscribe(void * out, char * name)
 {
-    uint8_t data_len = 0;
-    switch (DATA_BUFFER[index].data_type) {
-        case DE_INT8:
-        case DE_UINT8: {
-            data_len = 1;
-        } break;
-        case DE_INT16:
-        case DE_UINT16: {
-            data_len = 2;
-        } break;
-        case DE_INT32:
-        case DE_UINT32:
-        case DE_FLOAT: {
-            data_len = 4;
-        } break;
-        default:
-            break;
+    if (USED_LEN == 0) {
+        return SUBSCRIBE_FAIL;
     }
 
-    memcpy(out, &DATA_BUFFER[index + DATA_LEN - data_len], data_len);
+    for (uint8_t i = 0; i < USED_LEN; i++) {
+        if (strcmp(DATA_LIST[i].data_name, name) == 0) {
+            // out = DATA_LIST[i].data_address;
+            memcpy(out, &DATA_LIST[i].data_address, 4);
+            return SUBSCRIBE_OK;
+        }
+    }
+
+    return SUBSCRIBE_FAIL;
 }
