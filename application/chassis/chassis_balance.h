@@ -61,9 +61,9 @@ typedef struct Leg
 
     struct joint
     {
-        float Angle[2];   // rad 0-前 1-后
-        float dAngle[2];  // rad/s 0-前 1-后
-    } joint;
+        float Angle;   // rad 0-前 1-后
+        float dAngle;  // rad/s 0-前 1-后
+    } joint[2];
 
     struct wheel
     {
