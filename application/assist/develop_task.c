@@ -15,7 +15,7 @@ void develop_task(void const * pvParameters)
     // 空闲一段时间
     vTaskDelay(500);
 
-    Subscribe(&imu, "imu_data");
+    imu = Subscribe("imu_data");
 
     while (1) {
         OutputPCData.packets[6].data = imu->yaw;

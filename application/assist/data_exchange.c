@@ -60,23 +60,16 @@ uint8_t Publish(void * address, uint32_t size, char * name)
 
 /**
  * @brief          订阅数据
- * @param[in]      out 输出数据的地址
  * @param[in]      name 数据名称
  * @retval         订阅数据的地址
  */
-uint8_t Subscribe(void * out, char * name)
+void * Subscribe(char * name)
 {
-    if (USED_LEN == 0) {
-        return SUBSCRIBE_FAIL;
-    }
-
     for (uint8_t i = 0; i < USED_LEN; i++) {
         if (strcmp(DATA_LIST[i].data_name, name) == 0) {
-            // out = DATA_LIST[i].data_address;
-            memcpy(out, &DATA_LIST[i].data_address, 4);
-            return SUBSCRIBE_OK;
+            return DATA_LIST[i].data_address;
         }
     }
 
-    return SUBSCRIBE_FAIL;
+    return NULL;
 }
