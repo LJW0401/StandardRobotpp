@@ -21,11 +21,12 @@
 #define CHASSIS_CONTROL_TIME 0.002f  // 底盘任务控制间隔 0.002s
 
 // 底盘的遥控器相关宏定义 ---------------------
-#define CHASSIS_MODE_CHANNEL 0  // 选择底盘状态 开关通道号
-#define CHASSIS_X_CHANNEL 1     // 前后的遥控器通道号码
-#define CHASSIS_Y_CHANNEL 0     // 左右的遥控器通道号码
-#define CHASSIS_WZ_CHANNEL 0    // 旋转的遥控器通道号码
-#define CHASSIS_RC_DEADLINE 5  // 摇杆死区
+#define CHASSIS_MODE_CHANNEL   0  // 选择底盘状态 开关通道号
+#define CHASSIS_X_CHANNEL      1  // 前后的遥控器通道号码
+#define CHASSIS_Y_CHANNEL      0  // 左右的遥控器通道号码
+#define CHASSIS_WZ_CHANNEL     0  // 旋转的遥控器通道号码
+#define CHASSIS_LENGTH_CHANNEL 4  // 腿长的遥控器通道号码
+#define CHASSIS_RC_DEADLINE    5  // 摇杆死区
 
 // deadzone parameters ---------------------
 #define WHEEL_DEADZONE 0.01f  // (m/s)轮子速度死区
@@ -139,18 +140,18 @@
 #define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.0f
 
 // 腿长跟踪长度环PID参数
-#define KP_CHASSIS_LEG_LENGTH_LENGTH 0.0f
-#define KI_CHASSIS_LEG_LENGTH_LENGTH 0.0f
+#define KP_CHASSIS_LEG_LENGTH_LENGTH 90.0f
+#define KI_CHASSIS_LEG_LENGTH_LENGTH 0.1f
 #define KD_CHASSIS_LEG_LENGTH_LENGTH 0.0f
-#define MAX_IOUT_CHASSIS_LEG_LENGTH_LENGTH 0.0f
-#define MAX_OUT_CHASSIS_LEG_LENGTH_LENGTH 0.0f
+#define MAX_IOUT_CHASSIS_LEG_LENGTH_LENGTH 0.5f
+#define MAX_OUT_CHASSIS_LEG_LENGTH_LENGTH 30.0f
 
 // 腿长跟踪速度环PID参数
-#define KP_CHASSIS_LEG_LENGTH_SPEED 0.0f
-#define KI_CHASSIS_LEG_LENGTH_SPEED 0.0f
-#define KD_CHASSIS_LEG_LENGTH_SPEED 0.0f
-#define MAX_IOUT_CHASSIS_LEG_LENGTH_SPEED 0.0f
-#define MAX_OUT_CHASSIS_LEG_LENGTH_SPEED 0.0f
+// #define KP_CHASSIS_LEG_LENGTH_SPEED 0.0f
+// #define KI_CHASSIS_LEG_LENGTH_SPEED 0.0f
+// #define KD_CHASSIS_LEG_LENGTH_SPEED 0.0f
+// #define MAX_IOUT_CHASSIS_LEG_LENGTH_SPEED 0.0f
+// #define MAX_OUT_CHASSIS_LEG_LENGTH_SPEED 0.0f
 
 // 腿角控制角度环PID参数
 #define KP_CHASSIS_LEG_ANGLE_ANGLE 0.0f

@@ -115,11 +115,8 @@ typedef struct
     pid_type_def roll_angle;
     pid_type_def roll_velocity;
 
-    pid_type_def leg_length_left_length;
-    pid_type_def leg_length_left_speed;
-
-    pid_type_def leg_length_right_length;
-    pid_type_def leg_length_right_speed;
+    pid_type_def leg_length_length[2];
+    pid_type_def leg_length_speed[2];
 
     pid_type_def leg_angle_angle;
 } PID_t;
