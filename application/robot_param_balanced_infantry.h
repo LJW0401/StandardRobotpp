@@ -77,7 +77,7 @@
 #define MAX_SPEED            1.5f
 #define MAX_SPEED_VECTOR_VX  1.5f
 #define MAX_SPEED_VECTOR_VY  1.5f
-#define MAX_SPEED_VECTOR_WZ  1.0f
+#define MAX_SPEED_VECTOR_WZ  3.0f
 
 #define MAX_VEL_ADD  0.5f  // (m/s)速度增量上限
 //lower_limit parameters ---------------------

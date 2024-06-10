@@ -358,15 +358,14 @@ static void UpdateLegStatus(void)
  */
 void ChassisReference(void)
 {
-    int16_t rc_x = 0, rc_y = 0, rc_wz = 0;
+    int16_t rc_x = 0, rc_wz = 0;
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_X_CHANNEL], rc_x, CHASSIS_RC_DEADLINE);
-    rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_Y_CHANNEL], rc_y, CHASSIS_RC_DEADLINE);
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_WZ_CHANNEL], rc_wz, CHASSIS_RC_DEADLINE);
 
     ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
 
     v_set.vx = rc_x * RC_TO_ONE * MAX_SPEED_VECTOR_VX;
-    v_set.vy = rc_y * RC_TO_ONE * MAX_SPEED_VECTOR_VY;
+    v_set.vy = 0;
     v_set.wz = -rc_wz * RC_TO_ONE * MAX_SPEED_VECTOR_WZ;
     switch (CHASSIS.mode) {
         case CHASSIS_FREE: {  // 底盘自由模式下，控制量为底盘坐标系下的速度
@@ -417,8 +416,6 @@ void ChassisReference(void)
     float angle = M_PI_2;
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
-
-    CHASSIS.ref.yaw = GenerateSinWave(0.5f, 0, 3);
 }
 
 /*-------------------- Console --------------------*/
@@ -449,7 +446,6 @@ void ChassisConsole(void)
             ConsoleCalibrate();
         } break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
-        case CHASSIS_STOP:
         case CHASSIS_SPIN:
         case CHASSIS_FREE: {
             ConsoleNormal();
@@ -506,8 +502,14 @@ static void LocomotionController(float Tp[2], float T_w[2])
     } else if (dyaw < -M_PI) {
         dyaw += 2 * M_PI;
     }
-    PID_calc(&CHASSIS.pid.yaw_angle, -dyaw, 0);//这里输入的dyaw是需要取反的原因还不是很清楚
-    PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
+
+    if (CHASSIS.mode == CHASSIS_FOLLOW_GIMBAL_YAW) {
+        //这里输入的dyaw是需要取反的原因还不是很清楚
+        PID_calc(&CHASSIS.pid.yaw_angle, -dyaw, 0);
+        PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.pid.yaw_angle.out);
+    } else {
+        PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.ref.speed_vector.wz);
+    }
 
     OutputPCData.packets[0].data = CHASSIS.ref.yaw;
     OutputPCData.packets[1].data = CHASSIS.fdb.yaw;
@@ -735,7 +737,6 @@ static void SendJointMotorCmd(void)
 
         switch (CHASSIS.mode) {
             case CHASSIS_FOLLOW_GIMBAL_YAW:
-            case CHASSIS_STOP:
             case CHASSIS_SPIN:
             case CHASSIS_FREE: {
 #ifdef LOCATION_CONTROL
@@ -796,7 +797,6 @@ static void SendWheelMotorCmd(void)
 {
     switch (CHASSIS.mode) {
         case CHASSIS_FOLLOW_GIMBAL_YAW:
-        case CHASSIS_STOP:
         case CHASSIS_SPIN:
         case CHASSIS_FREE: {
             LkMultipleTorqueControl(
