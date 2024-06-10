@@ -33,11 +33,10 @@ static uint8_t USED_LEN = 0;  // 已经使用的数据量
 /**
  * @brief          发布数据
  * @param[in]      address 数据地址
- * @param[in]      size 数据大小
  * @param[in]      name 数据名称(最大长度为15字符)
- * @retval         none
+ * @retval         数据发布状态
  */
-uint8_t Publish(void * address, uint32_t size, char * name)
+uint8_t Publish(void * address, char * name)
 {
     if (USED_LEN >= DATA_LIST_LEN) {  // 判断数据列表已满
         return PUBLISH_ALREADY_FULL;
@@ -52,7 +51,6 @@ uint8_t Publish(void * address, uint32_t size, char * name)
     // 保存数据
     // DATA_LIST[USED_LEN].data_address = address;
     memcpy(&DATA_LIST[USED_LEN].data_address, &address, 4);
-    DATA_LIST[USED_LEN].data_size = size;
     memcpy(DATA_LIST[USED_LEN].data_name, name, NAME_LEN);
     USED_LEN++;
     return PUBLISH_OK;

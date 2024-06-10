@@ -51,7 +51,7 @@ typedef struct __Imu
     float x_accel, y_accel, z_accel;     // m/s^2
 } Imu_t;
 
-extern uint8_t Publish(void * address, uint32_t size, char * name);
+extern uint8_t Publish(void * address, char * name);
 extern const void * Subscribe(char * name);
 
 #endif  // __DATA_EXCHANGE_H
