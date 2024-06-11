@@ -86,6 +86,8 @@
 #define MAX_VEL_ADD  0.5f  // (m/s)速度增量上限
 
 #define MAX_TOUCH_INTERVAL 200  // (ms)最大离地时间，超过这个时间认为离地
+
+#define MAX_JOINT_TORQUE  5.0f  // (Nm)关节最大扭矩
 //lower_limit parameters ---------------------
 #define MIN_THETA      -MAX_THETA
 #define MIN_THETA_DOT  -MAX_THETA_DOT
@@ -147,7 +149,7 @@
 // 腿长跟踪长度环PID参数
 #define KP_CHASSIS_LEG_LENGTH_LENGTH 90.0f
 #define KI_CHASSIS_LEG_LENGTH_LENGTH 0.1f
-#define KD_CHASSIS_LEG_LENGTH_LENGTH 0.0f
+#define KD_CHASSIS_LEG_LENGTH_LENGTH 1.0f
 #define MAX_IOUT_CHASSIS_LEG_LENGTH_LENGTH 0.5f
 #define MAX_OUT_CHASSIS_LEG_LENGTH_LENGTH 30.0f
 

@@ -58,7 +58,7 @@ static Chassis_s CHASSIS = {
             .k = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}, 
                   {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}},
             // clang-format on
-            .Tp = 0.10f,
+            .Tp = 0.3f,
             .T = 0.5f,
             .length = 1.0f,
         },
@@ -138,7 +138,7 @@ void ChassisInit(void)
 
     LowPassFilterInit(&CHASSIS.lpf.leg_angle_accel_filter[0], LEG_DDANGLE_LPF_ALPHA);
     LowPassFilterInit(&CHASSIS.lpf.leg_angle_accel_filter[1], LEG_DDANGLE_LPF_ALPHA);
-    
+
     LowPassFilterInit(&CHASSIS.lpf.support_force_filter[0], LEG_SUPPORT_FORCE_LPF_ALPHA);
     LowPassFilterInit(&CHASSIS.lpf.support_force_filter[1], LEG_SUPPORT_FORCE_LPF_ALPHA);
 }
@@ -167,11 +167,9 @@ void ChassisHandleException(void)
     }
 
     for (uint8_t i = 0; i < 4; i++) {
-        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > 5.0f) {
+        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > MAX_JOINT_TORQUE) {
             CHASSIS.error_code |= JOINT_ERROR_OFFSET;
             break;
-        } else {
-            CHASSIS.error_code &= ~JOINT_ERROR_OFFSET;
         }
     }
 
@@ -506,6 +504,14 @@ void ChassisReference(void)
     CHASSIS.ref.phi_dot   = 0;
     // clang-format on
 
+    static float vel_add;  // 速度增量，用于适应重心位置变化
+    if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.5f) {
+        // 当目标速度为0，且速度小于阈值时，增加速度增量
+        vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
+    }
+    vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
+    CHASSIS.ref.x_dot += vel_add;
+
     float length = rc_length * RC_TO_ONE * (MAX_LEG_LENGTH - MIN_LEG_LENGTH) / 2 +
                    (MAX_LEG_LENGTH + MIN_LEG_LENGTH) / 2;
     CHASSIS.ref.leg[0].rod.Length = fp32_constrain(length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
@@ -566,15 +572,6 @@ void ChassisConsole(void)
  */
 static void LocomotionController(float Tp[2], float T_w[2])
 {
-    // TODO: 速度增量计算部分应移至目标量部分进行计算
-    static float vel_add;  // 速度增量，用于适应重心位置变化
-    if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.5f) {
-        // 当目标速度为0，且速度小于阈值时，增加速度增量
-        vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
-    }
-    vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
-    CHASSIS.ref.x_dot += vel_add;
-
     float x[6];
     // clang-format off
     x[0] = CHASSIS.fdb.theta     - CHASSIS.ref.theta;
@@ -735,6 +732,9 @@ static void ConsoleNormal(void)
     LocomotionController(tp, t);
     CHASSIS.ref.leg[0].rod.Tp = tp[0];
     CHASSIS.ref.leg[1].rod.Tp = tp[1];
+    
+    // CHASSIS.ref.leg[0].rod.Tp = 0;
+    // CHASSIS.ref.leg[1].rod.Tp = 0;
 #ifdef LOCATION_CONTROL
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
@@ -769,14 +769,14 @@ static void ConsoleNormal(void)
 
     double joint_torque[2];
     LegTransform(
-        CHASSIS.ref.leg[0].rod.F, 0, CHASSIS.fdb.leg[0].joint[1].Angle,
+        CHASSIS.ref.leg[0].rod.F, CHASSIS.ref.leg[0].rod.Tp, CHASSIS.fdb.leg[0].joint[1].Angle,
         CHASSIS.fdb.leg[0].joint[0].Angle, joint_torque);
 
     CHASSIS.joint_motor[0].set.tor = -joint_torque[0] * (J0_DIRECTION);
     CHASSIS.joint_motor[1].set.tor = -joint_torque[1] * (J1_DIRECTION);
 
     LegTransform(
-        CHASSIS.ref.leg[1].rod.F, 0, CHASSIS.fdb.leg[1].joint[1].Angle,
+        CHASSIS.ref.leg[1].rod.F, CHASSIS.ref.leg[1].rod.Tp, CHASSIS.fdb.leg[1].joint[1].Angle,
         CHASSIS.fdb.leg[1].joint[0].Angle, joint_torque);
 
     CHASSIS.joint_motor[2].set.tor = -joint_torque[0] * (J2_DIRECTION);
