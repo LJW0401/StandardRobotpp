@@ -65,7 +65,8 @@ typedef struct Leg
         float dLength;   // m/s
         float ddLength;  // m/s^2
 
-        float F;  // N
+        float F;   // N
+        float Tp;  // N*m
     } rod;
 
     struct joint
@@ -134,6 +135,7 @@ typedef struct LPF
 {
     LowPassFilter_t leg_length_accel_filter[2];
     LowPassFilter_t leg_angle_accel_filter[2];
+    LowPassFilter_t support_force_filter[2];
 } LPF_t;
 
 /**

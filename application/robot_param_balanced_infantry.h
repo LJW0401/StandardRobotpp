@@ -48,7 +48,7 @@
 
 //physical parameters ---------------------
 #define LEG_MASS             0.4f    // (kg)腿重量
-#define WHEEL_MASS           2.8648f // (kg)轮子重量
+#define WHEEL_MASS           1.74f   // (kg)轮子重量
 #define WHEEL_RADIUS         0.106f  // (m)轮子半径
 #define WHEEL_START_TORQUE   0.3f    // (Nm)轮子起动力矩]
 
@@ -168,6 +168,7 @@
 //LPF parameters ---------------------
 #define LEG_DDLENGTH_LPF_ALPHA 0.1f
 #define LEG_DDANGLE_LPF_ALPHA 0.1f
+#define LEG_SUPPORT_FORCE_LPF_ALPHA 0.1f
 
 //other parameters ---------------------
 

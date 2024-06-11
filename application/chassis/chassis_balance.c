@@ -138,6 +138,9 @@ void ChassisInit(void)
 
     LowPassFilterInit(&CHASSIS.lpf.leg_angle_accel_filter[0], LEG_DDANGLE_LPF_ALPHA);
     LowPassFilterInit(&CHASSIS.lpf.leg_angle_accel_filter[1], LEG_DDANGLE_LPF_ALPHA);
+    
+    LowPassFilterInit(&CHASSIS.lpf.support_force_filter[0], LEG_SUPPORT_FORCE_LPF_ALPHA);
+    LowPassFilterInit(&CHASSIS.lpf.support_force_filter[1], LEG_SUPPORT_FORCE_LPF_ALPHA);
 }
 
 /*-------------------- Handle exception --------------------*/
@@ -182,24 +185,38 @@ void ChassisHandleException(void)
 static void GroundTouchDectect(void)
 {
     for (uint8_t i = 0; i < 2; i++) {
-        float Theta = CHASSIS.fdb.leg[i].rod.Angle - M_PI_2 + CHASSIS.imu->pitch;
-        float dTheta = CHASSIS.fdb.leg[i].rod.dAngle + CHASSIS.imu->pitch_vel;
+        float Theta = CHASSIS.fdb.leg[i].rod.Angle - M_PI_2 - CHASSIS.imu->pitch;
+        float dTheta = CHASSIS.fdb.leg[i].rod.dAngle - CHASSIS.imu->pitch_vel;
         float ddTheta = CHASSIS.fdb.leg[i].rod.ddAngle;
 
         float L0 = CHASSIS.fdb.leg[i].rod.Length;
         float dL0 = CHASSIS.fdb.leg[i].rod.dLength;
         float ddL0 = CHASSIS.fdb.leg[i].rod.ddLength;
 
-        float ddz_M = CHASSIS.imu->z_accel + GRAVITY;
+        float ddz_M = CHASSIS.imu->z_accel - GRAVITY;
         float ddz_w = ddz_M - ddL0 * cosf(Theta) + 2 * dL0 * dTheta * sinf(Theta) +
                       L0 * ddTheta * sinf(Theta) + L0 * dTheta * dTheta * cosf(Theta);
 
-        GROUND_TOUCH.support_force[i] = CHASSIS.ref.leg[i].rod.F + WHEEL_MASS * GRAVITY + WHEEL_MASS * ddz_w;
+        float F = CHASSIS.ref.leg[i].rod.F;
+        float Tp = CHASSIS.ref.leg[i].rod.Tp;
+        float P = F * cosf(Theta) + Tp * sinf(Theta) / L0;
+
+        float Fn = P + WHEEL_MASS * GRAVITY + WHEEL_MASS * ddz_w;
+        GROUND_TOUCH.support_force[i] = LowPassFilterCalc(&CHASSIS.lpf.support_force_filter[i], Fn);
+
+        if (i == 1) {
+            OutputPCData.packets[15].data = P;
+            OutputPCData.packets[16].data = WHEEL_MASS * GRAVITY;
+            OutputPCData.packets[17].data = ddz_w;
+            OutputPCData.packets[18].data = Theta;
+            OutputPCData.packets[19].data = F;
+            OutputPCData.packets[20].data = Tp;
+        }
     }
 
-    GROUND_TOUCH.support_force[0] =
-        GROUND_TOUCH.force[0] +
-        LEG_MASS * (GRAVITY - (CHASSIS.fdb.leg[0].rod.ddLength - CHASSIS.imu->z_accel));
+    // GROUND_TOUCH.support_force[0] =
+    //     CHASSIS.ref.leg[0].rod.F +
+    //     LEG_MASS * (GRAVITY - (CHASSIS.fdb.leg[0].rod.ddLength - CHASSIS.imu->z_accel));
 
     // bool touch = false;
 
@@ -329,10 +346,10 @@ void ChassisObserver(void)
         }
     }
 
-    OutputPCData.packets[0].data = CHASSIS.fdb.leg[0].rod.Length;
-    OutputPCData.packets[1].data = CHASSIS.ref.leg[0].rod.Length;
-    OutputPCData.packets[2].data = CHASSIS.fdb.leg[1].rod.Length;
-    OutputPCData.packets[3].data = CHASSIS.ref.leg[1].rod.Length;
+    // OutputPCData.packets[0].data = CHASSIS.fdb.leg[0].rod.Length;
+    // OutputPCData.packets[1].data = CHASSIS.ref.leg[0].rod.Length;
+    // OutputPCData.packets[2].data = CHASSIS.fdb.leg[1].rod.Length;
+    // OutputPCData.packets[3].data = CHASSIS.ref.leg[1].rod.Length;
     OutputPCData.packets[4].data = CHASSIS.joint_motor[0].fdb.tor;
     OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
@@ -342,14 +359,14 @@ void ChassisObserver(void)
     OutputPCData.packets[10].data = CHASSIS.joint_motor[1].set.tor;
     OutputPCData.packets[11].data = CHASSIS.joint_motor[2].set.tor;
     OutputPCData.packets[12].data = CHASSIS.joint_motor[3].set.tor;
-    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.ddAngle;
-    // OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.Length;
+    OutputPCData.packets[13].data = GROUND_TOUCH.support_force[0];
+    OutputPCData.packets[14].data = GROUND_TOUCH.support_force[1];
     // OutputPCData.packets[15].data = CHASSIS.imu->pitch;
-    OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
-    OutputPCData.packets[17].data = CHASSIS.fdb.leg[1].wheel.Velocity;
-    OutputPCData.packets[18].data = CHASSIS.wheel_motor[0].set.tor;
-    OutputPCData.packets[19].data = CHASSIS.wheel_motor[1].set.tor;
-    OutputPCData.packets[20].data = CHASSIS.wheel_motor[1].fdb.curr * 0.32f;
+    // OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
+    // OutputPCData.packets[17].data = CHASSIS.fdb.leg[1].wheel.Velocity;
+    // OutputPCData.packets[18].data = CHASSIS.wheel_motor[0].set.tor;
+    // OutputPCData.packets[19].data = CHASSIS.wheel_motor[1].set.tor;
+    // OutputPCData.packets[20].data = CHASSIS.imu->z_accel;
 }
 
 /**
@@ -549,6 +566,7 @@ void ChassisConsole(void)
  */
 static void LocomotionController(float Tp[2], float T_w[2])
 {
+    // TODO: 速度增量计算部分应移至目标量部分进行计算
     static float vel_add;  // 速度增量，用于适应重心位置变化
     if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.5f) {
         // 当目标速度为0，且速度小于阈值时，增加速度增量
@@ -715,6 +733,8 @@ static void ConsoleNormal(void)
 {
     float tp[2], t[2];
     LocomotionController(tp, t);
+    CHASSIS.ref.leg[0].rod.Tp = tp[0];
+    CHASSIS.ref.leg[1].rod.Tp = tp[1];
 #ifdef LOCATION_CONTROL
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
@@ -763,7 +783,7 @@ static void ConsoleNormal(void)
     CHASSIS.joint_motor[3].set.tor = -joint_torque[1] * (J3_DIRECTION);
 #endif
 
-    // TODO: 排查电机发送的力矩要反向的问题，这种情况下控制正常
+    // QUESTION: 排查电机发送的力矩要反向的问题，这种情况下控制正常
     CHASSIS.wheel_motor[0].set.tor = -(t[0] * (W0_DIRECTION));  //不知道为什么要反向，待后续研究
     CHASSIS.wheel_motor[1].set.tor = -(t[1] * (W1_DIRECTION));  //不知道为什么要反向，待后续研究
 }
