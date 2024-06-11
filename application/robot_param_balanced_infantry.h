@@ -165,10 +165,10 @@
 #define MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE 0.0f
 
 //LPF parameters ---------------------
-#define LEG_ACCEL_LPF_ALPHA 0.1f
+#define LEG_DDLENGTH_LPF_ALPHA 0.1f
+#define LEG_DDANGLE_LPF_ALPHA 0.1f
 
 //other parameters ---------------------
-#define LEG_DDLENGTH_LPF_RATIO 0.5f  // 低通滤波系数
 
 /*-------------------- Gimbal --------------------*/
 //physical parameters ---------------------

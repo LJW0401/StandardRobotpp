@@ -57,9 +57,11 @@ typedef struct Leg
 {
     struct rod
     {
-        float Angle;     // rad
+        float Angle;    // rad
+        float dAngle;   // rad/s
+        float ddAngle;  // rad/s^2
+
         float Length;    // m
-        float dAngle;    // rad/s
         float dLength;   // m/s
         float ddLength;  // m/s^2
     } rod;
@@ -128,7 +130,8 @@ typedef struct
 
 typedef struct LPF
 {
-    LowPassFilter_t leg_accel_filter[2];
+    LowPassFilter_t leg_length_accel_filter[2];
+    LowPassFilter_t leg_angle_accel_filter[2];
 } LPF_t;
 
 /**

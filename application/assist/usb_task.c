@@ -392,8 +392,8 @@ static void usb_send_outputPC(uint8_t t)
     // char_to_uint(OutputPCData.packets[10].name, "tor_set1");
     // char_to_uint(OutputPCData.packets[11].name, "tor_set2");
     // char_to_uint(OutputPCData.packets[12].name, "tor_set3");
-    char_to_uint(OutputPCData.packets[13].name, "ddlen");
-    // char_to_uint(OutputPCData.packets[14].name, "ddlen_o");
+    char_to_uint(OutputPCData.packets[13].name, "ddang");
+    char_to_uint(OutputPCData.packets[14].name, "ddang_o");
     // char_to_uint(OutputPCData.packets[15].name, "pitch");
     // char_to_uint(OutputPCData.packets[16].name, "w0_vel");
     // char_to_uint(OutputPCData.packets[17].name, "w1_vel");

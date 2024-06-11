@@ -133,8 +133,11 @@ void ChassisInit(void)
         MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE, MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE);
 
     // 初始化低通滤波器
-    LowPassFilterInit(&CHASSIS.lpf.leg_accel_filter[0], LEG_ACCEL_LPF_ALPHA);
-    LowPassFilterInit(&CHASSIS.lpf.leg_accel_filter[1], LEG_ACCEL_LPF_ALPHA);
+    LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[0], LEG_DDLENGTH_LPF_ALPHA);
+    LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[1], LEG_DDLENGTH_LPF_ALPHA);
+
+    LowPassFilterInit(&CHASSIS.lpf.leg_angle_accel_filter[0], LEG_DDANGLE_LPF_ALPHA);
+    LowPassFilterInit(&CHASSIS.lpf.leg_angle_accel_filter[1], LEG_DDANGLE_LPF_ALPHA);
 }
 
 /*-------------------- Handle exception --------------------*/
@@ -323,7 +326,7 @@ void ChassisObserver(void)
     OutputPCData.packets[10].data = CHASSIS.joint_motor[1].set.tor;
     OutputPCData.packets[11].data = CHASSIS.joint_motor[2].set.tor;
     OutputPCData.packets[12].data = CHASSIS.joint_motor[3].set.tor;
-    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.ddLength;
+    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.ddAngle;
     // OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.Length;
     // OutputPCData.packets[15].data = CHASSIS.imu->pitch;
     OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
@@ -377,7 +380,7 @@ static void UpdateLegStatus(void)
     double leg_pos[2];
     double leg_speed[2];
 
-    float last_dLength;
+    float last_dLength, last_dAngle;
 
     for (uint8_t i = 0; i < 2; i++) {
         // 更新位置信息
@@ -388,6 +391,7 @@ static void UpdateLegStatus(void)
         // 更新速度信息
         // clang-format off
         last_dLength = CHASSIS.fdb.leg[i].rod.dLength;
+        last_dAngle = CHASSIS.fdb.leg[i].rod.dAngle;
         LegSpeed(
             CHASSIS.fdb.leg[i].joint[1].dAngle, CHASSIS.fdb.leg[i].joint[0].dAngle,
             CHASSIS.fdb.leg[i].joint[1].Angle , CHASSIS.fdb.leg[i].joint[0].Angle,
@@ -398,8 +402,12 @@ static void UpdateLegStatus(void)
 
         // 更新加速度信息
         float accel = (CHASSIS.fdb.leg[i].rod.dLength - last_dLength) / CHASSIS_CONTROL_TIME_S;
-        CHASSIS.fdb.leg[i].rod.ddLength = LowPassFilterCalc(
-            &CHASSIS.lpf.leg_accel_filter[i], accel);
+        CHASSIS.fdb.leg[i].rod.ddLength =
+            LowPassFilterCalc(&CHASSIS.lpf.leg_length_accel_filter[i], accel);
+
+        accel = (CHASSIS.fdb.leg[i].rod.dAngle - last_dAngle) / CHASSIS_CONTROL_TIME_S;
+        CHASSIS.fdb.leg[i].rod.ddAngle =
+            LowPassFilterCalc(&CHASSIS.lpf.leg_angle_accel_filter[i], accel);
     }
 }
 
