@@ -64,6 +64,8 @@ typedef struct Leg
         float Length;    // m
         float dLength;   // m/s
         float ddLength;  // m/s^2
+
+        float F;  // N
     } rod;
 
     struct joint

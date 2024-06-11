@@ -181,6 +181,22 @@ void ChassisHandleException(void)
  */
 static void GroundTouchDectect(void)
 {
+    for (uint8_t i = 0; i < 2; i++) {
+        float Theta = CHASSIS.fdb.leg[i].rod.Angle - M_PI_2 + CHASSIS.imu->pitch;
+        float dTheta = CHASSIS.fdb.leg[i].rod.dAngle + CHASSIS.imu->pitch_vel;
+        float ddTheta = CHASSIS.fdb.leg[i].rod.ddAngle;
+
+        float L0 = CHASSIS.fdb.leg[i].rod.Length;
+        float dL0 = CHASSIS.fdb.leg[i].rod.dLength;
+        float ddL0 = CHASSIS.fdb.leg[i].rod.ddLength;
+
+        float ddz_M = CHASSIS.imu->z_accel + GRAVITY;
+        float ddz_w = ddz_M - ddL0 * cosf(Theta) + 2 * dL0 * dTheta * sinf(Theta) +
+                      L0 * ddTheta * sinf(Theta) + L0 * dTheta * dTheta * cosf(Theta);
+
+        GROUND_TOUCH.support_force[i] = CHASSIS.ref.leg[i].rod.F + WHEEL_MASS * GRAVITY + WHEEL_MASS * ddz_w;
+    }
+
     GROUND_TOUCH.support_force[0] =
         GROUND_TOUCH.force[0] +
         LEG_MASS * (GRAVITY - (CHASSIS.fdb.leg[0].rod.ddLength - CHASSIS.imu->z_accel));
@@ -728,18 +744,20 @@ static void ConsoleNormal(void)
 #else
     float F[2];
     LegController(F);
+    CHASSIS.ref.leg[0].rod.F = F[0];
+    CHASSIS.ref.leg[1].rod.F = F[1];
 
     double joint_torque[2];
     LegTransform(
-        F[0], 0, CHASSIS.fdb.leg[0].joint[1].Angle, CHASSIS.fdb.leg[0].joint[0].Angle,
-        joint_torque);
+        CHASSIS.ref.leg[0].rod.F, 0, CHASSIS.fdb.leg[0].joint[1].Angle,
+        CHASSIS.fdb.leg[0].joint[0].Angle, joint_torque);
 
     CHASSIS.joint_motor[0].set.tor = -joint_torque[0] * (J0_DIRECTION);
     CHASSIS.joint_motor[1].set.tor = -joint_torque[1] * (J1_DIRECTION);
 
     LegTransform(
-        F[1], 0, CHASSIS.fdb.leg[0].joint[1].Angle, CHASSIS.fdb.leg[0].joint[0].Angle,
-        joint_torque);
+        CHASSIS.ref.leg[1].rod.F, 0, CHASSIS.fdb.leg[1].joint[1].Angle,
+        CHASSIS.fdb.leg[1].joint[0].Angle, joint_torque);
 
     CHASSIS.joint_motor[2].set.tor = -joint_torque[0] * (J2_DIRECTION);
     CHASSIS.joint_motor[3].set.tor = -joint_torque[1] * (J3_DIRECTION);

@@ -48,7 +48,8 @@
 
 //physical parameters ---------------------
 #define LEG_MASS             0.4f    // (kg)腿重量
-#define WHEEL_RADIUS         0.106f  //(m)轮子半径
+#define WHEEL_MASS           2.8648f // (kg)轮子重量
+#define WHEEL_RADIUS         0.106f  // (m)轮子半径
 #define WHEEL_START_TORQUE   0.3f    // (Nm)轮子起动力矩]
 
 #define J0_ANGLE_OFFSET     -0.19163715f           // (rad)关节0角度偏移量(电机0点到水平线的夹角)
