@@ -18,7 +18,7 @@
 // 底盘任务相关宏定义
 #define CHASSIS_TASK_INIT_TIME 357   // 任务开始空闲一段时间
 #define CHASSIS_CONTROL_TIME_MS 2    // 底盘任务控制间隔 2ms
-#define CHASSIS_CONTROL_TIME 0.002f  // 底盘任务控制间隔 0.002s
+#define CHASSIS_CONTROL_TIME_S (CHASSIS_CONTROL_TIME_MS / 1000.0f)   // 底盘任务控制间隔
 
 // 底盘的遥控器相关宏定义 ---------------------
 #define CHASSIS_MODE_CHANNEL   0  // 选择底盘状态 开关通道号
@@ -47,11 +47,13 @@
 #define W1_DIRECTION -1
 
 //physical parameters ---------------------
+#define LEG_MASS             0.4f    // (kg)腿重量
 #define WHEEL_RADIUS         0.106f  //(m)轮子半径
-#define WHEEL_START_TORQUE   0.3f  // (Nm)轮子起动力矩
-#define J0_ANGLE_OFFSET     -0.19163715f  // (rad)关节0角度偏移量(电机0点到水平线的夹角)
-#define J1_ANGLE_OFFSET      M_PI + 0.19163715f  // (rad)关节1角度偏移量(电机0点到水平线的夹角)
-#define J2_ANGLE_OFFSET      0.19163715f  // (rad)关节2角度偏移量(电机0点到水平线的夹角)
+#define WHEEL_START_TORQUE   0.3f    // (Nm)轮子起动力矩]
+
+#define J0_ANGLE_OFFSET     -0.19163715f           // (rad)关节0角度偏移量(电机0点到水平线的夹角)
+#define J1_ANGLE_OFFSET      M_PI + 0.19163715f    // (rad)关节1角度偏移量(电机0点到水平线的夹角)
+#define J2_ANGLE_OFFSET      0.19163715f           // (rad)关节2角度偏移量(电机0点到水平线的夹角)
 #define J3_ANGLE_OFFSET     -(M_PI + 0.19163715f)  // (rad)关节3角度偏移量(电机0点到水平线的夹角)
 
 //upper_limit parameters ---------------------
@@ -81,6 +83,8 @@
 #define MAX_SPEED_VECTOR_WZ  3.0f
 
 #define MAX_VEL_ADD  0.5f  // (m/s)速度增量上限
+
+#define MAX_TOUCH_INTERVAL 200  // (ms)最大离地时间，超过这个时间认为离地
 //lower_limit parameters ---------------------
 #define MIN_THETA      -MAX_THETA
 #define MIN_THETA_DOT  -MAX_THETA_DOT
@@ -159,6 +163,9 @@
 #define KD_CHASSIS_LEG_ANGLE_ANGLE 0.0f
 #define MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE 0.0f
 #define MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE 0.0f
+
+//LPF parameters ---------------------
+#define LEG_ACCEL_LPF_ALPHA 0.1f
 
 //other parameters ---------------------
 #define LEG_DDLENGTH_LPF_RATIO 0.5f  // 低通滤波系数

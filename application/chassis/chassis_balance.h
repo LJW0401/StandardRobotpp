@@ -28,12 +28,14 @@
 #include "pid.h"
 #include "remote_control.h"
 #include "struct_typedef.h"
+#include "user_lib.h"
 
 // clang-format off
 #define JOINT_ERROR_OFFSET   ((uint8_t)1 << 0)  // 关节电机错误偏移量
 #define WHEEL_ERROR_OFFSET   ((uint8_t)1 << 1)  // 驱动轮电机错误偏移量
 #define DBUS_ERROR_OFFSET    ((uint8_t)1 << 2)  // dbus错误偏移量
 #define IMU_ERROR_OFFSET     ((uint8_t)1 << 3)  // imu错误偏移量
+#define FLOATING_OFFSET      ((uint8_t)1 << 4)  // 悬空状态偏移量
 // clang-format on
 
 /*-------------------- Structural definition --------------------*/
@@ -43,10 +45,12 @@ typedef enum {
     CHASSIS_ZERO_FORCE,  // 底盘无力，所有控制量置0
     CHASSIS_CALIBRATE,   // 底盘校准
     CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
-    CHASSIS_FREE,  // 底盘不跟随云台
-    CHASSIS_SPIN,  // 底盘小陀螺模式
-    CHASSIS_AUTO,  // 底盘自动模式
-    CHASSIS_DEBUG  // 调试模式
+    CHASSIS_FLOATING,    // 底盘悬空状态
+    CHASSIS_CUSHIONING,  // 底盘缓冲状态
+    CHASSIS_FREE,        // 底盘不跟随云台
+    CHASSIS_SPIN,        // 底盘小陀螺模式
+    CHASSIS_AUTO,        // 底盘自动模式
+    CHASSIS_DEBUG        // 调试模式
 } ChassisMode_e;
 
 typedef struct Leg
@@ -57,6 +61,7 @@ typedef struct Leg
         float Length;    // m
         float dAngle;    // rad/s
         float dLength;   // m/s
+        float ddLength;  // m/s^2
     } rod;
 
     struct joint
@@ -67,7 +72,7 @@ typedef struct Leg
 
     struct wheel
     {
-        float Angle;   // rad
+        float Angle;     // rad
         float Velocity;  // rad/s
     } wheel;
 } Leg_t;
@@ -102,7 +107,7 @@ typedef struct
     float yaw;
     float yaw_velocity;
 
-    Leg_t leg[2]; // 0-左 1-右
+    Leg_t leg[2];  // 0-左 1-右
 
     ChassisSpeedVector_t speed_vector;
 } Values_t;
@@ -120,6 +125,11 @@ typedef struct
 
     pid_type_def leg_angle_angle;
 } PID_t;
+
+typedef struct LPF
+{
+    LowPassFilter_t leg_accel_filter[2];
+} LPF_t;
 
 /**
  * @brief  底盘数据结构体
@@ -139,10 +149,11 @@ typedef struct
     Motor_s wheel_motor[2];  // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
 
-    Values_t ref;          // 期望值
-    Values_t fdb;          // 状态值
+    Values_t ref;  // 期望值
+    Values_t fdb;  // 状态值
 
     PID_t pid;  // PID控制器
+    LPF_t lpf;  // 低通滤波器
 
     Ratio_t ratio;  // 比例系数
 
@@ -158,6 +169,15 @@ typedef struct Calibrate
     bool reached[4];        //是否到达限位
     bool calibrated;        //完成校准
 } Calibrate_s;
+
+typedef struct GroundTouch
+{
+    uint32_t touch_time;     //记录触地时间
+    float force[2];          //记录腿上的力
+    float support_force[2];  //(N)地面的支持力 0-左 1-右
+
+    bool touch;  //是否触地
+} GroundTouch_s;
 
 extern void ChassisInit(void);
 

@@ -41,6 +41,11 @@ static Calibrate_s CALIBRATE = {
     .calibrated = false,
 };
 
+static GroundTouch_s GROUND_TOUCH = {
+    .touch_time = 0,
+    .touch = false,
+};
+
 static Chassis_s CHASSIS = {
     .mode = CHASSIS_OFF,
     .state = CHASSIS_STATE_ERROR,
@@ -126,9 +131,15 @@ void ChassisInit(void)
     PID_init(
         &CHASSIS.pid.leg_angle_angle, PID_POSITION, leg_angle_angle_pid,
         MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE, MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE);
+
+    // 初始化低通滤波器
+    LowPassFilterInit(&CHASSIS.lpf.leg_accel_filter[0], LEG_ACCEL_LPF_ALPHA);
+    LowPassFilterInit(&CHASSIS.lpf.leg_accel_filter[1], LEG_ACCEL_LPF_ALPHA);
 }
 
 /*-------------------- Handle exception --------------------*/
+
+static void GroundTouchDectect(void);
 
 /**
  * @brief          异常处理
@@ -156,6 +167,29 @@ void ChassisHandleException(void)
         } else {
             CHASSIS.error_code &= ~JOINT_ERROR_OFFSET;
         }
+    }
+
+    GroundTouchDectect();  // 离地检测
+}
+
+/**
+ * @brief 离地检测
+ * @param  
+ */
+static void GroundTouchDectect(void)
+{
+    GROUND_TOUCH.support_force[0] =
+        GROUND_TOUCH.force[0] +
+        LEG_MASS * (GRAVITY - (CHASSIS.fdb.leg[0].rod.ddLength - CHASSIS.imu->z_accel));
+
+    // bool touch = false;
+
+    uint32_t now = HAL_GetTick();
+    if (now - GROUND_TOUCH.touch_time < MAX_TOUCH_INTERVAL) {
+        //若上次触地时间距离现在不超过 MAX_TOUCH_INTERVAL ms，则认为当前瞬间接地，避免弹跳导致误判
+        GROUND_TOUCH.touch = true;
+    } else {
+        GROUND_TOUCH.touch = false;
     }
 }
 
@@ -289,7 +323,7 @@ void ChassisObserver(void)
     OutputPCData.packets[10].data = CHASSIS.joint_motor[1].set.tor;
     OutputPCData.packets[11].data = CHASSIS.joint_motor[2].set.tor;
     OutputPCData.packets[12].data = CHASSIS.joint_motor[3].set.tor;
-    // OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.Angle;
+    OutputPCData.packets[13].data = CHASSIS.fdb.leg[0].rod.ddLength;
     // OutputPCData.packets[14].data = CHASSIS.fdb.leg[1].rod.Length;
     // OutputPCData.packets[15].data = CHASSIS.imu->pitch;
     OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
@@ -343,6 +377,8 @@ static void UpdateLegStatus(void)
     double leg_pos[2];
     double leg_speed[2];
 
+    float last_dLength;
+
     for (uint8_t i = 0; i < 2; i++) {
         // 更新位置信息
         LegFKine(CHASSIS.fdb.leg[i].joint[1].Angle, CHASSIS.fdb.leg[i].joint[0].Angle, leg_pos);
@@ -351,6 +387,7 @@ static void UpdateLegStatus(void)
 
         // 更新速度信息
         // clang-format off
+        last_dLength = CHASSIS.fdb.leg[i].rod.dLength;
         LegSpeed(
             CHASSIS.fdb.leg[i].joint[1].dAngle, CHASSIS.fdb.leg[i].joint[0].dAngle,
             CHASSIS.fdb.leg[i].joint[1].Angle , CHASSIS.fdb.leg[i].joint[0].Angle,
@@ -358,6 +395,11 @@ static void UpdateLegStatus(void)
         CHASSIS.fdb.leg[i].rod.dLength = leg_speed[0];
         CHASSIS.fdb.leg[i].rod.dAngle  = leg_speed[1];
         // clang-format on
+
+        // 更新加速度信息
+        float accel = (CHASSIS.fdb.leg[i].rod.dLength - last_dLength) / CHASSIS_CONTROL_TIME_S;
+        CHASSIS.fdb.leg[i].rod.ddLength = LowPassFilterCalc(
+            &CHASSIS.lpf.leg_accel_filter[i], accel);
     }
 }
 
