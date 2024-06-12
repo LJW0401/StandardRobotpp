@@ -61,7 +61,7 @@
 #define J3_ANGLE_OFFSET     (-(M_PI + 0.19163715f))  // (rad)关节3角度偏移量(电机0点到水平线的夹角)
 
 #define DLENGTH_DIRECTION  (-1) // ROLL角补偿量方向(腿长增加方向)
-#define DANGLE_DIRECTION   (-1) // pitch角补偿量方向
+#define DANGLE_DIRECTION   (1) // pitch角补偿量方向
 
 //upper_limit parameters ---------------------
 #define MAX_THETA      (1.0f)
