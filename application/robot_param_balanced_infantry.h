@@ -25,6 +25,7 @@
 #define CHASSIS_X_CHANNEL      1  // 前后的遥控器通道号码
 #define CHASSIS_Y_CHANNEL      0  // 左右的遥控器通道号码
 #define CHASSIS_WZ_CHANNEL     0  // 旋转的遥控器通道号码
+#define CHASSIS_ANGLE_CHANNEL  2  // 腿摆角的遥控器通道号码
 #define CHASSIS_LENGTH_CHANNEL 3  // 腿长的遥控器通道号码
 #define CHASSIS_ROLL_CHANNEL   4  // ROLL角的遥控器通道号码
 #define CHASSIS_RC_DEADLINE    5  // 摇杆死区
@@ -81,7 +82,7 @@
 #define MAX_J3_ANGLE  1.8f // (rad)关节角度上限
 
 #define MAX_LEG_LENGTH       0.35f
-#define MAX_LEG_ANGLE        M_PI_2 + 0.3f
+#define MAX_LEG_ANGLE        M_PI_2 + 0.4f
 #define MAX_SPEED            1.5f
 #define MAX_SPEED_VECTOR_VX  1.5f
 #define MAX_SPEED_VECTOR_VY  1.5f
@@ -112,7 +113,7 @@
 #define MIN_J3_ANGLE  0.0f // (rad)关节角度下限
 
 #define MIN_LEG_LENGTH        0.11f
-#define MIN_LEG_ANGLE         M_PI_2 - 0.3f
+#define MIN_LEG_ANGLE         M_PI_2 - 0.4f
 #define MIN_SPEED            -MAX_SPEED
 #define MIN_SPEED_VECTOR_VX  -MAX_SPEED_VECTOR_VX
 #define MIN_SPEED_VECTOR_VY  -MAX_SPEED_VECTOR_VY
@@ -151,11 +152,11 @@
 // #define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.12f
 
 //pitch轴跟踪角度环PID参数
-#define KP_CHASSIS_PITCH_ANGLE 0.1f
+#define KP_CHASSIS_PITCH_ANGLE 0.15f
 #define KI_CHASSIS_PITCH_ANGLE 0.0f
-#define KD_CHASSIS_PITCH_ANGLE 0.0f
+#define KD_CHASSIS_PITCH_ANGLE 0.1f
 #define MAX_IOUT_CHASSIS_PITCH_ANGLE 0.0f
-#define MAX_OUT_CHASSIS_PITCH_ANGLE 0.3f
+#define MAX_OUT_CHASSIS_PITCH_ANGLE 0.4f
 
 // 腿长跟踪长度环PID参数
 #define KP_CHASSIS_LEG_LENGTH_LENGTH 90.0f
