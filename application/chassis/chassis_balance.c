@@ -681,14 +681,10 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
-    static float delta_Angle = 0;
-    float dAngle =
-        PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);  // 摆杆角度补偿
-    delta_Angle += dAngle * CHASSIS_CONTROL_TIME_S;
-    delta_Angle = fp32_constrain(delta_Angle, -MIN_DELTA_ROD_ANGLE, MAX_DELTA_ROD_ANGLE);
-
-    // float delta_Angle =
-    //     PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);  // 摆杆角度补偿
+    float dAngle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
+    // float delta_Angle = PID_calc(&CHASSIS.pid.pitch_velocity, CHASSIS.fdb.phi_dot, dAngle);
+    float delta_Angle =
+        PID_calc(&CHASSIS.pid.pitch_velocity, CHASSIS.fdb.phi_dot, GenerateSinWave(0.3f, 0, 2));
 
     CHASSIS.ref.leg[0].rod.Angle = M_PI_2 + delta_Angle * DANGLE_DIRECTION;
     CHASSIS.ref.leg[1].rod.Angle = M_PI_2 + delta_Angle * DANGLE_DIRECTION;

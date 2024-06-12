@@ -167,9 +167,9 @@
 //pitch轴跟踪速度环PID参数
 #define KP_CHASSIS_PITCH_VELOCITY        (1.5f)
 #define KI_CHASSIS_PITCH_VELOCITY        (0.0f)
-#define KD_CHASSIS_PITCH_VELOCITY        (0.2f)
+#define KD_CHASSIS_PITCH_VELOCITY        (0.0f)
 #define MAX_IOUT_CHASSIS_PITCH_VELOCITY  (0.0f)
-#define MAX_OUT_CHASSIS_PITCH_VELOCITY   (0.5f)
+#define MAX_OUT_CHASSIS_PITCH_VELOCITY   (0.15f)
 
 // 腿长跟踪长度环PID参数
 #define KP_CHASSIS_LEG_LENGTH_LENGTH        (90.0f)
