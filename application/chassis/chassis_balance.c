@@ -119,7 +119,7 @@ void ChassisInit(void)
         &CHASSIS.pid.pitch_angle, PID_POSITION, pitch_angle_pid, MAX_OUT_CHASSIS_PITCH_VELOCITY,
         MAX_IOUT_CHASSIS_PITCH_VELOCITY);
     PID_init(
-        &CHASSIS.pid.pitch_velocity, PID_POSITION, pitch_velocity_pid, MAX_OUT_CHASSIS_PITCH_ANGLE,
+        &CHASSIS.pid.pitch_vel, PID_POSITION, pitch_velocity_pid, MAX_OUT_CHASSIS_PITCH_ANGLE,
         MAX_IOUT_CHASSIS_PITCH_ANGLE);
     // PID_init(
     //     &CHASSIS.pid.roll_velocity, PID_POSITION, roll_velocity_pid, MAX_OUT_CHASSIS_ROLL_VELOCITY,
@@ -681,13 +681,16 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
-    float dAngle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
-    // float delta_Angle = PID_calc(&CHASSIS.pid.pitch_velocity, CHASSIS.fdb.phi_dot, dAngle);
-    float delta_Angle =
-        PID_calc(&CHASSIS.pid.pitch_velocity, CHASSIS.fdb.phi_dot, GenerateSinWave(0.3f, 0, 2));
+    static float delta_Angle = 0;
+    float dAngle = CHASSIS.fdb.phi_dot * PITCH_VEL_RATIO;
+    float dAngle_1 = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
+    // float dAngle_2 = PID_calc(&CHASSIS.pid.pitch_vel, CHASSIS.fdb.phi_dot, CHASSIS.ref.phi_dot);
 
-    CHASSIS.ref.leg[0].rod.Angle = M_PI_2 + delta_Angle * DANGLE_DIRECTION;
-    CHASSIS.ref.leg[1].rod.Angle = M_PI_2 + delta_Angle * DANGLE_DIRECTION;
+    delta_Angle += (dAngle + dAngle_1) * CHASSIS_CONTROL_TIME_S;
+    delta_Angle = fp32_constrain(delta_Angle, MIN_DELTA_ROD_ANGLE, MAX_DELTA_ROD_ANGLE);
+
+    CHASSIS.ref.leg[0].rod.Angle = M_PI_2 + delta_Angle;
+    CHASSIS.ref.leg[1].rod.Angle = M_PI_2 + delta_Angle;
 
     CHASSIS.ref.leg[0].rod.Angle =
         fp32_constrain(CHASSIS.ref.leg[0].rod.Angle, MIN_LEG_ANGLE, MAX_LEG_ANGLE);

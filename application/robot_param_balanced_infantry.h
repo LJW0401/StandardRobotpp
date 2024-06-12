@@ -36,6 +36,7 @@
 
 // ratio parameters ---------------------
 #define VEL_ADD_RATIO (0.008f)  // 速度增量比例系数
+#define PITCH_VEL_RATIO (0.9f)  // pitch轴速度比例系数
 
 // motor parameters ---------------------
 #define JOINT_CAN (1)
@@ -61,10 +62,10 @@
 #define J3_ANGLE_OFFSET     (-(M_PI + 0.19163715f))  // (rad)关节3角度偏移量(电机0点到水平线的夹角)
 
 #define DLENGTH_DIRECTION  (-1) // ROLL角补偿量方向(腿长增加方向)
-#define DANGLE_DIRECTION   (1) // pitch角补偿量方向
+// #define DANGLE_DIRECTION   (1) // pitch角补偿量方向
 
 //upper_limit parameters ---------------------
-#define MAX_DELTA_ROD_ANGLE (0.15f) // (rad)腿摆角最大变化量
+#define MAX_DELTA_ROD_ANGLE (0.25f) // (rad)腿摆角最大变化量
 
 #define MAX_THETA      (1.0f)
 #define MAX_THETA_DOT  (2.0f)
@@ -97,7 +98,7 @@
 #define MAX_TOUCH_INTERVAL (200)   // (ms)最大离地时间，超过这个时间认为离地
 #define MAX_JOINT_TORQUE   (6.0f)  // (Nm)关节最大扭矩
 //lower_limit parameters ---------------------
-#define MIN_DELTA_ROD_ANGLE (MAX_DELTA_ROD_ANGLE) // (rad)腿摆角最小变化量
+#define MIN_DELTA_ROD_ANGLE (-MAX_DELTA_ROD_ANGLE) // (rad)腿摆角最小变化量
 
 #define MIN_THETA      (-MAX_THETA)
 #define MIN_THETA_DOT  (-MAX_THETA_DOT)
@@ -158,18 +159,18 @@
 // #define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.12f
 
 //pitch轴跟踪角度环PID参数
-#define KP_CHASSIS_PITCH_ANGLE        (1.5f)
+#define KP_CHASSIS_PITCH_ANGLE        (2.0f)
 #define KI_CHASSIS_PITCH_ANGLE        (0.0f)
 #define KD_CHASSIS_PITCH_ANGLE        (0.2f)
 #define MAX_IOUT_CHASSIS_PITCH_ANGLE  (0.0f)
-#define MAX_OUT_CHASSIS_PITCH_ANGLE   (0.5f)
+#define MAX_OUT_CHASSIS_PITCH_ANGLE   (1.0f)
 
 //pitch轴跟踪速度环PID参数
 #define KP_CHASSIS_PITCH_VELOCITY        (1.5f)
 #define KI_CHASSIS_PITCH_VELOCITY        (0.0f)
 #define KD_CHASSIS_PITCH_VELOCITY        (0.0f)
 #define MAX_IOUT_CHASSIS_PITCH_VELOCITY  (0.0f)
-#define MAX_OUT_CHASSIS_PITCH_VELOCITY   (0.15f)
+#define MAX_OUT_CHASSIS_PITCH_VELOCITY   (0.0f)
 
 // 腿长跟踪长度环PID参数
 #define KP_CHASSIS_LEG_LENGTH_LENGTH        (90.0f)
