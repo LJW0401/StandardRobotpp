@@ -97,6 +97,8 @@ void ChassisInit(void)
     //     KP_CHASSIS_ROLL_VELOCITY, KI_CHASSIS_ROLL_VELOCITY, KD_CHASSIS_ROLL_VELOCITY};
     float pitch_angle_pid[3] = {
         KP_CHASSIS_PITCH_ANGLE, KI_CHASSIS_PITCH_ANGLE, KD_CHASSIS_PITCH_ANGLE};
+    float pitch_velocity_pid[3] = {
+        KP_CHASSIS_PITCH_VELOCITY, KI_CHASSIS_PITCH_VELOCITY, KD_CHASSIS_PITCH_VELOCITY};
     float leg_length_length_pid[3] = {
         KP_CHASSIS_LEG_LENGTH_LENGTH, KI_CHASSIS_LEG_LENGTH_LENGTH, KD_CHASSIS_LEG_LENGTH_LENGTH};
     // float leg_length_speed_pid[3] = {
@@ -114,7 +116,10 @@ void ChassisInit(void)
         &CHASSIS.pid.roll_angle, PID_POSITION, roll_angle_pid, MAX_OUT_CHASSIS_ROLL_ANGLE,
         MAX_IOUT_CHASSIS_ROLL_ANGLE);
     PID_init(
-        &CHASSIS.pid.pitch_angle, PID_POSITION, pitch_angle_pid, MAX_OUT_CHASSIS_PITCH_ANGLE,
+        &CHASSIS.pid.pitch_angle, PID_POSITION, pitch_angle_pid, MAX_OUT_CHASSIS_PITCH_VELOCITY,
+        MAX_IOUT_CHASSIS_PITCH_VELOCITY);
+    PID_init(
+        &CHASSIS.pid.pitch_velocity, PID_POSITION, pitch_velocity_pid, MAX_OUT_CHASSIS_PITCH_ANGLE,
         MAX_IOUT_CHASSIS_PITCH_ANGLE);
     // PID_init(
     //     &CHASSIS.pid.roll_velocity, PID_POSITION, roll_velocity_pid, MAX_OUT_CHASSIS_ROLL_VELOCITY,
@@ -509,7 +514,7 @@ void ChassisReference(void)
     CHASSIS.ref.phi_dot   = 0;
     // clang-format on
 
-    static float vel_add;  // 速度增量，用于适应重心位置变化
+    static float vel_add = 0;  // 速度增量，用于适应重心位置变化
     if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.8f) {
         // 当目标速度为0，且速度小于阈值时，增加速度增量
         vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
@@ -676,17 +681,28 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
+    static float delta_Angle = 0;
     float dAngle =
         PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);  // 摆杆角度补偿
+    delta_Angle += dAngle * CHASSIS_CONTROL_TIME_S;
+    delta_Angle = fp32_constrain(delta_Angle, -MIN_DELTA_ROD_ANGLE, MAX_DELTA_ROD_ANGLE);
 
-    CHASSIS.ref.leg[0].rod.Angle = CHASSIS.fdb.leg[0].rod.Angle + dAngle * DANGLE_DIRECTION;
-    CHASSIS.ref.leg[1].rod.Angle = CHASSIS.fdb.leg[1].rod.Angle + dAngle * DANGLE_DIRECTION;
+    // float delta_Angle =
+    //     PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);  // 摆杆角度补偿
 
-    float dLength =
+    CHASSIS.ref.leg[0].rod.Angle = M_PI_2 + delta_Angle * DANGLE_DIRECTION;
+    CHASSIS.ref.leg[1].rod.Angle = M_PI_2 + delta_Angle * DANGLE_DIRECTION;
+
+    CHASSIS.ref.leg[0].rod.Angle =
+        fp32_constrain(CHASSIS.ref.leg[0].rod.Angle, MIN_LEG_ANGLE, MAX_LEG_ANGLE);
+    CHASSIS.ref.leg[1].rod.Angle =
+        fp32_constrain(CHASSIS.ref.leg[1].rod.Angle, MIN_LEG_ANGLE, MAX_LEG_ANGLE);
+
+    float delta_Length =
         PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);  // 腿长补偿
 
-    CHASSIS.ref.leg[0].rod.Length += dLength * DLENGTH_DIRECTION;
-    CHASSIS.ref.leg[1].rod.Length -= dLength * DLENGTH_DIRECTION;
+    CHASSIS.ref.leg[0].rod.Length += delta_Length * DLENGTH_DIRECTION;
+    CHASSIS.ref.leg[1].rod.Length -= delta_Length * DLENGTH_DIRECTION;
 
     CHASSIS.ref.leg[0].rod.Length =
         fp32_constrain(CHASSIS.ref.leg[0].rod.Length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);

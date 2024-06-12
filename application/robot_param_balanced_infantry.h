@@ -64,6 +64,8 @@
 #define DANGLE_DIRECTION   (1) // pitch角补偿量方向
 
 //upper_limit parameters ---------------------
+#define MAX_DELTA_ROD_ANGLE (0.15f) // (rad)腿摆角最大变化量
+
 #define MAX_THETA      (1.0f)
 #define MAX_THETA_DOT  (2.0f)
 #define MAX_X          (1.0f)
@@ -83,18 +85,20 @@
 #define MAX_J3_ANGLE  (1.8f) // (rad)关节角度上限
 
 #define MAX_LEG_LENGTH       (0.35f)
-#define MAX_LEG_ANGLE        (M_PI_2 + 0.4f)
+#define MAX_LEG_ANGLE        (M_PI_2 + MAX_DELTA_ROD_ANGLE)
 #define MAX_SPEED            (1.5f)
 #define MAX_SPEED_VECTOR_VX  (1.5f)
 #define MAX_SPEED_VECTOR_VY  (1.5f)
 #define MAX_SPEED_VECTOR_WZ  (3.0f)
 
-#define MAX_VEL_ADD  (1.0f)  // (m/s)速度增量上限
+#define MAX_VEL_ADD   (1.0f)  // (m/s)速度增量上限
+#define MAX_PITCH_VEL (0.1f)  // (rad/s)pitch轴速度上限
 
-#define MAX_TOUCH_INTERVAL (200)  // (ms)最大离地时间，超过这个时间认为离地
-
-#define MAX_JOINT_TORQUE  (6.0f)  // (Nm)关节最大扭矩
+#define MAX_TOUCH_INTERVAL (200)   // (ms)最大离地时间，超过这个时间认为离地
+#define MAX_JOINT_TORQUE   (6.0f)  // (Nm)关节最大扭矩
 //lower_limit parameters ---------------------
+#define MIN_DELTA_ROD_ANGLE (MAX_DELTA_ROD_ANGLE) // (rad)腿摆角最小变化量
+
 #define MIN_THETA      (-MAX_THETA)
 #define MIN_THETA_DOT  (-MAX_THETA_DOT)
 #define MIN_X          (-MAX_X)
@@ -114,13 +118,14 @@
 #define MIN_J3_ANGLE ( 0.0f) // (rad)关节角度下限
 
 #define MIN_LEG_LENGTH       ( 0.11f)
-#define MIN_LEG_ANGLE        ( M_PI_2 - 0.4f)
+#define MIN_LEG_ANGLE        ( M_PI_2 - MAX_DELTA_ROD_ANGLE)
 #define MIN_SPEED            (-MAX_SPEED)
 #define MIN_SPEED_VECTOR_VX  (-MAX_SPEED_VECTOR_VX)
 #define MIN_SPEED_VECTOR_VY  (-MAX_SPEED_VECTOR_VY)
 #define MIN_SPEED_VECTOR_WZ  (-MAX_SPEED_VECTOR_WZ)
 
-#define MIN_VEL_ADD  -MAX_VEL_ADD  // (m/s)速度增量下限
+#define MIN_VEL_ADD   (-MAX_VEL_ADD)    // (m/s)速度增量下限
+#define MIN_PITCH_VEL (-MAX_PITCH_VEL)  // (rad/s)pitch轴速度下限
 
 
 //PID parameters ---------------------
@@ -153,11 +158,18 @@
 // #define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.12f
 
 //pitch轴跟踪角度环PID参数
-#define KP_CHASSIS_PITCH_ANGLE        (0.15f)
+#define KP_CHASSIS_PITCH_ANGLE        (1.5f)
 #define KI_CHASSIS_PITCH_ANGLE        (0.0f)
-#define KD_CHASSIS_PITCH_ANGLE        (0.1f)
+#define KD_CHASSIS_PITCH_ANGLE        (0.2f)
 #define MAX_IOUT_CHASSIS_PITCH_ANGLE  (0.0f)
-#define MAX_OUT_CHASSIS_PITCH_ANGLE   (0.4f)
+#define MAX_OUT_CHASSIS_PITCH_ANGLE   (0.5f)
+
+//pitch轴跟踪速度环PID参数
+#define KP_CHASSIS_PITCH_VELOCITY        (1.5f)
+#define KI_CHASSIS_PITCH_VELOCITY        (0.0f)
+#define KD_CHASSIS_PITCH_VELOCITY        (0.2f)
+#define MAX_IOUT_CHASSIS_PITCH_VELOCITY  (0.0f)
+#define MAX_OUT_CHASSIS_PITCH_VELOCITY   (0.5f)
 
 // 腿长跟踪长度环PID参数
 #define KP_CHASSIS_LEG_LENGTH_LENGTH        (90.0f)
