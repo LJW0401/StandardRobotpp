@@ -159,11 +159,16 @@
 // #define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.12f
 
 //pitch轴跟踪角度环PID参数
-#define KP_CHASSIS_PITCH_ANGLE        (2.0f)
+#define KP_CHASSIS_PITCH_ANGLE        (0.8f)
 #define KI_CHASSIS_PITCH_ANGLE        (0.0f)
-#define KD_CHASSIS_PITCH_ANGLE        (0.2f)
-#define MAX_IOUT_CHASSIS_PITCH_ANGLE  (0.0f)
-#define MAX_OUT_CHASSIS_PITCH_ANGLE   (1.0f)
+#define KD_CHASSIS_PITCH_ANGLE        (0.3f)
+#define MAX_IOUT_CHASSIS_PITCH_ANGLE  (0.05f)
+#define MAX_OUT_CHASSIS_PITCH_ANGLE   (0.2f)
+// #define KP_CHASSIS_PITCH_ANGLE        (2.0f)
+// #define KI_CHASSIS_PITCH_ANGLE        (0.0f)
+// #define KD_CHASSIS_PITCH_ANGLE        (0.2f)
+// #define MAX_IOUT_CHASSIS_PITCH_ANGLE  (0.0f)
+// #define MAX_OUT_CHASSIS_PITCH_ANGLE   (1.0f)
 
 //pitch轴跟踪速度环PID参数
 #define KP_CHASSIS_PITCH_VELOCITY        (1.5f)
