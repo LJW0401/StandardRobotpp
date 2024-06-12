@@ -27,8 +27,6 @@
 #include "usb_task.h"
 #include "user_lib.h"
 
-#define LOCATION_CONTROL
-
 #define CALIBRATE_STOP_VELOCITY 0.05f  // rad/s
 #define CALIBRATE_STOP_TIME 200        // ms
 #define CALIBRATE_VELOCITY 2.0f        // rad/s
@@ -670,7 +668,7 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
     t[1] = k[1][0] * x[0] + k[1][1] * x[1] + k[1][2] * x[2] + k[1][3] * x[3] + k[1][4] * x[4] +
            k[1][5] * x[5];
 }
-#ifdef LOCATION_CONTROL
+#if LOCATION_CONTROL
 /**
  * @brief 腿部控制器
  * @param[out]  joint_pos_l 左关节电机设定位置 0-后，1-前
@@ -683,12 +681,6 @@ static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 
     CHASSIS.ref.leg[0].rod.Angle = CHASSIS.fdb.leg[0].rod.Angle + dAngle * DANGLE_DIRECTION;
     CHASSIS.ref.leg[1].rod.Angle = CHASSIS.fdb.leg[1].rod.Angle + dAngle * DANGLE_DIRECTION;
-
-    // float roll_vel = GenerateSinWave(0.5f, 0, 3);
-    //     PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);  // roll角度补偿
-
-    // float dLength =
-    //     PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, roll_vel);  // 腿长补偿
 
     float dLength =
         PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);  // 腿长补偿
@@ -762,7 +754,8 @@ static void ConsoleCalibrate(void)
 
 static void ConsoleDebug(void)
 {
-#ifdef LOCATION_CONTROL
+#if LOCATION_CONTROL
+    
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
 
@@ -800,9 +793,7 @@ static void ConsoleNormal(void)
     CHASSIS.ref.leg[0].rod.Tp = tp[0];
     CHASSIS.ref.leg[1].rod.Tp = tp[1];
 
-    // CHASSIS.ref.leg[0].rod.Tp = 0;
-    // CHASSIS.ref.leg[1].rod.Tp = 0;
-#ifdef LOCATION_CONTROL
+#if LOCATION_CONTROL
     double joint_pos_l[2], joint_pos_r[2];
     LegController(joint_pos_l, joint_pos_r);
 
@@ -914,7 +905,7 @@ static void SendJointMotorCmd(void)
             case CHASSIS_FOLLOW_GIMBAL_YAW:
             case CHASSIS_SPIN:
             case CHASSIS_FREE: {
-#ifdef LOCATION_CONTROL
+#if LOCATION_CONTROL
                 DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
                 DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
                 delay_us(200);

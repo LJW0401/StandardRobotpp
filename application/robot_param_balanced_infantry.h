@@ -15,6 +15,7 @@
 
 // clang-format off
 /*-------------------- Chassis --------------------*/
+#define LOCATION_CONTROL 1 // 位置控制
 // 底盘任务相关宏定义
 #define CHASSIS_TASK_INIT_TIME 357   // 任务开始空闲一段时间
 #define CHASSIS_CONTROL_TIME_MS 2    // 底盘任务控制间隔 2ms
