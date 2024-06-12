@@ -755,9 +755,9 @@ static void ConsoleCalibrate(void)
 static void ConsoleDebug(void)
 {
 #if LOCATION_CONTROL
-    
     double joint_pos_l[2], joint_pos_r[2];
-    LegController(joint_pos_l, joint_pos_r);
+    LegIKine(CHASSIS.ref.leg[0].rod.Length, CHASSIS.ref.leg[0].rod.Angle, joint_pos_l);
+    LegIKine(CHASSIS.ref.leg[1].rod.Length, CHASSIS.ref.leg[1].rod.Angle, joint_pos_r);
 
     // 当解算出的角度正常时，设置目标角度
     if (!(isnan(joint_pos_l[0]) || isnan(joint_pos_l[1]) || isnan(joint_pos_r[0]) ||
