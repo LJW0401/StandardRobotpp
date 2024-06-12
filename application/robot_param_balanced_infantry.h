@@ -59,6 +59,7 @@
 #define J3_ANGLE_OFFSET     -(M_PI + 0.19163715f)  // (rad)关节3角度偏移量(电机0点到水平线的夹角)
 
 #define DLENGTH_DIRECTION  (-1) // ROLL角补偿量方向(腿长增加方向)
+#define DANGLE_DIRECTION   (-1) // pitch角补偿量方向
 
 //upper_limit parameters ---------------------
 #define MAX_THETA      1.0f
@@ -80,7 +81,7 @@
 #define MAX_J3_ANGLE  1.8f // (rad)关节角度上限
 
 #define MAX_LEG_LENGTH       0.35f
-#define MAX_LEG_ANGLE        M_PI_2 + 0.1f
+#define MAX_LEG_ANGLE        M_PI_2 + 0.3f
 #define MAX_SPEED            1.5f
 #define MAX_SPEED_VECTOR_VX  1.5f
 #define MAX_SPEED_VECTOR_VY  1.5f
@@ -111,7 +112,7 @@
 #define MIN_J3_ANGLE  0.0f // (rad)关节角度下限
 
 #define MIN_LEG_LENGTH        0.11f
-#define MIN_LEG_ANGLE         M_PI_2 - 0.1f
+#define MIN_LEG_ANGLE         M_PI_2 - 0.3f
 #define MIN_SPEED            -MAX_SPEED
 #define MIN_SPEED_VECTOR_VX  -MAX_SPEED_VECTOR_VX
 #define MIN_SPEED_VECTOR_VY  -MAX_SPEED_VECTOR_VY
@@ -150,11 +151,11 @@
 // #define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.12f
 
 //pitch轴跟踪角度环PID参数
-#define KP_CHASSIS_PITCH_ANGLE 0.0f
+#define KP_CHASSIS_PITCH_ANGLE 0.1f
 #define KI_CHASSIS_PITCH_ANGLE 0.0f
 #define KD_CHASSIS_PITCH_ANGLE 0.0f
 #define MAX_IOUT_CHASSIS_PITCH_ANGLE 0.0f
-#define MAX_OUT_CHASSIS_PITCH_ANGLE 0.0f
+#define MAX_OUT_CHASSIS_PITCH_ANGLE 0.3f
 
 // 腿长跟踪长度环PID参数
 #define KP_CHASSIS_LEG_LENGTH_LENGTH 90.0f

@@ -97,6 +97,8 @@ void ChassisInit(void)
     float roll_angle_pid[3] = {KP_CHASSIS_ROLL_ANGLE, KI_CHASSIS_ROLL_ANGLE, KD_CHASSIS_ROLL_ANGLE};
     // float roll_velocity_pid[3] = {
     //     KP_CHASSIS_ROLL_VELOCITY, KI_CHASSIS_ROLL_VELOCITY, KD_CHASSIS_ROLL_VELOCITY};
+    float pitch_angle_pid[3] = {
+        KP_CHASSIS_PITCH_ANGLE, KI_CHASSIS_PITCH_ANGLE, KD_CHASSIS_PITCH_ANGLE};
     float leg_length_length_pid[3] = {
         KP_CHASSIS_LEG_LENGTH_LENGTH, KI_CHASSIS_LEG_LENGTH_LENGTH, KD_CHASSIS_LEG_LENGTH_LENGTH};
     // float leg_length_speed_pid[3] = {
@@ -113,6 +115,9 @@ void ChassisInit(void)
     PID_init(
         &CHASSIS.pid.roll_angle, PID_POSITION, roll_angle_pid, MAX_OUT_CHASSIS_ROLL_ANGLE,
         MAX_IOUT_CHASSIS_ROLL_ANGLE);
+    PID_init(
+        &CHASSIS.pid.pitch_angle, PID_POSITION, pitch_angle_pid, MAX_OUT_CHASSIS_PITCH_ANGLE,
+        MAX_IOUT_CHASSIS_PITCH_ANGLE);
     // PID_init(
     //     &CHASSIS.pid.roll_velocity, PID_POSITION, roll_velocity_pid, MAX_OUT_CHASSIS_ROLL_VELOCITY,
     //     MAX_IOUT_CHASSIS_ROLL_VELOCITY);
@@ -670,18 +675,17 @@ static void LegController(double joint_pos_l[2], double joint_pos_r[2])
     float dAngle =
         PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);  // 摆杆角度补偿
 
+    CHASSIS.ref.leg[0].rod.Angle = CHASSIS.fdb.leg[0].rod.Angle + dAngle * DANGLE_DIRECTION;
+    CHASSIS.ref.leg[1].rod.Angle = CHASSIS.fdb.leg[1].rod.Angle + dAngle * DANGLE_DIRECTION;
+
     // float roll_vel = GenerateSinWave(0.5f, 0, 3);
     //     PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);  // roll角度补偿
 
     // float dLength =
     //     PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, roll_vel);  // 腿长补偿
 
-    float roll = GenerateSinWave(0.3f, 0, 3);
     float dLength =
         PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);  // 腿长补偿
-
-    OutputPCData.packets[16].data = roll;
-    OutputPCData.packets[17].data = dLength;
 
     CHASSIS.ref.leg[0].rod.Length += dLength * DLENGTH_DIRECTION;
     CHASSIS.ref.leg[1].rod.Length -= dLength * DLENGTH_DIRECTION;
@@ -785,17 +789,16 @@ static void ConsoleNormal(void)
             theta_transform(joint_pos_r[1], -J2_ANGLE_OFFSET, J2_DIRECTION, 1);
         CHASSIS.joint_motor[3].set.pos =
             theta_transform(joint_pos_r[0], -J3_ANGLE_OFFSET, J3_DIRECTION, 1);
-
-        // 检测设定角度是否超过电机角度限制
-        CHASSIS.joint_motor[0].set.pos =
-            fp32_constrain(CHASSIS.joint_motor[0].set.pos, MIN_J0_ANGLE, MAX_J0_ANGLE);
-        CHASSIS.joint_motor[1].set.pos =
-            fp32_constrain(CHASSIS.joint_motor[1].set.pos, MIN_J1_ANGLE, MAX_J1_ANGLE);
-        CHASSIS.joint_motor[2].set.pos =
-            fp32_constrain(CHASSIS.joint_motor[2].set.pos, MIN_J2_ANGLE, MAX_J2_ANGLE);
-        CHASSIS.joint_motor[3].set.pos =
-            fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
     }
+    // 检测设定角度是否超过电机角度限制
+    CHASSIS.joint_motor[0].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[0].set.pos, MIN_J0_ANGLE, MAX_J0_ANGLE);
+    CHASSIS.joint_motor[1].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[1].set.pos, MIN_J1_ANGLE, MAX_J1_ANGLE);
+    CHASSIS.joint_motor[2].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[2].set.pos, MIN_J2_ANGLE, MAX_J2_ANGLE);
+    CHASSIS.joint_motor[3].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
 #else
     float F[2];
     LegController(F);
