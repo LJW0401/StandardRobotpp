@@ -25,14 +25,15 @@
 #define CHASSIS_X_CHANNEL      1  // 前后的遥控器通道号码
 #define CHASSIS_Y_CHANNEL      0  // 左右的遥控器通道号码
 #define CHASSIS_WZ_CHANNEL     0  // 旋转的遥控器通道号码
-#define CHASSIS_LENGTH_CHANNEL 4  // 腿长的遥控器通道号码
+#define CHASSIS_LENGTH_CHANNEL 3  // 腿长的遥控器通道号码
+#define CHASSIS_ROLL_CHANNEL   4  // ROLL角的遥控器通道号码
 #define CHASSIS_RC_DEADLINE    5  // 摇杆死区
 
 // deadzone parameters ---------------------
 #define WHEEL_DEADZONE 0.01f  // (m/s)轮子速度死区
 
 // ratio parameters ---------------------
-#define VEL_ADD_RATIO 0.005f  // 速度增量比例系数
+#define VEL_ADD_RATIO 0.008f  // 速度增量比例系数
 
 // motor parameters ---------------------
 #define JOINT_CAN 1
@@ -50,12 +51,14 @@
 #define LEG_MASS             0.4f    // (kg)腿重量
 #define WHEEL_MASS           1.74f   // (kg)轮子重量
 #define WHEEL_RADIUS         0.106f  // (m)轮子半径
-#define WHEEL_START_TORQUE   0.3f    // (Nm)轮子起动力矩]
+#define WHEEL_START_TORQUE   0.3f    // (Nm)轮子起动力矩
 
 #define J0_ANGLE_OFFSET     -0.19163715f           // (rad)关节0角度偏移量(电机0点到水平线的夹角)
 #define J1_ANGLE_OFFSET      M_PI + 0.19163715f    // (rad)关节1角度偏移量(电机0点到水平线的夹角)
 #define J2_ANGLE_OFFSET      0.19163715f           // (rad)关节2角度偏移量(电机0点到水平线的夹角)
 #define J3_ANGLE_OFFSET     -(M_PI + 0.19163715f)  // (rad)关节3角度偏移量(电机0点到水平线的夹角)
+
+#define DLENGTH_DIRECTION  (-1) // ROLL角补偿量方向(腿长增加方向)
 
 //upper_limit parameters ---------------------
 #define MAX_THETA      1.0f
@@ -66,7 +69,7 @@
 #define MAX_PHI_DOT    2.0f
 
 #define MAX_SPEED_INTEGRAL  0.5f
-#define MAX_ROLL            1.0f
+#define MAX_ROLL            0.3f
 #define MAX_ROLL_VELOCITY   1.0f
 #define MAX_YAW             M_PI
 #define MAX_YAW_VELOCITY    3.0f
@@ -83,11 +86,11 @@
 #define MAX_SPEED_VECTOR_VY  1.5f
 #define MAX_SPEED_VECTOR_WZ  3.0f
 
-#define MAX_VEL_ADD  0.5f  // (m/s)速度增量上限
+#define MAX_VEL_ADD  1.0f  // (m/s)速度增量上限
 
 #define MAX_TOUCH_INTERVAL 200  // (ms)最大离地时间，超过这个时间认为离地
 
-#define MAX_JOINT_TORQUE  5.0f  // (Nm)关节最大扭矩
+#define MAX_JOINT_TORQUE  6.0f  // (Nm)关节最大扭矩
 //lower_limit parameters ---------------------
 #define MIN_THETA      -MAX_THETA
 #define MIN_THETA_DOT  -MAX_THETA_DOT
@@ -133,18 +136,25 @@
 #define MAX_OUT_CHASSIS_YAW_VELOCITY 1.0f
 
 //roll轴跟踪角度环PID参数
-#define KP_CHASSIS_ROLL_ANGLE 0.0f
+#define KP_CHASSIS_ROLL_ANGLE 0.6f
 #define KI_CHASSIS_ROLL_ANGLE 0.0f
-#define KD_CHASSIS_ROLL_ANGLE 0.0f
+#define KD_CHASSIS_ROLL_ANGLE 0.1f
 #define MAX_IOUT_CHASSIS_ROLL_ANGLE 0.0f
-#define MAX_OUT_CHASSIS_ROLL_ANGLE 0.0f
+#define MAX_OUT_CHASSIS_ROLL_ANGLE 0.12f
 
-//roll轴跟踪速度环PID参数
-#define KP_CHASSIS_ROLL_VELOCITY 0.0f
-#define KI_CHASSIS_ROLL_VELOCITY 0.0f
-#define KD_CHASSIS_ROLL_VELOCITY 0.0f
-#define MAX_IOUT_CHASSIS_ROLL_VELOCITY 0.0f
-#define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.0f
+// //roll轴跟踪速度环PID参数
+// #define KP_CHASSIS_ROLL_VELOCITY 0.1f
+// #define KI_CHASSIS_ROLL_VELOCITY 0.0f
+// #define KD_CHASSIS_ROLL_VELOCITY 0.0f
+// #define MAX_IOUT_CHASSIS_ROLL_VELOCITY 0.0f
+// #define MAX_OUT_CHASSIS_ROLL_VELOCITY 0.12f
+
+//pitch轴跟踪角度环PID参数
+#define KP_CHASSIS_PITCH_ANGLE 0.0f
+#define KI_CHASSIS_PITCH_ANGLE 0.0f
+#define KD_CHASSIS_PITCH_ANGLE 0.0f
+#define MAX_IOUT_CHASSIS_PITCH_ANGLE 0.0f
+#define MAX_OUT_CHASSIS_PITCH_ANGLE 0.0f
 
 // 腿长跟踪长度环PID参数
 #define KP_CHASSIS_LEG_LENGTH_LENGTH 90.0f

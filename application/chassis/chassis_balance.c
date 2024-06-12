@@ -27,7 +27,7 @@
 #include "usb_task.h"
 #include "user_lib.h"
 
-// #define LOCATION_CONTROL
+#define LOCATION_CONTROL
 
 #define CALIBRATE_STOP_VELOCITY 0.05f  // rad/s
 #define CALIBRATE_STOP_TIME 200        // ms
@@ -95,8 +95,8 @@ void ChassisInit(void)
     float yaw_velocity_pid[3] = {
         KP_CHASSIS_YAW_VELOCITY, KI_CHASSIS_YAW_VELOCITY, KD_CHASSIS_YAW_VELOCITY};
     float roll_angle_pid[3] = {KP_CHASSIS_ROLL_ANGLE, KI_CHASSIS_ROLL_ANGLE, KD_CHASSIS_ROLL_ANGLE};
-    float roll_velocity_pid[3] = {
-        KP_CHASSIS_ROLL_VELOCITY, KI_CHASSIS_ROLL_VELOCITY, KD_CHASSIS_ROLL_VELOCITY};
+    // float roll_velocity_pid[3] = {
+    //     KP_CHASSIS_ROLL_VELOCITY, KI_CHASSIS_ROLL_VELOCITY, KD_CHASSIS_ROLL_VELOCITY};
     float leg_length_length_pid[3] = {
         KP_CHASSIS_LEG_LENGTH_LENGTH, KI_CHASSIS_LEG_LENGTH_LENGTH, KD_CHASSIS_LEG_LENGTH_LENGTH};
     // float leg_length_speed_pid[3] = {
@@ -113,9 +113,9 @@ void ChassisInit(void)
     PID_init(
         &CHASSIS.pid.roll_angle, PID_POSITION, roll_angle_pid, MAX_OUT_CHASSIS_ROLL_ANGLE,
         MAX_IOUT_CHASSIS_ROLL_ANGLE);
-    PID_init(
-        &CHASSIS.pid.roll_velocity, PID_POSITION, roll_velocity_pid, MAX_OUT_CHASSIS_ROLL_VELOCITY,
-        MAX_IOUT_CHASSIS_ROLL_VELOCITY);
+    // PID_init(
+    //     &CHASSIS.pid.roll_velocity, PID_POSITION, roll_velocity_pid, MAX_OUT_CHASSIS_ROLL_VELOCITY,
+    //     MAX_IOUT_CHASSIS_ROLL_VELOCITY);
     PID_init(
         &CHASSIS.pid.leg_length_length[0], PID_POSITION, leg_length_length_pid,
         MAX_OUT_CHASSIS_LEG_LENGTH_LENGTH, MAX_IOUT_CHASSIS_LEG_LENGTH_LENGTH);
@@ -202,14 +202,14 @@ static void GroundTouchDectect(void)
         float Fn = P + WHEEL_MASS * GRAVITY + WHEEL_MASS * ddz_w;
         GROUND_TOUCH.support_force[i] = LowPassFilterCalc(&CHASSIS.lpf.support_force_filter[i], Fn);
 
-        if (i == 1) {
-            OutputPCData.packets[15].data = P;
-            OutputPCData.packets[16].data = WHEEL_MASS * GRAVITY;
-            OutputPCData.packets[17].data = ddz_w;
-            OutputPCData.packets[18].data = Theta;
-            OutputPCData.packets[19].data = F;
-            OutputPCData.packets[20].data = Tp;
-        }
+        // if (i == 1) {
+        //     OutputPCData.packets[15].data = P;
+        //     OutputPCData.packets[16].data = WHEEL_MASS * GRAVITY;
+        //     OutputPCData.packets[17].data = ddz_w;
+        //     OutputPCData.packets[18].data = Theta;
+        //     OutputPCData.packets[19].data = F;
+        //     OutputPCData.packets[20].data = Tp;
+        // }
     }
 
     // GROUND_TOUCH.support_force[0] =
@@ -359,7 +359,7 @@ void ChassisObserver(void)
     OutputPCData.packets[12].data = CHASSIS.joint_motor[3].set.tor;
     OutputPCData.packets[13].data = GROUND_TOUCH.support_force[0];
     OutputPCData.packets[14].data = GROUND_TOUCH.support_force[1];
-    // OutputPCData.packets[15].data = CHASSIS.imu->pitch;
+    OutputPCData.packets[15].data = CHASSIS.imu->roll;
     // OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
     // OutputPCData.packets[17].data = CHASSIS.fdb.leg[1].wheel.Velocity;
     // OutputPCData.packets[18].data = CHASSIS.wheel_motor[0].set.tor;
@@ -452,10 +452,11 @@ static void UpdateLegStatus(void)
 void ChassisReference(void)
 {
     int16_t rc_x = 0, rc_wz = 0;
-    int16_t rc_length = 0;
+    int16_t rc_length = 0, rc_roll = 0;
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_X_CHANNEL], rc_x, CHASSIS_RC_DEADLINE);
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_WZ_CHANNEL], rc_wz, CHASSIS_RC_DEADLINE);
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_LENGTH_CHANNEL], rc_length, CHASSIS_RC_DEADLINE);
+    rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_ROLL_CHANNEL], rc_roll, CHASSIS_RC_DEADLINE);
 
     ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
 
@@ -505,21 +506,31 @@ void ChassisReference(void)
     // clang-format on
 
     static float vel_add;  // 速度增量，用于适应重心位置变化
-    if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.5f) {
+    if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.8f) {
         // 当目标速度为0，且速度小于阈值时，增加速度增量
         vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
     }
     vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
     CHASSIS.ref.x_dot += vel_add;
 
-    float length = rc_length * RC_TO_ONE * (MAX_LEG_LENGTH - MIN_LEG_LENGTH) / 2 +
-                   (MAX_LEG_LENGTH + MIN_LEG_LENGTH) / 2;
+    float length;
+    switch (CHASSIS.mode) {
+        case CHASSIS_FREE: {
+            length = rc_length * RC_TO_ONE * (MAX_LEG_LENGTH - MIN_LEG_LENGTH) / 2 +
+                     (MAX_LEG_LENGTH + MIN_LEG_LENGTH) / 2;
+        } break;
+        case CHASSIS_FOLLOW_GIMBAL_YAW:
+        default:
+            length = 0.15f;
+    }
     CHASSIS.ref.leg[0].rod.Length = fp32_constrain(length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
     CHASSIS.ref.leg[1].rod.Length = fp32_constrain(length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
 
     float angle = M_PI_2;
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
+
+    CHASSIS.ref.roll = fp32_constrain(rc_roll * RC_TO_ONE * MAX_ROLL, MIN_ROLL, MAX_ROLL);
 }
 
 /*-------------------- Console --------------------*/
@@ -656,6 +667,30 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
+    float dAngle =
+        PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);  // 摆杆角度补偿
+
+    // float roll_vel = GenerateSinWave(0.5f, 0, 3);
+    //     PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);  // roll角度补偿
+
+    // float dLength =
+    //     PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, roll_vel);  // 腿长补偿
+
+    float roll = GenerateSinWave(0.3f, 0, 3);
+    float dLength =
+        PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);  // 腿长补偿
+
+    OutputPCData.packets[16].data = roll;
+    OutputPCData.packets[17].data = dLength;
+
+    CHASSIS.ref.leg[0].rod.Length += dLength * DLENGTH_DIRECTION;
+    CHASSIS.ref.leg[1].rod.Length -= dLength * DLENGTH_DIRECTION;
+
+    CHASSIS.ref.leg[0].rod.Length =
+        fp32_constrain(CHASSIS.ref.leg[0].rod.Length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
+    CHASSIS.ref.leg[1].rod.Length =
+        fp32_constrain(CHASSIS.ref.leg[1].rod.Length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
+
     LegIKine(CHASSIS.ref.leg[0].rod.Length, CHASSIS.ref.leg[0].rod.Angle, joint_pos_l);
     LegIKine(CHASSIS.ref.leg[1].rod.Length, CHASSIS.ref.leg[1].rod.Angle, joint_pos_r);
 }
@@ -732,7 +767,7 @@ static void ConsoleNormal(void)
     LocomotionController(tp, t);
     CHASSIS.ref.leg[0].rod.Tp = tp[0];
     CHASSIS.ref.leg[1].rod.Tp = tp[1];
-    
+
     // CHASSIS.ref.leg[0].rod.Tp = 0;
     // CHASSIS.ref.leg[1].rod.Tp = 0;
 #ifdef LOCATION_CONTROL
@@ -794,7 +829,7 @@ static void ConsoleNormal(void)
 #define DEBUG_VEL_KP 4.0f
 #define ZERO_FORCE_VEL_KP 1.0f
 
-#define NORMAL_POS_KP 10.0f
+#define NORMAL_POS_KP 25.0f
 #define NORMAL_POS_KD 1.0f
 
 static void SendJointMotorCmd(void);

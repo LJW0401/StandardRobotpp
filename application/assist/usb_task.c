@@ -392,14 +392,14 @@ static void usb_send_outputPC(uint8_t t)
     // char_to_uint(OutputPCData.packets[10].name, "tor_set1");
     // char_to_uint(OutputPCData.packets[11].name, "tor_set2");
     // char_to_uint(OutputPCData.packets[12].name, "tor_set3");
-    char_to_uint(OutputPCData.packets[13].name, "Fn0");
-    char_to_uint(OutputPCData.packets[14].name, "Fn1");
-    char_to_uint(OutputPCData.packets[15].name, "P");
-    char_to_uint(OutputPCData.packets[16].name, "mw*g");
-    char_to_uint(OutputPCData.packets[17].name, "ddz_w");
-    char_to_uint(OutputPCData.packets[18].name, "Theta");
-    char_to_uint(OutputPCData.packets[19].name, "F");
-    char_to_uint(OutputPCData.packets[20].name, "Tp");
+    // char_to_uint(OutputPCData.packets[13].name, "Fn0");
+    // char_to_uint(OutputPCData.packets[14].name, "Fn1");
+    char_to_uint(OutputPCData.packets[15].name, "r_fdb");
+    char_to_uint(OutputPCData.packets[16].name, "r_ref");
+    char_to_uint(OutputPCData.packets[17].name, "dL");
+    // char_to_uint(OutputPCData.packets[18].name, "Theta");
+    // char_to_uint(OutputPCData.packets[19].name, "F");
+    // char_to_uint(OutputPCData.packets[20].name, "Tp");
     // char_to_uint(OutputPCData.packets[21].name, "t");
 
     append_CRC16_check_sum((uint8_t *)&OutputPCData, sizeof(OutputPCData_s));
