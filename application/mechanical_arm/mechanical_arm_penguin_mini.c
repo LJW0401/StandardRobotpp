@@ -296,6 +296,8 @@ void MechanicalArmObserver(void)
         LowPassFilterCalc(&MECHANICAL_ARM.FirstOrderFilter.filter[3], MECHANICAL_ARM.fdb.vel[3]);
 
     // 位置转换
+
+    // TODO: 位置转换函数更新于2024-6-8，需测试转换效果
     MECHANICAL_ARM.fdb.pos[0] =
         theta_transform(MECHANICAL_ARM.joint_motor[0].fdb.pos, J_0_ANGLE_TRANSFORM, 1, 1);
     MECHANICAL_ARM.fdb.pos[1] =
@@ -312,10 +314,10 @@ void MechanicalArmObserver(void)
         MECHANICAL_ARM.fdb.pos_delta[i] = MECHANICAL_ARM.fdb.pos[i] - last_pos[i];
     }
 
-    OutputPCData.packets[0].data = MECHANICAL_ARM.fdb.pos[3];
-    OutputPCData.packets[1].data = MECHANICAL_ARM.ref.pos[3];
-    OutputPCData.packets[2].data = MECHANICAL_ARM.fdb.vel[3];
-    OutputPCData.packets[3].data = MECHANICAL_ARM.ref.vel[3];
+    // OutputPCData.packets[0].data = MECHANICAL_ARM.fdb.pos[3];
+    // OutputPCData.packets[1].data = MECHANICAL_ARM.ref.pos[3];
+    // OutputPCData.packets[2].data = MECHANICAL_ARM.fdb.vel[3];
+    // OutputPCData.packets[3].data = MECHANICAL_ARM.ref.vel[3];
 }
 
 /*-------------------- Reference --------------------*/
@@ -332,10 +334,10 @@ void MechanicalArmReference(void)
     float small_arm_pitch = uint_to_float(GetOtherBoardDataUint16(1, 2), -M_PI_2, M_PI_2, 16);
     float small_arm_roll = uint_to_float(GetOtherBoardDataUint16(1, 3), -M_PI, M_PI, 16);
 
-    OutputPCData.packets[17].data = yaw;
-    OutputPCData.packets[18].data = big_arm_pitch;
-    OutputPCData.packets[19].data = small_arm_pitch;
-    OutputPCData.packets[20].data = small_arm_roll;
+    // OutputPCData.packets[17].data = yaw;
+    // OutputPCData.packets[18].data = big_arm_pitch;
+    // OutputPCData.packets[19].data = small_arm_pitch;
+    // OutputPCData.packets[20].data = small_arm_roll;
 
     if (MECHANICAL_ARM.ctrl_link == LINK_REMOTE_CONTROL) {
         MECHANICAL_ARM.ref.pos[0] = MECHANICAL_ARM.rc->rc.ch[4] * RC_TO_ONE * MAX_JOINT_0_POSITION;
@@ -445,7 +447,7 @@ static void MechanicalArmFollowConsole(void)
     MECHANICAL_ARM.joint_motor[1].mode = CYBERGEAR_MODE_POS;
 
     MECHANICAL_ARM.joint_motor[2].set.pos =
-        theta_transform(MECHANICAL_ARM.ref.pos[2], J_2_ANGLE_TRANSFORM, -1, 1);
+        theta_transform(MECHANICAL_ARM.ref.pos[2], -J_2_ANGLE_TRANSFORM, -1, 1);
     MECHANICAL_ARM.joint_motor[2].mode = CYBERGEAR_MODE_POS;
 
     // 关节3跟随

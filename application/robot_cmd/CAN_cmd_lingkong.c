@@ -168,8 +168,8 @@ static void MultipleTorqueControl(
 
     CAN_CTRL_DATA.tx_data[0] = *(uint8_t *)(&iqControl_1);
     CAN_CTRL_DATA.tx_data[1] = *((uint8_t *)(&iqControl_1) + 1);
-    CAN_CTRL_DATA.tx_data[2] = *(uint8_t *)(&iqControl_1);
-    CAN_CTRL_DATA.tx_data[3] = *((uint8_t *)(&iqControl_1) + 1);
+    CAN_CTRL_DATA.tx_data[2] = *(uint8_t *)(&iqControl_2);
+    CAN_CTRL_DATA.tx_data[3] = *((uint8_t *)(&iqControl_2) + 1);
     CAN_CTRL_DATA.tx_data[4] = *(uint8_t *)(&iqControl_3);
     CAN_CTRL_DATA.tx_data[5] = *((uint8_t *)(&iqControl_3) + 1);
     CAN_CTRL_DATA.tx_data[6] = *(uint8_t *)(&iqControl_4);
@@ -254,7 +254,7 @@ void LkMultipleTorqueControl(
 
     if (hcan == NULL) return;
 
-    float current[4];
+    int16_t current[4];
     current[0] = fp32_constrain(torque_1, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT;
     current[1] = fp32_constrain(torque_2, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT;
     current[2] = fp32_constrain(torque_3, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT;

@@ -35,6 +35,7 @@
 #include "math.h"
 #include "pid.h"
 #include "usb_task.h"
+#include "data_exchange.h"
 
 // clang-format off
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
@@ -100,7 +101,7 @@ static void imu_temp_control(fp32 temp);
   */
 static void imu_cmd_spi_dma(void);
 
-static void AutoCaliImuData(void);
+// static void AutoCaliImuData(void);
 static void UpdateImuData(void);
 
 // clang-format off
@@ -177,36 +178,36 @@ static Imu_t IMU_DATA = {
     .z_accel = 0.0f,
 };
 
-typedef struct ImuCaliData
-{
-    struct reference
-    {
-        float ax, ay, az;
-        float r, p, y1, y2;
-    } ref;
+// typedef struct ImuCaliData
+// {
+//     struct reference
+//     {
+//         float ax, ay, az;
+//         float r, p, y1, y2;
+//     } ref;
 
-    struct time
-    {
-        uint32_t start;
-        uint32_t end;
-    } time;
+//     struct time
+//     {
+//         uint32_t start;
+//         uint32_t end;
+//     } time;
 
-    struct offect
-    {
-        float roll;
-        float pitch;
-        float yaw;
-        float yaw_drift_rate;
-    } offect;
+//     struct offect
+//     {
+//         float roll;
+//         float pitch;
+//         float yaw;
+//         float yaw_drift_rate;
+//     } offect;
 
-    uint8_t read_cnt;
-} ImuCaliData_t;
+//     uint8_t read_cnt;
+// } ImuCaliData_t;
 
-static ImuCaliData_t IMU_CALI_DATA = {
-    .ref = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-    .offect = {0.0f, 0.0f, 0.0f, 0.0f},
-    .read_cnt = 0,
-};
+// static ImuCaliData_t IMU_CALI_DATA = {
+//     .ref = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+//     .offect = {0.0f, 0.0f, 0.0f, 0.0f},
+//     .read_cnt = 0,
+// };
 
 /**
   * @brief          imu task, init bmi088, ist8310, calculate the euler angle
@@ -220,6 +221,9 @@ static ImuCaliData_t IMU_CALI_DATA = {
   */
 void IMU_task(void const * pvParameters)
 {
+    // 发布IMU数据
+    Publish(&IMU_DATA, "imu_data");
+
     // clang-format off
     //wait a time
     osDelay(INS_TASK_INIT_TIME);
@@ -322,7 +326,7 @@ void IMU_task(void const * pvParameters)
 //            ist8310_read_mag(ist8310_real_data.mag);
         }
         // clang-format on
-        AutoCaliImuData();
+        // AutoCaliImuData();
         UpdateImuData();
     }
 }
@@ -331,59 +335,59 @@ void IMU_task(void const * pvParameters)
  * @brief 自动校准IMU数据，每次上电时，读取一定数量的数据，计算出静态角度
  * @param  
  */
-static void AutoCaliImuData(void)
-{
-    if (HAL_GetTick() < 100) {
-        return;
-    }
+// static void AutoCaliImuData(void)
+// {
+//     if (HAL_GetTick() < 100) {
+//         return;
+//     }
 
-    if (IMU_CALI_DATA.read_cnt > IMU_CALI_MAX_COUNT) {
-        return;
-    }
+//     if (IMU_CALI_DATA.read_cnt > IMU_CALI_MAX_COUNT) {
+//         return;
+//     }
 
-    if (IMU_CALI_DATA.read_cnt < IMU_CALI_MAX_COUNT) {
-        IMU_CALI_DATA.ref.ax += INS_accel[INS_ACCEL_X_ADDRESS_OFFSET];
-        IMU_CALI_DATA.ref.ay += INS_accel[INS_ACCEL_Y_ADDRESS_OFFSET];
-        IMU_CALI_DATA.ref.az += INS_accel[INS_ACCEL_Z_ADDRESS_OFFSET];
+//     if (IMU_CALI_DATA.read_cnt < IMU_CALI_MAX_COUNT) {
+//         IMU_CALI_DATA.ref.ax += INS_accel[INS_ACCEL_X_ADDRESS_OFFSET];
+//         IMU_CALI_DATA.ref.ay += INS_accel[INS_ACCEL_Y_ADDRESS_OFFSET];
+//         IMU_CALI_DATA.ref.az += INS_accel[INS_ACCEL_Z_ADDRESS_OFFSET];
 
-        IMU_CALI_DATA.ref.r += INS_angle[INS_ROLL_ADDRESS_OFFSET];
-        IMU_CALI_DATA.ref.p += INS_angle[INS_PITCH_ADDRESS_OFFSET];
+//         IMU_CALI_DATA.ref.r += INS_angle[INS_ROLL_ADDRESS_OFFSET];
+//         IMU_CALI_DATA.ref.p += INS_angle[INS_PITCH_ADDRESS_OFFSET];
 
-        if (IMU_CALI_DATA.read_cnt == 0) {
-            IMU_CALI_DATA.ref.y1 = INS_angle[INS_YAW_ADDRESS_OFFSET];
-            IMU_CALI_DATA.time.start = HAL_GetTick();
-        }
+//         if (IMU_CALI_DATA.read_cnt == 0) {
+//             IMU_CALI_DATA.ref.y1 = INS_angle[INS_YAW_ADDRESS_OFFSET];
+//             IMU_CALI_DATA.time.start = HAL_GetTick();
+//         }
 
-        IMU_CALI_DATA.read_cnt++;
-    } else if (IMU_CALI_DATA.read_cnt == IMU_CALI_MAX_COUNT) {
-        IMU_CALI_DATA.time.end = HAL_GetTick();
-        IMU_CALI_DATA.ref.y2 = INS_angle[INS_YAW_ADDRESS_OFFSET];
+//         IMU_CALI_DATA.read_cnt++;
+//     } else if (IMU_CALI_DATA.read_cnt == IMU_CALI_MAX_COUNT) {
+//         IMU_CALI_DATA.time.end = HAL_GetTick();
+//         IMU_CALI_DATA.ref.y2 = INS_angle[INS_YAW_ADDRESS_OFFSET];
 
-        IMU_CALI_DATA.ref.ax = IMU_CALI_DATA.ref.ax / IMU_CALI_MAX_COUNT;
-        IMU_CALI_DATA.ref.ay = IMU_CALI_DATA.ref.ay / IMU_CALI_MAX_COUNT;
-        IMU_CALI_DATA.ref.az = IMU_CALI_DATA.ref.az / IMU_CALI_MAX_COUNT;
+//         IMU_CALI_DATA.ref.ax = IMU_CALI_DATA.ref.ax / IMU_CALI_MAX_COUNT;
+//         IMU_CALI_DATA.ref.ay = IMU_CALI_DATA.ref.ay / IMU_CALI_MAX_COUNT;
+//         IMU_CALI_DATA.ref.az = IMU_CALI_DATA.ref.az / IMU_CALI_MAX_COUNT;
 
-        IMU_CALI_DATA.ref.r = IMU_CALI_DATA.ref.r / IMU_CALI_MAX_COUNT;
-        IMU_CALI_DATA.ref.p = IMU_CALI_DATA.ref.p / IMU_CALI_MAX_COUNT;
+//         IMU_CALI_DATA.ref.r = IMU_CALI_DATA.ref.r / IMU_CALI_MAX_COUNT;
+//         IMU_CALI_DATA.ref.p = IMU_CALI_DATA.ref.p / IMU_CALI_MAX_COUNT;
 
-        float static_roll = atan2f(IMU_CALI_DATA.ref.ay, IMU_CALI_DATA.ref.az);
-        float static_pitch = atan2f(
-            -IMU_CALI_DATA.ref.ax, sqrtf(
-                                       IMU_CALI_DATA.ref.ay * IMU_CALI_DATA.ref.ay +
-                                       IMU_CALI_DATA.ref.az * IMU_CALI_DATA.ref.az));
+//         float static_roll = atan2f(IMU_CALI_DATA.ref.ay, IMU_CALI_DATA.ref.az);
+//         float static_pitch = atan2f(
+//             -IMU_CALI_DATA.ref.ax, sqrtf(
+//                                        IMU_CALI_DATA.ref.ay * IMU_CALI_DATA.ref.ay +
+//                                        IMU_CALI_DATA.ref.az * IMU_CALI_DATA.ref.az));
 
-        IMU_CALI_DATA.offect.roll = static_roll - IMU_CALI_DATA.ref.r;
-        IMU_CALI_DATA.offect.pitch = static_pitch - IMU_CALI_DATA.ref.p;
+//         IMU_CALI_DATA.offect.roll = static_roll - IMU_CALI_DATA.ref.r;
+//         IMU_CALI_DATA.offect.pitch = static_pitch - IMU_CALI_DATA.ref.p;
 
-        IMU_CALI_DATA.read_cnt++;
-    }
-}
+//         IMU_CALI_DATA.read_cnt++;
+//     }
+// }
 
 static void UpdateImuData(void)
 {
     // clang-format off
-    IMU_DATA.pitch = INS_angle[INS_PITCH_ADDRESS_OFFSET] + IMU_CALI_DATA.offect.pitch;
-    IMU_DATA.roll  = INS_angle[INS_ROLL_ADDRESS_OFFSET]  + IMU_CALI_DATA.offect.roll;
+    IMU_DATA.pitch = INS_angle[INS_PITCH_ADDRESS_OFFSET];
+    IMU_DATA.roll  = INS_angle[INS_ROLL_ADDRESS_OFFSET];
     IMU_DATA.yaw   = INS_angle[INS_YAW_ADDRESS_OFFSET];
 
     IMU_DATA.roll_vel  = INS_gyro[INS_GYRO_X_ADDRESS_OFFSET];
@@ -398,8 +402,6 @@ static void UpdateImuData(void)
     // OutputPCData.packets[19].data = INS_angle[INS_PITCH_ADDRESS_OFFSET];
     // clang-format on
 }
-
-const Imu_t * GetImuDataPoint(void) { return &IMU_DATA; }
 
 // clang-format off
 
