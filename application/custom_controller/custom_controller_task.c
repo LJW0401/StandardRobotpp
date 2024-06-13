@@ -23,6 +23,7 @@
 #define __weak __attribute__((weak))
 #endif /* __weak */
 
+__weak void CustomControllerPublish(void);
 __weak void CustomControllerInit(void);
 __weak void CustomControllerHandleException(void);
 __weak void CustomControllerSetMode(void);
@@ -38,15 +39,16 @@ __weak void CustomControllerSendCmd(void);
  */
 void custom_controller_task(void const * pvParameters)
 {
+    CustomControllerPublish();
     vTaskDelay(CUSTOM_CONTROLLER_TASK_INIT_TIME);
     // 初始化
     CustomControllerInit();
 
     while (1) {
-        // 处理异常
-        CustomControllerHandleException();
         // 更新状态量
         CustomControllerObserver();
+        // 处理异常
+        CustomControllerHandleException();
         // 设置模式
         CustomControllerSetMode();
         // 设置目标量
@@ -61,6 +63,12 @@ void custom_controller_task(void const * pvParameters)
     }
 }
 
+__weak void CustomControllerPublish(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
 __weak void CustomControllerInit(void)
 {
     /* 
