@@ -1,7 +1,7 @@
 /**
   ****************************(C) COPYRIGHT 2024 Polarbear****************************
   * @file       custom_controller_task.c/h
-  * @brief      完成机械臂控制任务
+  * @brief      完成自定义控制器控制任务
   * @note
   * @history
   *  Version    Date            Author          Modification
