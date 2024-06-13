@@ -15,6 +15,7 @@
 #define M_SQRT2 1.41421356237309504880f
 #define M_SQRT1_2 0.70710678118654752440f
 
+#define GRAVITY 9.8f
 
 
 typedef signed char int8_t;

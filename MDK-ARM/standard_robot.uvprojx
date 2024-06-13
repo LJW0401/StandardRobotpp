@@ -939,6 +939,16 @@
               <FileType>1</FileType>
               <FilePath>..\application\assist\usb_task.c</FilePath>
             </File>
+            <File>
+              <FileName>develop_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\assist\develop_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>data_exchange.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\assist\data_exchange.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

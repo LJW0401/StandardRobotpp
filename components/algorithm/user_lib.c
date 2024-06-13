@@ -177,7 +177,7 @@ fp32 theta_format(fp32 Ang) { return loop_fp32_constrain(Ang, -PI, PI); }
  */
 fp32 theta_transform(fp32 angle, fp32 dangle, int8_t direction, uint8_t duration)
 {
-    return loop_fp32_constrain(angle * direction + dangle, -PI * duration, PI * duration);
+    return loop_fp32_constrain((angle + dangle) * direction, -PI * duration, PI * duration);
 }
 
 /**
@@ -218,9 +218,9 @@ float uint_to_float(int x_int, float x_min, float x_max, int bits)
 }
 
 /**
- * @brief 
- * @param filter 
- * @param alpha 
+ * @brief 低通滤波器初始化
+ * @param filter 滤波器结构体
+ * @param alpha  平滑系数
  */
 void LowPassFilterInit(LowPassFilter_t * filter, float alpha)
 {
@@ -229,9 +229,9 @@ void LowPassFilterInit(LowPassFilter_t * filter, float alpha)
 }
 
 /**
- * @brief 
- * @param filter 
- * @param input 
+ * @brief 低通滤波计算
+ * @param filter 滤波器结构体
+ * @param input  输入
  * @return 
  */
 float LowPassFilterCalc(LowPassFilter_t * filter, float input)
@@ -240,4 +240,33 @@ float LowPassFilterCalc(LowPassFilter_t * filter, float input)
     filter->out = output;
 
     return output;
+}
+
+/**
+ * @brief 角度范围限制，在-PI~PI之间对角度进行限制，如max < min能够过圈限幅
+ * @param theta 角度
+ * @param max 最大值
+ * @param min 最小值
+ * @param return_value 返回值 0-min 1-max ，用于判断在max<min时的返回值
+ * @return 范围内的角度
+ */
+float ThetaRangeLimit(float theta, float max, float min, uint8_t return_value)
+{
+    if (max > min) {  // 正常范围，无需考虑过圈限幅
+        if (theta > max)
+            return max;
+        else if (theta < min)
+            return min;
+    } else {  // 考虑过圈限幅
+        float max_2pi = max + 2 * PI;
+        float theta_2pi = theta + 2 * PI;
+
+        if (theta < min && theta_2pi > max_2pi) {
+            if (return_value)
+                return max;
+            else
+                return min;
+        }
+    }
+    return theta;
 }
