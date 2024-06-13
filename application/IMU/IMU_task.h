@@ -24,6 +24,7 @@
 #ifndef INS_Task_H
 #define INS_Task_H
 #include "struct_typedef.h"
+#include "data_exchange.h"
 
 // clang-format off
 #define SPI_DMA_GYRO_LENGHT       8
@@ -73,12 +74,12 @@
 #define INS_MAG_Z_ADDRESS_OFFSET 2
 // clang-format on
 
-typedef struct __Imu
-{
-    float yaw, pitch, roll;              // rad
-    float yaw_vel, pitch_vel, roll_vel;  // rad/s
-    float x_accel, y_accel, z_accel;     // m/s^2
-} Imu_t;
+// typedef struct __Imu
+// {
+//     float yaw, pitch, roll;              // rad
+//     float yaw_vel, pitch_vel, roll_vel;  // rad/s
+//     float x_accel, y_accel, z_accel;     // m/s^2
+// } Imu_t;
 
 extern void IMU_task(void const * pvParameters);
 
@@ -95,7 +96,5 @@ extern const fp32 * get_gyro_data_point(void);
 extern const fp32 * get_accel_data_point(void);
 
 extern const fp32 * get_mag_data_point(void);
-
-extern const Imu_t * GetImuDataPoint(void);
 
 #endif
