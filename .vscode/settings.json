@@ -87,7 +87,8 @@
         "robot_param_penguin_mini_custom_controller.h": "c",
         "custom_controller.h": "c",
         "custom_controller_penguin_mini.h": "c",
-        "robot_param_communicate.h": "c"
+        "robot_param_communicate.h": "c",
+        "communication_task.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
