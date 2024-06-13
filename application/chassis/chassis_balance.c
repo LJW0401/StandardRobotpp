@@ -56,8 +56,8 @@ static Chassis_s CHASSIS = {
             .k = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}, 
                   {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}},
             // clang-format on
-            .Tp = 0.3f,
-            .T = 0.5f,
+            .Tp = TP_RATIO,
+            .T = T_RATIO,
             .length = 1.0f,
         },
     .dyaw = 0.0f,
@@ -175,7 +175,7 @@ void ChassisHandleException(void)
     }
 
     for (uint8_t i = 0; i < 4; i++) {
-        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > MAX_JOINT_TORQUE) {
+        if (fabs(CHASSIS.joint_motor[i].fdb.tor) > MAX_TORQUE_PROTECT) {
             CHASSIS.error_code |= JOINT_ERROR_OFFSET;
             break;
         }
@@ -550,11 +550,12 @@ void ChassisReference(void)
 /*-------------------- Console --------------------*/
 
 static void LocomotionController(float Tp[2], float T_w[2]);
-#ifdef LOCATION_CONTROL
+#if LOCATION_CONTROL
 static void LegController(double joint_pos_l[2], double joint_pos_r[2]);
 #else
 static void LegController(float F[2]);
 #endif
+static float LegFeedForward(float theta);
 static void SetK(float leg_length, float k[2][6]);
 static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
 
@@ -641,6 +642,13 @@ static void LocomotionController(float Tp[2], float T_w[2])
 }
 
 /**
+ * @brief        前馈控制
+ * @param[in]    theta 当前腿与竖直方向夹角
+ * @return       前馈量
+ */
+static float LegFeedForward(float theta) { return BODY_MASS * GRAVITY * cosf(theta) / 2; }
+
+/**
  * @brief         设置LQR的反馈矩阵K
  * @param[in]     leg_length 当前腿长
  * @param[out]    k 返回的反馈矩阵指针
@@ -681,15 +689,15 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
-    // static float delta_Angle = 0;
-    // float dAngle = CHASSIS.fdb.phi_dot * PITCH_VEL_RATIO;
-    // float dAngle_1 = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
+    static float delta_Angle = 0;
+    float dAngle = CHASSIS.fdb.phi_dot * PITCH_VEL_RATIO;
+    float dAngle_1 = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
     // float dAngle_2 = PID_calc(&CHASSIS.pid.pitch_vel, CHASSIS.fdb.phi_dot, CHASSIS.ref.phi_dot);
 
-    // delta_Angle += (dAngle + dAngle_1) * CHASSIS_CONTROL_TIME_S;
-    // delta_Angle = fp32_constrain(delta_Angle, MIN_DELTA_ROD_ANGLE, MAX_DELTA_ROD_ANGLE);
+    delta_Angle += (dAngle + dAngle_1) * CHASSIS_CONTROL_TIME_S;
+    delta_Angle = fp32_constrain(delta_Angle, MIN_DELTA_ROD_ANGLE, MAX_DELTA_ROD_ANGLE);
 
-    float delta_Angle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
+    // float delta_Angle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
 
     CHASSIS.ref.leg[0].rod.Angle = M_PI_2 + delta_Angle;
     CHASSIS.ref.leg[1].rod.Angle = M_PI_2 + delta_Angle;
@@ -724,19 +732,19 @@ static void LegController(float F[2])
         &CHASSIS.pid.leg_length_length[0], CHASSIS.fdb.leg[0].rod.Length,
         CHASSIS.ref.leg[0].rod.Length);
     float theta_l = CHASSIS.fdb.leg[0].rod.Angle - M_PI_2 - CHASSIS.imu->pitch;
-    float fdf_left = 0;  // LegFeedforward(theta_l);
+    float fdf_left = LegFeedForward(theta_l) * FF_RATIO;
 
     PID_calc(
         &CHASSIS.pid.leg_length_length[1], CHASSIS.fdb.leg[1].rod.Length,
         CHASSIS.ref.leg[1].rod.Length);
     float theta_r = CHASSIS.fdb.leg[1].rod.Angle - M_PI_2 - CHASSIS.imu->pitch;
-    float fdf_right = 0;  // LegFeedforward(theta_r);
+    float fdf_right = LegFeedForward(theta_r) * FF_RATIO;
 
     PID_calc(&CHASSIS.pid.roll_angle, CHASSIS.fdb.roll, CHASSIS.ref.roll);
-    PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, CHASSIS.pid.roll_angle.out);
+    // PID_calc(&CHASSIS.pid.roll_velocity, CHASSIS.fdb.roll_velocity, CHASSIS.pid.roll_angle.out);
 
-    F[0] = CHASSIS.pid.leg_length_length[0].out + fdf_left + CHASSIS.pid.roll_velocity.out;
-    F[1] = CHASSIS.pid.leg_length_length[1].out + fdf_right - CHASSIS.pid.roll_velocity.out;
+    F[0] = CHASSIS.pid.leg_length_length[0].out + fdf_left + CHASSIS.pid.roll_angle.out;
+    F[1] = CHASSIS.pid.leg_length_length[1].out + fdf_right - CHASSIS.pid.roll_angle.out;
 }
 #endif
 
@@ -807,8 +815,8 @@ static void ConsoleNormal(void)
 {
     float tp[2], t[2];
     LocomotionController(tp, t);
-    CHASSIS.ref.leg[0].rod.Tp = tp[0];
-    CHASSIS.ref.leg[1].rod.Tp = tp[1];
+    CHASSIS.ref.leg[0].rod.Tp = -tp[0];
+    CHASSIS.ref.leg[1].rod.Tp = -tp[1];
 
 #if LOCATION_CONTROL
     double joint_pos_l[2], joint_pos_r[2];
@@ -855,6 +863,11 @@ static void ConsoleNormal(void)
 
     CHASSIS.joint_motor[2].set.tor = -joint_torque[0] * (J2_DIRECTION);
     CHASSIS.joint_motor[3].set.tor = -joint_torque[1] * (J3_DIRECTION);
+
+    CHASSIS.joint_motor[0].set.tor = fp32_constrain(CHASSIS.joint_motor[0].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
+    CHASSIS.joint_motor[1].set.tor = fp32_constrain(CHASSIS.joint_motor[1].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
+    CHASSIS.joint_motor[2].set.tor = fp32_constrain(CHASSIS.joint_motor[2].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
+    CHASSIS.joint_motor[3].set.tor = fp32_constrain(CHASSIS.joint_motor[3].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
 #endif
 
     // QUESTION: 排查电机发送的力矩要反向的问题，这种情况下控制正常
