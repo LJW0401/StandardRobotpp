@@ -31,12 +31,14 @@ uint32_t gimbal_high_water;
 #define __weak __attribute__((weak))
 #endif /* __weak */
 
-__weak void InitGimbal(void);
-__weak void SetGimbalMode(void);
+__weak void GimbalPublish(void);
+__weak void GimbalInit(void);
 __weak void GimbalObserver(void);
+__weak void GimbalHandleException(void);
+__weak void GimbalSetMode(void);
 __weak void GimbalReference(void);
 __weak void GimbalConsole(void);
-__weak void SendGimbalCmd(void);
+__weak void GimbalSendCmd(void);
 
 /**
  * @brief          云台任务，间隔 GIMBAL_CONTROL_TIME
@@ -45,35 +47,39 @@ __weak void SendGimbalCmd(void);
  */
 void gimbal_task(void const * pvParameters)
 {
+    // 云台发布数据
+    GimbalPublish();
     // 等待陀螺仪任务更新陀螺仪数据
     vTaskDelay(GIMBAL_TASK_INIT_TIME);
     // 云台初始化
-    InitGimbal();
+    GimbalInit();
 
     while (1) {
-        // 设置云台模式
-        SetGimbalMode();
         // 更新状态量
         GimbalObserver();
+        // 处理异常
+        GimbalHandleException();
+        // 设置云台模式
+        GimbalSetMode();
         // 更新目标量
         GimbalReference();
         // 计算控制量
         GimbalConsole();
         // 发送控制量
-        SendGimbalCmd();
+        GimbalSendCmd();
         // 系统延时
         vTaskDelay(GIMBAL_CONTROL_TIME);
     }
 }
 
-__weak void InitGimbal(void)
+__weak void GimbalPublish(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容
     */
 }
 
-__weak void SetGimbalMode(void)
+__weak void GimbalInit(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容
@@ -81,6 +87,20 @@ __weak void SetGimbalMode(void)
 }
 
 __weak void GimbalObserver(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+
+__weak void GimbalHandleException(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
+
+__weak void GimbalSetMode(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容
@@ -101,7 +121,7 @@ __weak void GimbalConsole(void)
     */
 }
 
-__weak void SendGimbalCmd(void)
+__weak void GimbalSendCmd(void)
 {
     /* 
      NOTE : 在其他文件中定义具体内容

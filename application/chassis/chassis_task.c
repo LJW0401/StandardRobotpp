@@ -33,6 +33,7 @@ uint32_t chassis_high_water;
 #define __weak __attribute__((weak))
 #endif /* __weak */
 
+__weak void ChassisPublish(void);
 __weak void ChassisInit(void);
 __weak void ChassisHandleException(void);
 __weak void ChassisSetMode(void);
@@ -48,6 +49,7 @@ __weak void ChassisSendCmd(void);
  */
 void chassis_task(void const * pvParameters)
 {
+    ChassisPublish();
     // 空闲一段时间
     vTaskDelay(CHASSIS_TASK_INIT_TIME);
     // 初始化底盘
@@ -75,6 +77,12 @@ void chassis_task(void const * pvParameters)
     }
 }
 
+__weak void ChassisPublish(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
 __weak void ChassisInit(void)
 {
     /* 

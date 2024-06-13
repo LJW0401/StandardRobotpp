@@ -28,11 +28,14 @@
 #include "pid.h"
 #include "remote_control.h"
 #include "struct_typedef.h"
+#include "user_lib.h"
 
 // clang-format off
 #define JOINT_ERROR_OFFSET   ((uint8_t)1 << 0)  // 关节电机错误偏移量
 #define WHEEL_ERROR_OFFSET   ((uint8_t)1 << 1)  // 驱动轮电机错误偏移量
 #define DBUS_ERROR_OFFSET    ((uint8_t)1 << 2)  // dbus错误偏移量
+#define IMU_ERROR_OFFSET     ((uint8_t)1 << 3)  // imu错误偏移量
+#define FLOATING_OFFSET      ((uint8_t)1 << 4)  // 悬空状态偏移量
 // clang-format on
 
 /*-------------------- Structural definition --------------------*/
@@ -40,30 +43,45 @@
 typedef enum {
     CHASSIS_OFF,         // 底盘关闭
     CHASSIS_ZERO_FORCE,  // 底盘无力，所有控制量置0
+    CHASSIS_STAND_UP,    // 底盘起立，从倒地状态到站立状态的中间过程
+    CHASSIS_CALIBRATE,   // 底盘校准
     CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
-    CHASSIS_STOP,  // 底盘停止运动(速度为0)
-    CHASSIS_FREE,  // 底盘不跟随云台
-    CHASSIS_SPIN,  // 底盘小陀螺模式
-    CHASSIS_AUTO,  // 底盘自动模式
-    CHASSIS_OPEN   // 遥控器的值乘以比例成电流值开环控制
+    CHASSIS_FLOATING,    // 底盘悬空状态
+    CHASSIS_CUSHIONING,  // 底盘缓冲状态
+    CHASSIS_FREE,        // 底盘不跟随云台
+    CHASSIS_SPIN,        // 底盘小陀螺模式
+    CHASSIS_AUTO,        // 底盘自动模式
+    CHASSIS_DEBUG        // 调试模式
 } ChassisMode_e;
 
-typedef struct
+typedef struct Leg
 {
-    float angle;     // rad
-    float length;    // m
-    float dAngle;    // rad/s
-    float dLength;   // m/s
-    float ddLength;  // m/s^2
+    struct rod
+    {
+        float Angle;    // rad
+        float dAngle;   // rad/s
+        float ddAngle;  // rad/s^2
 
-    float last_dLength;  // m/s
-} LegPos_t;
+        float Length;    // m
+        float dLength;   // m/s
+        float ddLength;  // m/s^2
 
-typedef struct JointPos
-{
-    float Angle[2];   // rad 0-前 1-后
-    float dAngle[2];  // rad/s 0-前 1-后
-} JointPos_t;
+        float F;   // N
+        float Tp;  // N*m
+    } rod;
+
+    struct joint
+    {
+        float Angle;   // rad 0-前 1-后
+        float dAngle;  // rad/s 0-前 1-后
+    } joint[2];
+
+    struct wheel
+    {
+        float Angle;     // rad
+        float Velocity;  // rad/s
+    } wheel;
+} Leg_t;
 
 /**
  * @brief      比例系数结构体
@@ -95,11 +113,7 @@ typedef struct
     float yaw;
     float yaw_velocity;
 
-    LegPos_t leg_l;
-    LegPos_t leg_r;
-
-    JointPos_t joint_l;
-    JointPos_t joint_r;
+    Leg_t leg[2];  // 0-左 1-右
 
     ChassisSpeedVector_t speed_vector;
 } Values_t;
@@ -110,16 +124,23 @@ typedef struct
     pid_type_def yaw_velocity;
 
     pid_type_def roll_angle;
-    pid_type_def roll_velocity;
+    // pid_type_def roll_velocity;
 
-    pid_type_def leg_length_left_length;
-    pid_type_def leg_length_left_speed;
+    pid_type_def pitch_angle;
+    // pid_type_def pitch_vel;
 
-    pid_type_def leg_length_right_length;
-    pid_type_def leg_length_right_speed;
+    pid_type_def leg_length_length[2];
+    pid_type_def leg_length_speed[2];
 
     pid_type_def leg_angle_angle;
 } PID_t;
+
+typedef struct LPF
+{
+    LowPassFilter_t leg_length_accel_filter[2];
+    LowPassFilter_t leg_angle_accel_filter[2];
+    LowPassFilter_t support_force_filter[2];
+} LPF_t;
 
 /**
  * @brief  底盘数据结构体
@@ -139,18 +160,35 @@ typedef struct
     Motor_s wheel_motor[2];  // 驱动轮电机 0-左轮，1-右轮
     /*-------------------- Values --------------------*/
 
-    Values_t ref;          // 期望值
-    Values_t fdb;          // 状态值
-    Values_t upper_limit;  // 上限值
-    Values_t lower_limit;  // 下限值
+    Values_t ref;  // 期望值
+    Values_t fdb;  // 状态值
 
     PID_t pid;  // PID控制器
+    LPF_t lpf;  // 低通滤波器
 
     Ratio_t ratio;  // 比例系数
 
     float dyaw;  // (rad)(feedback)当前位置与云台中值角度差（用于坐标转换）
     uint16_t yaw_mid;  // (ecd)(preset)云台中值角度
 } Chassis_s;
+
+typedef struct Calibrate
+{
+    uint32_t cali_cnt;      //记录遥控器摇杆保持校准姿态的次数（等效于时间）
+    float velocity[4];      //关节电机速度
+    uint32_t stpo_time[4];  //停止时间
+    bool reached[4];        //是否到达限位
+    bool calibrated;        //完成校准
+} Calibrate_s;
+
+typedef struct GroundTouch
+{
+    uint32_t touch_time;     //记录触地时间
+    float force[2];          //记录腿上的力
+    float support_force[2];  //(N)地面的支持力 0-左 1-右
+
+    bool touch;  //是否触地
+} GroundTouch_s;
 
 extern void ChassisInit(void);
 
