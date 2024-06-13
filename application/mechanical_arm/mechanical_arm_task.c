@@ -29,6 +29,7 @@ uint32_t mechanical_arm_high_water;
 #define __weak __attribute__((weak))
 #endif /* __weak */
 
+__weak void MechanicalArmPublish(void);
 __weak void MechanicalArmInit(void);
 __weak void MechanicalArmHandleException(void);
 __weak void MechanicalArmSetMode(void);
@@ -44,15 +45,16 @@ __weak void MechanicalArmSendCmd(void);
  */
 void mechanical_arm_task(void const * pvParameters)
 {
+    MechanicalArmPublish();
     vTaskDelay(MECHANICAL_ARM_TASK_INIT_TIME);
     // 初始化
     MechanicalArmInit();
 
     while (1) {
-        // 处理异常
-        MechanicalArmHandleException();
         // 更新状态量
         MechanicalArmObserver();
+        // 处理异常
+        MechanicalArmHandleException();
         // 设置模式
         MechanicalArmSetMode();
         // 设置目标量
@@ -67,6 +69,12 @@ void mechanical_arm_task(void const * pvParameters)
     }
 }
 
+__weak void MechanicalArmPublish(void)
+{
+    /* 
+     NOTE : 在其他文件中定义具体内容
+    */
+}
 __weak void MechanicalArmInit(void)
 {
     /* 
