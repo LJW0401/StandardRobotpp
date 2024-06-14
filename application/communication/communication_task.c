@@ -14,7 +14,7 @@ void communication_task(void const * pvParameters)
     // 空闲一段时间
     vTaskDelay(COMMUNICATION_TASK_INIT_TIME);
     while (1) {
-        DataPack("Hello World", 13);
+        DataPack("Hello World", 13, 0);
 
         UartSendTxMessage(&huart1, (uint8_t *)(&BOARD_TX_DATA), sizeof(BOARD_TX_DATA), 100);
 
