@@ -9,7 +9,6 @@
 #define USART1_FIFO_BUF_LENGTH 1024
 
 uint8_t usart1_buf[2][USART_RX_BUF_LENGHT];
-
 fifo_s_t usart1_fifo;
 uint8_t usart1_fifo_buf[USART1_FIFO_BUF_LENGTH];
 // unpack_data_t referee_unpack_obj;
