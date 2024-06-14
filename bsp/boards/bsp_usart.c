@@ -64,6 +64,7 @@ void usart1_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 
     hdma_usart1_tx.Instance->PAR = (uint32_t) & (USART1->DR);
 
+    usart1_tx_dma_init();
 }
 
 void usart1_tx_dma_init(void)

@@ -90,7 +90,8 @@
         "robot_param_communicate.h": "c",
         "communication_task.h": "c",
         "communication.h": "c",
-        "fifo.h": "c"
+        "fifo.h": "c",
+        "bsp_usart.h": "c"
     },
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "[cpp]": {
