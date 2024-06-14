@@ -14,7 +14,8 @@ fifo_s_t UART2_FIFO;
 uint8_t UART2_FIFO_BUFFER[UART2_FIFO_BUF_LENGTH];
 // unpack_data_t referee_unpack_obj;
 
-void __Uart2_Init(void){
+void __Uart2_Init(void)
+{
     fifo_s_init(&UART2_FIFO, UART2_FIFO_BUFFER, UART2_FIFO_BUF_LENGTH);
     usart1_init(usart1_bufer[0], usart1_bufer[1], USART_RX_BUF_LENGHT);
 }

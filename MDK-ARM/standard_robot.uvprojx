@@ -999,6 +999,11 @@
               <FileType>1</FileType>
               <FilePath>..\application\communication\communication_task.c</FilePath>
             </File>
+            <File>
+              <FileName>communication.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\application\communication\communication.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
