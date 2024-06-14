@@ -18,9 +18,3 @@ void communication_task(void const * pvParameters)
         vTaskDelay(COMMUNICATION_TASK_TIME_MS);
     }
 }
-
-/**
- * @brief USART1 中断处理函数
- * @param  
- */
-void USART1_IRQHandler(void) { __Uart2_IRQHandler(); }
