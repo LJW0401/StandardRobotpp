@@ -300,7 +300,7 @@ void ChassisSetMode(void)
     if (switch_is_up(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_FREE;
     } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        CHASSIS.mode = CHASSIS_DEBUG;  // use for test, delete when release
+        CHASSIS.mode = CHASSIS_CUSTOM;
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_ZERO_FORCE;
     }
@@ -544,6 +544,7 @@ void ChassisReference(void)
     static float angle = M_PI_2;
     static float length = 0.25f;
     switch (CHASSIS.mode) {
+        case CHASSIS_CUSTOM:
         case CHASSIS_DEBUG: {
             angle = M_PI_2;  // + rc_angle * RC_TO_ONE * 0.3f;
             length += rc_length * RC_LENGTH_ADD_RATIO;
@@ -597,6 +598,7 @@ void ChassisConsole(void)
         } break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         case CHASSIS_SPIN:
+        case CHASSIS_CUSTOM:
         case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             ConsoleNormal();
@@ -931,6 +933,7 @@ static void SendJointMotorCmd(void)
         switch (CHASSIS.mode) {
             case CHASSIS_FOLLOW_GIMBAL_YAW:
             case CHASSIS_SPIN:
+            case CHASSIS_CUSTOM:
             case CHASSIS_DEBUG:
             case CHASSIS_FREE: {
 #if LOCATION_CONTROL

@@ -51,7 +51,8 @@ typedef enum {
     CHASSIS_FREE,        // 底盘不跟随云台
     CHASSIS_SPIN,        // 底盘小陀螺模式
     CHASSIS_AUTO,        // 底盘自动模式
-    CHASSIS_DEBUG        // 调试模式
+    CHASSIS_DEBUG,       // 调试模式
+    CHASSIS_CUSTOM       // 自定义模式
 } ChassisMode_e;
 
 typedef struct Leg
