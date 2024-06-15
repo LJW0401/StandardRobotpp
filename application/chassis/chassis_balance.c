@@ -988,16 +988,14 @@ static void SendWheelMotorCmd(void)
     switch (CHASSIS.mode) {
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         case CHASSIS_SPIN:
+        case CHASSIS_CUSTOM:
+        case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             LkMultipleTorqueControl(
                 WHEEL_CAN, CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
         } break;
         case CHASSIS_CALIBRATE: {
             LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
-        } break;
-        case CHASSIS_DEBUG: {
-            LkMultipleTorqueControl(
-                WHEEL_CAN, CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
         } break;
         case CHASSIS_OFF:
         case CHASSIS_ZERO_FORCE:
