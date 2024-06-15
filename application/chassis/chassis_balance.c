@@ -545,8 +545,11 @@ void ChassisReference(void)
         // 当目标速度为0，且速度小于阈值时，增加速度增量
         vel_add = PID_calc(&CHASSIS.pid.vel_add, CHASSIS.fdb.x_dot, CHASSIS.ref.x_dot);
     }
-    // vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
     CHASSIS.ref.x_dot += vel_add;
+    CHASSIS.ref.x_dot = fp32_constrain(
+        CHASSIS.ref.x_dot,                              //ref
+        CHASSIS.fdb.x_dot + MIN_DELTA_VEL_FDB_TO_REF,   //min
+        CHASSIS.fdb.x_dot + MAX_DELTA_VEL_FDB_TO_REF);  //max
 
     static float angle = M_PI_2;
     static float length = 0.25f;

@@ -74,6 +74,8 @@
 #define MAX_DELTA_ROD_ANGLE (0.25f) // (rad)腿摆角最大变化量
 #define MAX_TORQUE_PROTECT  (10.0f)  // (Nm)最大扭矩保护
 
+#define MAX_DELTA_VEL_FDB_TO_REF (0.8f) // (m/s)速度反馈到参考速度的最大变化量
+
 #define MAX_THETA      (1.0f)
 #define MAX_THETA_DOT  (2.0f)
 #define MAX_X          (1.0f)
@@ -107,6 +109,8 @@
 //lower_limit parameters ---------------------
 #define MIN_DELTA_ROD_ANGLE (-MAX_DELTA_ROD_ANGLE) // (rad)腿摆角最小变化量
 
+#define MIN_DELTA_VEL_FDB_TO_REF (-MAX_DELTA_VEL_FDB_TO_REF) // (m/s)速度反馈到参考速度的最小变化量
+
 #define MIN_THETA      (-MAX_THETA)
 #define MIN_THETA_DOT  (-MAX_THETA_DOT)
 #define MIN_X          (-MAX_X)
@@ -136,7 +140,6 @@
 #define MIN_VEL_ADD        (-MAX_VEL_ADD)    // (m/s)速度增量下限
 #define MIN_PITCH_VEL      (-MAX_PITCH_VEL)  // (rad/s)pitch轴速度下限
 
-
 //PID parameters ---------------------
 //yaw轴跟踪角度环PID参数
 #define KP_CHASSIS_YAW_ANGLE        (2.3f)
@@ -153,10 +156,10 @@
 #define MAX_OUT_CHASSIS_YAW_VELOCITY   (1.0f)
 
 // vel_add PID参数
-#define KP_CHASSIS_VEL_ADD        (0.007f)
-#define KI_CHASSIS_VEL_ADD        (0.0f)
-#define KD_CHASSIS_VEL_ADD        (0.000000f)
-#define MAX_IOUT_CHASSIS_VEL_ADD  (0.0f)
+#define KP_CHASSIS_VEL_ADD        (0.1f)
+#define KI_CHASSIS_VEL_ADD        (0.005f)
+#define KD_CHASSIS_VEL_ADD        (0.001f)
+#define MAX_IOUT_CHASSIS_VEL_ADD  (0.5f)
 #define MAX_OUT_CHASSIS_VEL_ADD   (1.0f)
 
 #if LOCATION_CONTROL
