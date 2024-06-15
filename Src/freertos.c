@@ -26,7 +26,7 @@
 #include "robot_param.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */     
+/* USER CODE BEGIN Includes */
 
 #include "calibrate_task.h"
 #include "chassis_task.h"
@@ -44,6 +44,7 @@
 #include "music_task.h"
 #include "develop_task.h"
 #include "custom_controller_task.h"
+#include "communication_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +53,8 @@
 osThreadId calibrate_tast_handle;
 
 osThreadId detect_handle;
+
+osThreadId communication_handle;
 
 #if (CHASSIS_TYPE != CHASSIS_NONE)
 osThreadId chassisTaskHandle;
@@ -194,6 +197,9 @@ void MX_FREERTOS_Init(void) {
 
     osThreadDef(DETECT, detect_task, osPriorityNormal, 0, 256);
     detect_handle = osThreadCreate(osThread(DETECT), NULL);
+
+    osThreadDef(COMMUNICATION, communication_task, osPriorityNormal, 0, 256);
+    communication_handle = osThreadCreate(osThread(COMMUNICATION), NULL);
 
 #if (CHASSIS_TYPE != CHASSIS_NONE)
     osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
