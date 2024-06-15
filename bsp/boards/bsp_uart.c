@@ -4,6 +4,14 @@
  */
 #include "bsp_uart.h"
 
+/**
+ * @brief 使用uart发送数据
+ * @param huart 
+ * @param pData 
+ * @param Size 
+ * @param Timeout 
+ * @return 
+ */
 UartSendState_e UartSendTxMessage(
     UART_HandleTypeDef * huart, uint8_t * pData, uint16_t Size, uint32_t Timeout)
 {
