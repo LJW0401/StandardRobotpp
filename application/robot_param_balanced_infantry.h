@@ -35,9 +35,10 @@
 #define WHEEL_DEADZONE (0.01f)  // (m/s)轮子速度死区
 
 // ratio parameters ---------------------
-#define VEL_ADD_RATIO    (0.008f)  // 速度增量比例系数
-#define PITCH_VEL_RATIO  (0.9f)    // pitch轴速度比例系数
-#define FF_RATIO         (0.25f)   // 前馈比例系数
+#define VEL_ADD_RATIO        (0.008f)  // 速度增量比例系数
+#define PITCH_VEL_RATIO      (0.9f)    // pitch轴速度比例系数
+#define FF_RATIO             (0.25f)   // 前馈比例系数
+#define RC_LENGTH_ADD_RATIO  (0.0000015f) // 遥控器腿长增量比例系数
 
 #define TP_RATIO (0.08f)
 #define T_RATIO  (0.5f)

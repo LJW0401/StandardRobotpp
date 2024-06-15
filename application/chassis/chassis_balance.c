@@ -480,11 +480,10 @@ static void UpdateLegStatus(void)
 void ChassisReference(void)
 {
     int16_t rc_x = 0, rc_wz = 0;
-    int16_t rc_length = 0, rc_roll = 0, rc_angle = 0;
+    int16_t rc_length = 0, rc_roll = 0;
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_X_CHANNEL], rc_x, CHASSIS_RC_DEADLINE);
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_WZ_CHANNEL], rc_wz, CHASSIS_RC_DEADLINE);
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_LENGTH_CHANNEL], rc_length, CHASSIS_RC_DEADLINE);
-    rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_ANGLE_CHANNEL], rc_angle, CHASSIS_RC_DEADLINE);
     rc_deadband_limit(CHASSIS.rc->rc.ch[CHASSIS_ROLL_CHANNEL], rc_roll, CHASSIS_RC_DEADLINE);
 
     ChassisSpeedVector_t v_set = {0.0f, 0.0f, 0.0f};
@@ -542,24 +541,26 @@ void ChassisReference(void)
     vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
     CHASSIS.ref.x_dot += vel_add;
 
-    float angle = M_PI_2;
-    float length = 0.15f;
+    static float angle = M_PI_2;
+    static float length = 0.25f;
     switch (CHASSIS.mode) {
         case CHASSIS_DEBUG: {
-            angle = M_PI_2 + rc_angle * RC_TO_ONE * 0.3f;
+            angle = M_PI_2;  // + rc_angle * RC_TO_ONE * 0.3f;
+            length += rc_length * RC_LENGTH_ADD_RATIO;
         }
         case CHASSIS_FREE: {
-            length = rc_length * RC_TO_ONE * (MAX_LEG_LENGTH - MIN_LEG_LENGTH) / 2 +
-                     (MAX_LEG_LENGTH + MIN_LEG_LENGTH) / 2;
         } break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         default: {
             angle = M_PI_2;
-            length = 0.23f;
+            length = 0.25f;
         }
     }
-    CHASSIS.ref.leg[0].rod.Length = fp32_constrain(length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
-    CHASSIS.ref.leg[1].rod.Length = fp32_constrain(length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
+    length = fp32_constrain(length, MIN_LEG_LENGTH, MAX_LEG_LENGTH);
+    angle = fp32_constrain(angle, MIN_LEG_ANGLE, MAX_LEG_ANGLE);
+
+    CHASSIS.ref.leg[0].rod.Length = length;
+    CHASSIS.ref.leg[1].rod.Length = length;
 
     CHASSIS.ref.leg[0].rod.Angle = angle;
     CHASSIS.ref.leg[1].rod.Angle = angle;
@@ -573,14 +574,13 @@ static void LocomotionController(float Tp[2], float T_w[2]);
 #if LOCATION_CONTROL
 static void LegController(double joint_pos_l[2], double joint_pos_r[2]);
 #else
+static float LegFeedForward(float theta);
 static void LegController(float F[2]);
 #endif
-static float LegFeedForward(float theta);
 static void SetK(float leg_length, float k[2][6]);
 static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
 
 static void ConsoleZeroForce(void);
-static void ConsoleDebug(void);
 static void ConsoleCalibrate(void);
 static void ConsoleNormal(void);
 
@@ -597,11 +597,9 @@ void ChassisConsole(void)
         } break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         case CHASSIS_SPIN:
+        case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             ConsoleNormal();
-        } break;
-        case CHASSIS_DEBUG: {
-            ConsoleDebug();
         } break;
         case CHASSIS_OFF:
         case CHASSIS_ZERO_FORCE:
@@ -668,12 +666,14 @@ static void LocomotionController(float Tp[2], float T_w[2])
 #endif
 }
 
+#if !LOCATION_CONTROL
 /**
  * @brief        前馈控制
  * @param[in]    theta 当前腿与竖直方向夹角
  * @return       前馈量
  */
 static float LegFeedForward(float theta) { return BODY_MASS * GRAVITY * cosf(theta) / 2; }
+#endif
 
 /**
  * @brief         设置LQR的反馈矩阵K
@@ -716,15 +716,15 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2])
  */
 static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
-    static float delta_Angle = 0;
-    float dAngle = CHASSIS.fdb.phi_dot * PITCH_VEL_RATIO;
-    float dAngle_1 = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
-    // float dAngle_2 = PID_calc(&CHASSIS.pid.pitch_vel, CHASSIS.fdb.phi_dot, CHASSIS.ref.phi_dot);
+    // static float delta_Angle = 0;
+    // float dAngle = CHASSIS.fdb.phi_dot * PITCH_VEL_RATIO;
+    // float dAngle_1 = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
+    // // float dAngle_2 = PID_calc(&CHASSIS.pid.pitch_vel, CHASSIS.fdb.phi_dot, CHASSIS.ref.phi_dot);
 
-    delta_Angle += (dAngle + dAngle_1) * CHASSIS_CONTROL_TIME_S;
-    delta_Angle = fp32_constrain(delta_Angle, MIN_DELTA_ROD_ANGLE, MAX_DELTA_ROD_ANGLE);
+    // delta_Angle += (dAngle + dAngle_1) * CHASSIS_CONTROL_TIME_S;
+    // delta_Angle = fp32_constrain(delta_Angle, MIN_DELTA_ROD_ANGLE, MAX_DELTA_ROD_ANGLE);
 
-    // float delta_Angle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
+    float delta_Angle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
 
     CHASSIS.ref.leg[0].rod.Angle = M_PI_2 + delta_Angle;
     CHASSIS.ref.leg[1].rod.Angle = M_PI_2 + delta_Angle;
@@ -804,40 +804,6 @@ static void ConsoleCalibrate(void)
     CHASSIS.wheel_motor[1].set.tor = 0;
 }
 
-static void ConsoleDebug(void)
-{
-#if LOCATION_CONTROL
-    double joint_pos_l[2], joint_pos_r[2];
-    LegIKine(CHASSIS.ref.leg[0].rod.Length, CHASSIS.ref.leg[0].rod.Angle, joint_pos_l);
-    LegIKine(CHASSIS.ref.leg[1].rod.Length, CHASSIS.ref.leg[1].rod.Angle, joint_pos_r);
-
-    // 当解算出的角度正常时，设置目标角度
-    if (!(isnan(joint_pos_l[0]) || isnan(joint_pos_l[1]) || isnan(joint_pos_r[0]) ||
-          isnan(joint_pos_r[1]))) {
-        CHASSIS.joint_motor[0].set.pos =
-            theta_transform(joint_pos_l[1], -J0_ANGLE_OFFSET, J0_DIRECTION, 1);
-        CHASSIS.joint_motor[1].set.pos =
-            theta_transform(joint_pos_l[0], -J1_ANGLE_OFFSET, J1_DIRECTION, 1);
-        CHASSIS.joint_motor[2].set.pos =
-            theta_transform(joint_pos_r[1], -J2_ANGLE_OFFSET, J2_DIRECTION, 1);
-        CHASSIS.joint_motor[3].set.pos =
-            theta_transform(joint_pos_r[0], -J3_ANGLE_OFFSET, J3_DIRECTION, 1);
-    }
-    // 检测设定角度是否超过电机角度限制
-    CHASSIS.joint_motor[0].set.pos =
-        fp32_constrain(CHASSIS.joint_motor[0].set.pos, MIN_J0_ANGLE, MAX_J0_ANGLE);
-    CHASSIS.joint_motor[1].set.pos =
-        fp32_constrain(CHASSIS.joint_motor[1].set.pos, MIN_J1_ANGLE, MAX_J1_ANGLE);
-    CHASSIS.joint_motor[2].set.pos =
-        fp32_constrain(CHASSIS.joint_motor[2].set.pos, MIN_J2_ANGLE, MAX_J2_ANGLE);
-    CHASSIS.joint_motor[3].set.pos =
-        fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
-#endif
-
-    CHASSIS.wheel_motor[0].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 1 * (W0_DIRECTION);
-    CHASSIS.wheel_motor[1].set.tor = CHASSIS.rc->rc.ch[4] * RC_TO_ONE * 1 * (W1_DIRECTION);
-}
-
 static void ConsoleNormal(void)
 {
     float tp[2], t[2];
@@ -912,7 +878,7 @@ static void ConsoleNormal(void)
 #define DEBUG_VEL_KP 4.0f
 #define ZERO_FORCE_VEL_KP 1.0f
 
-#define NORMAL_POS_KP 25.0f
+#define NORMAL_POS_KP 20.0f
 #define NORMAL_POS_KD 1.0f
 
 #define DEBUG_POS_KP 8.0f
@@ -965,6 +931,7 @@ static void SendJointMotorCmd(void)
         switch (CHASSIS.mode) {
             case CHASSIS_FOLLOW_GIMBAL_YAW:
             case CHASSIS_SPIN:
+            case CHASSIS_DEBUG:
             case CHASSIS_FREE: {
 #if LOCATION_CONTROL
                 DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
@@ -996,13 +963,6 @@ static void SendJointMotorCmd(void)
                     DmSavePosZero(&CHASSIS.joint_motor[2]);
                     DmSavePosZero(&CHASSIS.joint_motor[3]);
                 }
-            } break;
-            case CHASSIS_DEBUG: {
-                DmMitCtrlPosition(&CHASSIS.joint_motor[0], DEBUG_POS_KP, DEBUG_POS_KD);
-                DmMitCtrlPosition(&CHASSIS.joint_motor[1], DEBUG_POS_KP, DEBUG_POS_KD);
-                delay_us(200);
-                DmMitCtrlPosition(&CHASSIS.joint_motor[2], DEBUG_POS_KP, DEBUG_POS_KD);
-                DmMitCtrlPosition(&CHASSIS.joint_motor[3], DEBUG_POS_KP, DEBUG_POS_KD);
             } break;
             case CHASSIS_ZERO_FORCE:
             default: {
