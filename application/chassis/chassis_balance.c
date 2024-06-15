@@ -89,6 +89,7 @@ void ChassisInit(void)
     memset(&CHASSIS.ref, 0, sizeof(CHASSIS.ref));
 
     /*-------------------- 初始化底盘PID --------------------*/
+    // yaw轴跟踪pid
     float yaw_angle_pid[3] = {KP_CHASSIS_YAW_ANGLE, KI_CHASSIS_YAW_ANGLE, KD_CHASSIS_YAW_ANGLE};
     float yaw_velocity_pid[3] = {
         KP_CHASSIS_YAW_VELOCITY, KI_CHASSIS_YAW_VELOCITY, KD_CHASSIS_YAW_VELOCITY};
@@ -98,6 +99,12 @@ void ChassisInit(void)
     PID_init(
         &CHASSIS.pid.yaw_velocity, PID_POSITION, yaw_velocity_pid, MAX_OUT_CHASSIS_YAW_VELOCITY,
         MAX_IOUT_CHASSIS_YAW_VELOCITY);
+
+    // 速度增量pid
+    float vel_add_pid[3] = {KP_CHASSIS_VEL_ADD, KI_CHASSIS_VEL_ADD, KD_CHASSIS_VEL_ADD};
+    PID_init(
+        &CHASSIS.pid.vel_add, PID_POSITION, vel_add_pid, MAX_OUT_CHASSIS_VEL_ADD,
+        MAX_IOUT_CHASSIS_VEL_ADD);
 
 #if LOCATION_CONTROL
 
@@ -536,9 +543,9 @@ void ChassisReference(void)
     static float vel_add = 0;  // 速度增量，用于适应重心位置变化
     if (fabs(CHASSIS.ref.x_dot) < WHEEL_DEADZONE && fabs(CHASSIS.fdb.x_dot) < 0.8f) {
         // 当目标速度为0，且速度小于阈值时，增加速度增量
-        vel_add -= CHASSIS.fdb.x_dot * VEL_ADD_RATIO;
+        vel_add = PID_calc(&CHASSIS.pid.vel_add, CHASSIS.fdb.x_dot, CHASSIS.ref.x_dot);
     }
-    vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
+    // vel_add = fp32_constrain(vel_add, MIN_VEL_ADD, MAX_VEL_ADD);
     CHASSIS.ref.x_dot += vel_add;
 
     static float angle = M_PI_2;

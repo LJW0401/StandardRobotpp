@@ -40,8 +40,8 @@
 #define FF_RATIO             (0.25f)   // 前馈比例系数
 #define RC_LENGTH_ADD_RATIO  (0.0000015f) // 遥控器腿长增量比例系数
 
-#define TP_RATIO (0.08f)
-#define T_RATIO  (0.5f)
+#define TP_RATIO (0.08f)  // 髋关节转矩比例系数
+#define T_RATIO  (0.6f)   // 驱动轮转矩比例系数
 
 // motor parameters ---------------------
 #define JOINT_CAN (1)
@@ -152,6 +152,13 @@
 #define MAX_IOUT_CHASSIS_YAW_VELOCITY  (0.5f)
 #define MAX_OUT_CHASSIS_YAW_VELOCITY   (1.0f)
 
+// vel_add PID参数
+#define KP_CHASSIS_VEL_ADD        (0.007f)
+#define KI_CHASSIS_VEL_ADD        (0.0f)
+#define KD_CHASSIS_VEL_ADD        (0.000000f)
+#define MAX_IOUT_CHASSIS_VEL_ADD  (0.0f)
+#define MAX_OUT_CHASSIS_VEL_ADD   (1.0f)
+
 #if LOCATION_CONTROL
     //roll轴跟踪角度环PID参数
     #define KP_CHASSIS_ROLL_ANGLE        (0.6f)
@@ -165,7 +172,7 @@
     #define KI_CHASSIS_PITCH_ANGLE        (0.0f)
     #define KD_CHASSIS_PITCH_ANGLE        (0.15f)
     #define MAX_IOUT_CHASSIS_PITCH_ANGLE  (0.05f)
-    #define MAX_OUT_CHASSIS_PITCH_ANGLE   (0.2f)
+    #define MAX_OUT_CHASSIS_PITCH_ANGLE   (0.0f)
 #else
     //roll轴跟踪角度环PID参数
     #define KP_CHASSIS_ROLL_ANGLE        (0.0f)

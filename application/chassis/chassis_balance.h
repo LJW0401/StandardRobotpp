@@ -123,6 +123,9 @@ typedef struct
 {
     pid_type_def yaw_angle;
     pid_type_def yaw_velocity;
+    
+    pid_type_def vel_add;
+    
 #if LOCATION_CONTROL
     pid_type_def roll_angle;
     pid_type_def pitch_angle;
