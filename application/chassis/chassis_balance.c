@@ -92,6 +92,26 @@ void ChassisInit(void)
     float yaw_angle_pid[3] = {KP_CHASSIS_YAW_ANGLE, KI_CHASSIS_YAW_ANGLE, KD_CHASSIS_YAW_ANGLE};
     float yaw_velocity_pid[3] = {
         KP_CHASSIS_YAW_VELOCITY, KI_CHASSIS_YAW_VELOCITY, KD_CHASSIS_YAW_VELOCITY};
+    PID_init(
+        &CHASSIS.pid.yaw_angle, PID_POSITION, yaw_angle_pid, MAX_OUT_CHASSIS_YAW_ANGLE,
+        MAX_IOUT_CHASSIS_YAW_ANGLE);
+    PID_init(
+        &CHASSIS.pid.yaw_velocity, PID_POSITION, yaw_velocity_pid, MAX_OUT_CHASSIS_YAW_VELOCITY,
+        MAX_IOUT_CHASSIS_YAW_VELOCITY);
+
+#if LOCATION_CONTROL
+
+    float roll_angle_pid[3] = {KP_CHASSIS_ROLL_ANGLE, KI_CHASSIS_ROLL_ANGLE, KD_CHASSIS_ROLL_ANGLE};
+    float pitch_angle_pid[3] = {
+        KP_CHASSIS_PITCH_ANGLE, KI_CHASSIS_PITCH_ANGLE, KD_CHASSIS_PITCH_ANGLE};
+
+    PID_init(
+        &CHASSIS.pid.roll_angle, PID_POSITION, roll_angle_pid, MAX_OUT_CHASSIS_ROLL_ANGLE,
+        MAX_IOUT_CHASSIS_ROLL_ANGLE);
+    PID_init(
+        &CHASSIS.pid.pitch_angle, PID_POSITION, pitch_angle_pid, MAX_OUT_CHASSIS_PITCH_ANGLE,
+        MAX_IOUT_CHASSIS_PITCH_ANGLE);
+#else
     float roll_angle_pid[3] = {KP_CHASSIS_ROLL_ANGLE, KI_CHASSIS_ROLL_ANGLE, KD_CHASSIS_ROLL_ANGLE};
     // float roll_velocity_pid[3] = {
     //     KP_CHASSIS_ROLL_VELOCITY, KI_CHASSIS_ROLL_VELOCITY, KD_CHASSIS_ROLL_VELOCITY};
@@ -139,7 +159,7 @@ void ChassisInit(void)
     PID_init(
         &CHASSIS.pid.leg_angle_angle, PID_POSITION, leg_angle_angle_pid,
         MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE, MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE);
-
+#endif
     // 初始化低通滤波器
     LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[0], LEG_DDLENGTH_LPF_ALPHA);
     LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[1], LEG_DDLENGTH_LPF_ALPHA);
@@ -360,7 +380,7 @@ void ChassisObserver(void)
     OutputPCData.packets[5].data = CHASSIS.joint_motor[1].fdb.tor;
     OutputPCData.packets[6].data = CHASSIS.joint_motor[2].fdb.tor;
     OutputPCData.packets[7].data = CHASSIS.joint_motor[3].fdb.tor;
-    OutputPCData.packets[8].data = CHASSIS.pid.leg_length_length[0].out;
+    // OutputPCData.packets[8].data = CHASSIS.pid.leg_length_length[0].out;
     OutputPCData.packets[9].data = CHASSIS.joint_motor[0].set.tor;
     OutputPCData.packets[10].data = CHASSIS.joint_motor[1].set.tor;
     OutputPCData.packets[11].data = CHASSIS.joint_motor[2].set.tor;
@@ -632,6 +652,12 @@ static void LocomotionController(float Tp[2], float T_w[2])
         PID_calc(&CHASSIS.pid.yaw_velocity, CHASSIS.fdb.yaw_velocity, CHASSIS.ref.speed_vector.wz);
     }
 
+#if LOCATION_CONTROL
+    T_w[0] = t + CHASSIS.pid.yaw_velocity.out;
+    T_w[1] = t - CHASSIS.pid.yaw_velocity.out;
+    Tp[0] = 0;
+    Tp[1] = 0;
+#else
     float dangle = CHASSIS.fdb.leg[0].rod.Angle - CHASSIS.fdb.leg[1].rod.Angle;
     PID_calc(&CHASSIS.pid.leg_angle_angle, dangle, 0);
 
@@ -639,6 +665,7 @@ static void LocomotionController(float Tp[2], float T_w[2])
     T_w[1] = t - CHASSIS.pid.yaw_velocity.out;
     Tp[0] = tp + CHASSIS.pid.leg_angle_angle.out;
     Tp[1] = tp - CHASSIS.pid.leg_angle_angle.out;
+#endif
 }
 
 /**
@@ -864,10 +891,14 @@ static void ConsoleNormal(void)
     CHASSIS.joint_motor[2].set.tor = -joint_torque[0] * (J2_DIRECTION);
     CHASSIS.joint_motor[3].set.tor = -joint_torque[1] * (J3_DIRECTION);
 
-    CHASSIS.joint_motor[0].set.tor = fp32_constrain(CHASSIS.joint_motor[0].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
-    CHASSIS.joint_motor[1].set.tor = fp32_constrain(CHASSIS.joint_motor[1].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
-    CHASSIS.joint_motor[2].set.tor = fp32_constrain(CHASSIS.joint_motor[2].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
-    CHASSIS.joint_motor[3].set.tor = fp32_constrain(CHASSIS.joint_motor[3].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
+    CHASSIS.joint_motor[0].set.tor =
+        fp32_constrain(CHASSIS.joint_motor[0].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
+    CHASSIS.joint_motor[1].set.tor =
+        fp32_constrain(CHASSIS.joint_motor[1].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
+    CHASSIS.joint_motor[2].set.tor =
+        fp32_constrain(CHASSIS.joint_motor[2].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
+    CHASSIS.joint_motor[3].set.tor =
+        fp32_constrain(CHASSIS.joint_motor[3].set.tor, MIN_JOINT_TORQUE, MAX_JOINT_TORQUE);
 #endif
 
     // QUESTION: 排查电机发送的力矩要反向的问题，这种情况下控制正常

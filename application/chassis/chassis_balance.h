@@ -122,6 +122,10 @@ typedef struct
 {
     pid_type_def yaw_angle;
     pid_type_def yaw_velocity;
+#if LOCATION_CONTROL
+    pid_type_def roll_angle;
+    pid_type_def pitch_angle;
+#else
 
     pid_type_def roll_angle;
     // pid_type_def roll_velocity;
@@ -133,6 +137,7 @@ typedef struct
     pid_type_def leg_length_speed[2];
 
     pid_type_def leg_angle_angle;
+#endif
 } PID_t;
 
 typedef struct LPF
