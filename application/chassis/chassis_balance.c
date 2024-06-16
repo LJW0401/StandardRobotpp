@@ -943,8 +943,6 @@ static void ConsoleStandUp(void)
         fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
 
     // ===驱动轮pid控制===
-
-    //+0.4nm的补偿量
     float feedforward = -200;
     PID_calc(&CHASSIS.pid.stand_up, CHASSIS.fdb.phi, 0);
     CHASSIS.wheel_motor[0].set.value = (feedforward + CHASSIS.pid.stand_up.out) * W0_DIRECTION;
@@ -952,16 +950,6 @@ static void ConsoleStandUp(void)
 }
 
 /*-------------------- Cmd --------------------*/
-
-#define CALIBRATE_VEL_KP 4.0f
-#define DEBUG_VEL_KP 4.0f
-#define ZERO_FORCE_VEL_KP 1.0f
-
-#define NORMAL_POS_KP 20.0f
-#define NORMAL_POS_KD 1.0f
-
-#define DEBUG_POS_KP 8.0f
-#define DEBUG_POS_KD 0.8f
 
 static void SendJointMotorCmd(void);
 static void SendWheelMotorCmd(void);

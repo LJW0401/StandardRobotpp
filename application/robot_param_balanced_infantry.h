@@ -55,6 +55,17 @@
 #define W0_DIRECTION ( 1)
 #define W1_DIRECTION (-1)
 
+// DM控制参数
+#define CALIBRATE_VEL_KP  (4.0f)  // 校准MIT速度控制KP
+#define DEBUG_VEL_KP      (4.0f)  // 调试MIT速度控制KP
+#define ZERO_FORCE_VEL_KP (1.0f)  // 无力MIT速度控制KP
+
+#define NORMAL_POS_KP (20.0f) // 正常MIT位置控制KP
+#define NORMAL_POS_KD (1.0f)  // 正常MIT位置控制KD
+
+#define DEBUG_POS_KP (8.0f) // 调试MIT位置控制KP
+#define DEBUG_POS_KD (0.8f) // 调试MIT位置控制KD
+
 //physical parameters ---------------------
 #define BODY_MASS            (12.65813f)    // (kg)机身重量
 #define LEG_MASS             (0.4f)    // (kg)腿重量
