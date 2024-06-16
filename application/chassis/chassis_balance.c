@@ -941,8 +941,8 @@ static void ConsoleStandUp(void)
 
     // ===驱动轮pid控制===
     PID_calc(&CHASSIS.pid.stand_up, CHASSIS.fdb.phi, 0);
-    CHASSIS.wheel_motor[0].set.value = CHASSIS.pid.stand_up.out;
-    CHASSIS.wheel_motor[1].set.value = CHASSIS.pid.stand_up.out;
+    CHASSIS.wheel_motor[0].set.value = CHASSIS.pid.stand_up.out * W0_DIRECTION;
+    CHASSIS.wheel_motor[1].set.value = CHASSIS.pid.stand_up.out * W1_DIRECTION;
 }
 
 /*-------------------- Cmd --------------------*/
@@ -1004,7 +1004,6 @@ static void SendJointMotorCmd(void)
         switch (CHASSIS.mode) {
             case CHASSIS_FOLLOW_GIMBAL_YAW:
             case CHASSIS_CUSTOM:
-            case CHASSIS_STAND_UP:
             case CHASSIS_DEBUG:
             case CHASSIS_FREE: {
 #if LOCATION_CONTROL
@@ -1020,6 +1019,13 @@ static void SendJointMotorCmd(void)
                 DmMitCtrlTorque(&CHASSIS.joint_motor[2]);
                 DmMitCtrlTorque(&CHASSIS.joint_motor[3]);
 #endif
+            } break;
+            case CHASSIS_STAND_UP: {
+                DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[1], NORMAL_POS_KP, NORMAL_POS_KD);
+                delay_us(200);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[2], NORMAL_POS_KP, NORMAL_POS_KD);
+                DmMitCtrlPosition(&CHASSIS.joint_motor[3], NORMAL_POS_KP, NORMAL_POS_KD);
             } break;
             case CHASSIS_CALIBRATE: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], CALIBRATE_VEL_KP);
@@ -1059,11 +1065,15 @@ static void SendWheelMotorCmd(void)
     switch (CHASSIS.mode) {
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         case CHASSIS_CUSTOM:
-        case CHASSIS_STAND_UP:
         case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             LkMultipleTorqueControl(
                 WHEEL_CAN, CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
+        } break;
+        case CHASSIS_STAND_UP: {
+            LkMultipleIqControl(
+                WHEEL_CAN, CHASSIS.wheel_motor[0].set.value, CHASSIS.wheel_motor[1].set.value, 0,
+                0);
         } break;
         case CHASSIS_CALIBRATE: {
             LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
