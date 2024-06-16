@@ -31,8 +31,7 @@ void InitGimbal(void)
 {
   //step1 获取所有所需变量指针
    gimbal_direct.rc = get_remote_control_point(); 
-   gimbal_direct.imu=GetImuDataPoint();
-   gimbal_direct.
+   gimbal_direct.imu=GetImuDataPoint();=
    //step2 置零所有值
    gimbal_direct.reference.pitch=0;
    gimbal_direct.reference.yaw=0;
@@ -57,6 +56,10 @@ void InitGimbal(void)
 
    PID_init(&gimbal_direct_pid.pitch_angle,PID_POSITION,gimbal_pitch_angle,MAX_OUT_GIMBAL_PITCH_ANGLE,MAX_IOUT_GIMBAL_PITCH_ANGLE);
    PID_init(&gimbal_direct_pid.pitch_velocity,PID_POSITION,gimbal_pitch_velocity,MAX_OUT_GIMBAL_PITCH_VELOCITY,MAX_IOUT_GIMBAL_PITCH_VELOCITY);
+
+   //step4 初始化电机
+   MotorInit(&gimbal_direct.yaw,GIMBAL_DIRECT_YAW_ID,GIMBAL_DIRECT_YAW_CAN,GIMBAL_DIRECT_YAW_MOTOR_TYPE,GIMBAL_DIRECT_YAW_DIRECTION,GIMBAL_DIRECT_YAW_REDUCTION_RATIO,GIMBAL_DIRECT_YAW_MODE);
+   MotorInit(&gimbal_direct.pitch,GIMBAL_DIRECT_PITCH_ID,GIMBAL_DIRECT_PITCH_CAN,GIMBAL_DIRECT_PITCH_MOTOR_TYPE,GIMBAL_DIRECT_PITCH_DIRECTION,GIMBAL_DIRECT_PITCH_REDUCTION_RATIO,GIMBAL_DIRECT_PITCH_MODE);
 }
 /*-------------------- Set mode --------------------*/
 

@@ -57,6 +57,30 @@ typedef enum {
 #define MAX_OUT_CHASSIS_GIMBAL_FOLLOW_ANGLE 0.0f
 
 /*-------------------- Gimbal --------------------*/
+//motor parameters ---------------------
+//电机id
+#define uint8_t GIMBAL_DIRECT_YAW_ID 0x1ff
+#define uint8_t GIMBAL_DIRECT_PITCH_ID 5
+
+//电机can口
+#define uint8_t GIMBAL_DIRECT_YAW_CAN 1
+#define uint8_t GIMBAL_DIRECT_PITCH_CAN 2 
+
+//电机种类
+#define MotorType_e GIMBAL_DIRECT_YAW_MOTOR_TYPE
+#define MotorType_e GIMBAL_DIRECT_PITCH_MOTOR_TYPE
+
+//旋转方向
+#define int8_t GIMBAL_DIRECT_YAW_DIRECTION
+#define int8_t GIMBAL_DIRECT_PITCH_DIRECTION
+
+//减速比
+#define float GIMBAL_DIRECT_YAW_REDUCTION_RATIO
+#define float GIMBAL_DIRECT_PITCH_REDUCTION_RATIO
+
+//电机运行模式
+#define uint16_t GIMBAL_DIRECT_YAW_MODE
+#define uint16_t GIMBAL_DIRECT_PITCH_MODE
 //physical parameters ---------------------
 #define GIMBAL_UPPER_LIMIT_PITCH 0.0f
 #define GIMBAL_UPPER_LIMIT_YAW 0.0f

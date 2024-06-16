@@ -63,7 +63,7 @@ typedef struct
     GimbalMode_e mode;     // 模式
 
     /*-------------------- Motors --------------------*/
-   // Motor_s
+    Motor_s yaw,pitch;
     /*-------------------- Values --------------------*/
     Imu_t  * imu;  // IMU数据
 
