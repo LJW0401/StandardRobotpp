@@ -394,9 +394,9 @@ static void usb_send_outputPC(uint8_t t)
     // char_to_uint(OutputPCData.packets[12].name, "tor_set3");
     // char_to_uint(OutputPCData.packets[13].name, "Fn0");
     // char_to_uint(OutputPCData.packets[14].name, "Fn1");
-    char_to_uint(OutputPCData.packets[15].name, "r_fdb");
-    char_to_uint(OutputPCData.packets[16].name, "r_ref");
-    char_to_uint(OutputPCData.packets[17].name, "dL");
+    // char_to_uint(OutputPCData.packets[15].name, "r_fdb");
+    char_to_uint(OutputPCData.packets[16].name, "t0");
+    char_to_uint(OutputPCData.packets[17].name, "t1");
     // char_to_uint(OutputPCData.packets[18].name, "Theta");
     // char_to_uint(OutputPCData.packets[19].name, "F");
     // char_to_uint(OutputPCData.packets[20].name, "Tp");
