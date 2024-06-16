@@ -37,10 +37,10 @@
 // ratio parameters ---------------------
 #define VEL_ADD_RATIO        (0.008f)  // 速度增量比例系数
 #define PITCH_VEL_RATIO      (0.9f)    // pitch轴速度比例系数
-#define FF_RATIO             (0.25f)   // 前馈比例系数
+#define FF_RATIO             (0.20f)   // 前馈比例系数
 #define RC_LENGTH_ADD_RATIO  (0.0000015f) // 遥控器腿长增量比例系数
 
-#define TP_RATIO (0.08f)  // 髋关节转矩比例系数
+#define TP_RATIO (0.05f)  // 髋关节转矩比例系数
 #define T_RATIO  (0.6f)   // 驱动轮转矩比例系数
 
 // motor parameters ---------------------
@@ -101,7 +101,7 @@
 #define MAX_SPEED_VECTOR_VY  (1.5f)
 #define MAX_SPEED_VECTOR_WZ  (3.0f)
 
-#define MAX_JOINT_TORQUE   (5.0f)  // (Nm)关节最大扭矩
+#define MAX_JOINT_TORQUE   (4.0f)  // (Nm)关节最大扭矩
 #define MAX_VEL_ADD        (1.0f)  // (m/s)速度增量上限
 #define MAX_PITCH_VEL      (0.1f)  // (rad/s)pitch轴速度上限
 

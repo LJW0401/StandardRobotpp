@@ -122,47 +122,36 @@ void ChassisInit(void)
     float roll_angle_pid[3] = {KP_CHASSIS_ROLL_ANGLE, KI_CHASSIS_ROLL_ANGLE, KD_CHASSIS_ROLL_ANGLE};
     // float roll_velocity_pid[3] = {
     //     KP_CHASSIS_ROLL_VELOCITY, KI_CHASSIS_ROLL_VELOCITY, KD_CHASSIS_ROLL_VELOCITY};
-    float pitch_angle_pid[3] = {
-        KP_CHASSIS_PITCH_ANGLE, KI_CHASSIS_PITCH_ANGLE, KD_CHASSIS_PITCH_ANGLE};
-    // float pitch_velocity_pid[3] = {
-    //     KP_CHASSIS_PITCH_VELOCITY, KI_CHASSIS_PITCH_VELOCITY, KD_CHASSIS_PITCH_VELOCITY};
+
     float leg_length_length_pid[3] = {
         KP_CHASSIS_LEG_LENGTH_LENGTH, KI_CHASSIS_LEG_LENGTH_LENGTH, KD_CHASSIS_LEG_LENGTH_LENGTH};
     // float leg_length_speed_pid[3] = {
     //     KP_CHASSIS_LEG_LENGTH_SPEED, KI_CHASSIS_LEG_LENGTH_SPEED, KD_CHASSIS_LEG_LENGTH_SPEED};
+
     float leg_angle_angle_pid[3] = {
         KP_CHASSIS_LEG_ANGLE_ANGLE, KI_CHASSIS_LEG_ANGLE_ANGLE, KD_CHASSIS_LEG_ANGLE_ANGLE};
 
     PID_init(
-        &CHASSIS.pid.yaw_angle, PID_POSITION, yaw_angle_pid, MAX_OUT_CHASSIS_YAW_ANGLE,
-        MAX_IOUT_CHASSIS_YAW_ANGLE);
-    PID_init(
-        &CHASSIS.pid.yaw_velocity, PID_POSITION, yaw_velocity_pid, MAX_OUT_CHASSIS_YAW_VELOCITY,
-        MAX_IOUT_CHASSIS_YAW_VELOCITY);
-    PID_init(
         &CHASSIS.pid.roll_angle, PID_POSITION, roll_angle_pid, MAX_OUT_CHASSIS_ROLL_ANGLE,
         MAX_IOUT_CHASSIS_ROLL_ANGLE);
-    PID_init(
-        &CHASSIS.pid.pitch_angle, PID_POSITION, pitch_angle_pid, MAX_OUT_CHASSIS_PITCH_ANGLE,
-        MAX_IOUT_CHASSIS_PITCH_ANGLE);
-    // PID_init(
-    //     &CHASSIS.pid.pitch_vel, PID_POSITION, pitch_velocity_pid, MAX_OUT_CHASSIS_PITCH_VELOCITY,
-    //     MAX_IOUT_CHASSIS_PITCH_VELOCITY);
     // PID_init(
     //     &CHASSIS.pid.roll_velocity, PID_POSITION, roll_velocity_pid, MAX_OUT_CHASSIS_ROLL_VELOCITY,
     //     MAX_IOUT_CHASSIS_ROLL_VELOCITY);
+
     PID_init(
         &CHASSIS.pid.leg_length_length[0], PID_POSITION, leg_length_length_pid,
         MAX_OUT_CHASSIS_LEG_LENGTH_LENGTH, MAX_IOUT_CHASSIS_LEG_LENGTH_LENGTH);
     // PID_init(
     //     &CHASSIS.pid.leg_length_left_speed, PID_POSITION, leg_length_speed_pid,
     //     MAX_OUT_CHASSIS_LEG_LENGTH_SPEED, MAX_IOUT_CHASSIS_LEG_LENGTH_SPEED);
+
     PID_init(
         &CHASSIS.pid.leg_length_length[1], PID_POSITION, leg_length_length_pid,
         MAX_OUT_CHASSIS_LEG_LENGTH_LENGTH, MAX_IOUT_CHASSIS_LEG_LENGTH_LENGTH);
     // PID_init(
     //     &CHASSIS.pid.leg_length_right_speed, PID_POSITION, leg_length_speed_pid,
     //     MAX_OUT_CHASSIS_LEG_LENGTH_SPEED, MAX_IOUT_CHASSIS_LEG_LENGTH_SPEED);
+
     PID_init(
         &CHASSIS.pid.leg_angle_angle, PID_POSITION, leg_angle_angle_pid,
         MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE, MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE);
@@ -820,8 +809,8 @@ static void ConsoleNormal(void)
 {
     float tp[2], t[2];
     LocomotionController(tp, t);
-    CHASSIS.ref.leg[0].rod.Tp = -tp[0];
-    CHASSIS.ref.leg[1].rod.Tp = -tp[1];
+    CHASSIS.ref.leg[0].rod.Tp = tp[0];
+    CHASSIS.ref.leg[1].rod.Tp = tp[1];
 
 #if LOCATION_CONTROL
     double joint_pos_l[2], joint_pos_r[2];
