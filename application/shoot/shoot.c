@@ -17,3 +17,4 @@
   */
 
 #include "shoot.h"
+int f;
