@@ -324,7 +324,10 @@ void ChassisSetMode(void)
         default:
             break;
     }
-    // TODO：添加退出起立模式的条件
+
+    if (CHASSIS.mode == CHASSIS_STAND_UP && fabs(CHASSIS.fdb.phi) < 0.1f) {
+        CHASSIS.mode = CHASSIS_CUSTOM;
+    }
 }
 
 /*-------------------- Observe --------------------*/
@@ -409,8 +412,8 @@ void ChassisObserver(void)
     OutputPCData.packets[13].data = GROUND_TOUCH.support_force[0];
     OutputPCData.packets[14].data = GROUND_TOUCH.support_force[1];
     OutputPCData.packets[15].data = CHASSIS.imu->roll;
-    // OutputPCData.packets[16].data = CHASSIS.fdb.leg[0].wheel.Velocity;
-    // OutputPCData.packets[17].data = CHASSIS.fdb.leg[1].wheel.Velocity;
+    OutputPCData.packets[16].data = CHASSIS.wheel_motor[0].set.tor;
+    OutputPCData.packets[17].data = CHASSIS.wheel_motor[1].set.tor;
     // OutputPCData.packets[18].data = CHASSIS.wheel_motor[0].set.tor;
     // OutputPCData.packets[19].data = CHASSIS.wheel_motor[1].set.tor;
     // OutputPCData.packets[20].data = CHASSIS.imu->z_accel;
