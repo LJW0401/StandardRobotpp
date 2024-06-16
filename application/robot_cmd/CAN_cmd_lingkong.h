@@ -25,6 +25,8 @@ extern void LkSingleSpeedControl(Motor_s * p_motor);
 extern void LkSingleTorqueControl(Motor_s * p_motor);
 extern void LkMultipleTorqueControl(
     uint8_t can, float torque_1, float torque_2, float torque_3, float torque_4);
-
+extern void LkMultipleIqControl(
+    uint8_t can, int16_t iqControl_1, int16_t iqControl_2, int16_t iqControl_3,
+    int16_t iqControl_4);
 #endif /* CAN_CMD_LINGKONG_H */
 /************************ END OF FILE ************************/
