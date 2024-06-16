@@ -49,7 +49,6 @@ typedef enum {
     CHASSIS_FLOATING,    // 底盘悬空状态
     CHASSIS_CUSHIONING,  // 底盘缓冲状态
     CHASSIS_FREE,        // 底盘不跟随云台
-    CHASSIS_SPIN,        // 底盘小陀螺模式
     CHASSIS_AUTO,        // 底盘自动模式
     CHASSIS_DEBUG,       // 调试模式
     CHASSIS_CUSTOM       // 自定义模式
@@ -123,9 +122,9 @@ typedef struct
 {
     pid_type_def yaw_angle;
     pid_type_def yaw_velocity;
-    
+
     pid_type_def vel_add;
-    
+
 #if LOCATION_CONTROL
     pid_type_def roll_angle;
     pid_type_def pitch_angle;
@@ -142,6 +141,8 @@ typedef struct
 
     pid_type_def leg_angle_angle;
 #endif
+
+    pid_type_def stand_up;
 } PID_t;
 
 typedef struct LPF

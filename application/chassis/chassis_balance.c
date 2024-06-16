@@ -156,6 +156,12 @@ void ChassisInit(void)
         &CHASSIS.pid.leg_angle_angle, PID_POSITION, leg_angle_angle_pid,
         MAX_OUT_CHASSIS_LEG_ANGLE_ANGLE, MAX_IOUT_CHASSIS_LEG_ANGLE_ANGLE);
 #endif
+
+    float stand_up_pid[3] = {KP_CHASSIS_STAND_UP, KI_CHASSIS_STAND_UP, KD_CHASSIS_STAND_UP};
+    PID_init(
+        &CHASSIS.pid.stand_up, PID_POSITION, stand_up_pid, MAX_OUT_CHASSIS_STAND_UP,
+        MAX_IOUT_CHASSIS_STAND_UP);
+
     // 初始化低通滤波器
     LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[0], LEG_DDLENGTH_LPF_ALPHA);
     LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[1], LEG_DDLENGTH_LPF_ALPHA);
@@ -260,6 +266,9 @@ static void GroundTouchDectect(void)
  */
 void ChassisSetMode(void)
 {
+    static ChassisMode_e last_mode;
+    last_mode = CHASSIS.mode;
+
     if (CHASSIS.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
         CHASSIS.mode = CHASSIS_ZERO_FORCE;
         return;
@@ -300,6 +309,22 @@ void ChassisSetMode(void)
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_ZERO_FORCE;
     }
+
+    switch (CHASSIS.mode)  //进入起立模式的判断
+    {
+        case CHASSIS_FREE:
+        case CHASSIS_FOLLOW_GIMBAL_YAW:
+        case CHASSIS_CUSTOM: {  // 若上一次模式为底盘关闭或底盘无力，则进入起立模式
+            if (last_mode == CHASSIS_OFF ||         // 上一次模式为底盘关闭
+                last_mode == CHASSIS_ZERO_FORCE ||  // 上一次模式为底盘无力
+                last_mode == CHASSIS_STAND_UP) {    // 上一次模式为起立模式
+                CHASSIS.mode = CHASSIS_STAND_UP;
+            }
+        } break;
+        default:
+            break;
+    }
+    // TODO：添加退出起立模式的条件
 }
 
 /*-------------------- Observe --------------------*/
@@ -498,6 +523,11 @@ void ChassisReference(void)
         case CHASSIS_AUTO: {  // 底盘自动模式，控制量为云台坐标系下的速度，需要进行坐标转换
             break;
         }
+        case CHASSIS_STAND_UP: {
+            v_set.vx = 0;
+            v_set.vy = 0;
+            v_set.wz = 0;
+        } break;
         default:
             break;
     }
@@ -543,11 +573,15 @@ void ChassisReference(void)
     static float angle = M_PI_2;
     static float length = 0.25f;
     switch (CHASSIS.mode) {
+        case CHASSIS_STAND_UP: {
+            length = 0.12f;
+            angle = M_PI_2;
+        } break;
         case CHASSIS_CUSTOM:
         case CHASSIS_DEBUG: {
             angle = M_PI_2;  // + rc_angle * RC_TO_ONE * 0.3f;
             length += rc_length * RC_LENGTH_ADD_RATIO;
-        }
+        } break;
         case CHASSIS_FREE: {
         } break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
@@ -583,6 +617,7 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
 static void ConsoleZeroForce(void);
 static void ConsoleCalibrate(void);
 static void ConsoleNormal(void);
+static void ConsoleStandUp(void);
 
 /**
  * @brief          计算控制量
@@ -596,11 +631,13 @@ void ChassisConsole(void)
             ConsoleCalibrate();
         } break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
-        case CHASSIS_SPIN:
         case CHASSIS_CUSTOM:
         case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             ConsoleNormal();
+        } break;
+        case CHASSIS_STAND_UP: {
+            ConsoleStandUp();
         } break;
         case CHASSIS_OFF:
         case CHASSIS_ZERO_FORCE:
@@ -873,6 +910,41 @@ static void ConsoleNormal(void)
     CHASSIS.wheel_motor[1].set.tor = -(t[1] * (W1_DIRECTION));  //不知道为什么要反向，待后续研究
 }
 
+static void ConsoleStandUp(void)
+{
+    // ===腿部位置控制===
+
+    double joint_pos_l[2], joint_pos_r[2];
+    LegController(joint_pos_l, joint_pos_r);
+
+    // 当解算出的角度正常时，设置目标角度
+    if (!(isnan(joint_pos_l[0]) || isnan(joint_pos_l[1]) || isnan(joint_pos_r[0]) ||
+          isnan(joint_pos_r[1]))) {
+        CHASSIS.joint_motor[0].set.pos =
+            theta_transform(joint_pos_l[1], -J0_ANGLE_OFFSET, J0_DIRECTION, 1);
+        CHASSIS.joint_motor[1].set.pos =
+            theta_transform(joint_pos_l[0], -J1_ANGLE_OFFSET, J1_DIRECTION, 1);
+        CHASSIS.joint_motor[2].set.pos =
+            theta_transform(joint_pos_r[1], -J2_ANGLE_OFFSET, J2_DIRECTION, 1);
+        CHASSIS.joint_motor[3].set.pos =
+            theta_transform(joint_pos_r[0], -J3_ANGLE_OFFSET, J3_DIRECTION, 1);
+    }
+    // 检测设定角度是否超过电机角度限制
+    CHASSIS.joint_motor[0].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[0].set.pos, MIN_J0_ANGLE, MAX_J0_ANGLE);
+    CHASSIS.joint_motor[1].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[1].set.pos, MIN_J1_ANGLE, MAX_J1_ANGLE);
+    CHASSIS.joint_motor[2].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[2].set.pos, MIN_J2_ANGLE, MAX_J2_ANGLE);
+    CHASSIS.joint_motor[3].set.pos =
+        fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
+
+    // ===驱动轮pid控制===
+    PID_calc(&CHASSIS.pid.stand_up, CHASSIS.fdb.phi, 0);
+    CHASSIS.wheel_motor[0].set.value = CHASSIS.pid.stand_up.out;
+    CHASSIS.wheel_motor[1].set.value = CHASSIS.pid.stand_up.out;
+}
+
 /*-------------------- Cmd --------------------*/
 
 #define CALIBRATE_VEL_KP 4.0f
@@ -931,8 +1003,8 @@ static void SendJointMotorCmd(void)
 
         switch (CHASSIS.mode) {
             case CHASSIS_FOLLOW_GIMBAL_YAW:
-            case CHASSIS_SPIN:
             case CHASSIS_CUSTOM:
+            case CHASSIS_STAND_UP:
             case CHASSIS_DEBUG:
             case CHASSIS_FREE: {
 #if LOCATION_CONTROL
@@ -986,8 +1058,8 @@ static void SendWheelMotorCmd(void)
 {
     switch (CHASSIS.mode) {
         case CHASSIS_FOLLOW_GIMBAL_YAW:
-        case CHASSIS_SPIN:
         case CHASSIS_CUSTOM:
+        case CHASSIS_STAND_UP:
         case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             LkMultipleTorqueControl(
