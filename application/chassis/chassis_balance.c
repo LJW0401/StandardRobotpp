@@ -162,6 +162,14 @@ void ChassisInit(void)
         &CHASSIS.pid.stand_up, PID_POSITION, stand_up_pid, MAX_OUT_CHASSIS_STAND_UP,
         MAX_IOUT_CHASSIS_STAND_UP);
 
+    float wheel_stop_pid[3] = {KP_CHASSIS_WHEEL_STOP, KI_CHASSIS_WHEEL_STOP, KD_CHASSIS_WHEEL_STOP};
+    PID_init(
+        &CHASSIS.pid.wheel_stop[0], PID_POSITION, wheel_stop_pid, MAX_OUT_CHASSIS_WHEEL_STOP,
+        MAX_IOUT_CHASSIS_WHEEL_STOP);
+    PID_init(
+        &CHASSIS.pid.wheel_stop[1], PID_POSITION, wheel_stop_pid, MAX_OUT_CHASSIS_WHEEL_STOP,
+        MAX_IOUT_CHASSIS_WHEEL_STOP);
+
     // 初始化低通滤波器
     LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[0], LEG_DDLENGTH_LPF_ALPHA);
     LowPassFilterInit(&CHASSIS.lpf.leg_length_accel_filter[1], LEG_DDLENGTH_LPF_ALPHA);
@@ -620,6 +628,7 @@ static void LQRFeedbackCalc(float k[2][6], float x[6], float t[2]);
 static void ConsoleZeroForce(void);
 static void ConsoleCalibrate(void);
 static void ConsoleNormal(void);
+static void ConsoleDebug(void);
 static void ConsoleStandUp(void);
 
 /**
@@ -635,9 +644,11 @@ void ChassisConsole(void)
         } break;
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         case CHASSIS_CUSTOM:
-        case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             ConsoleNormal();
+        } break;
+        case CHASSIS_DEBUG: {
+            ConsoleDebug();
         } break;
         case CHASSIS_STAND_UP: {
             ConsoleStandUp();
@@ -830,8 +841,13 @@ static void ConsoleZeroForce(void)
     CHASSIS.joint_motor[2].set.vel = 0;
     CHASSIS.joint_motor[3].set.vel = 0;
 
-    CHASSIS.wheel_motor[0].set.tor = 0;
-    CHASSIS.wheel_motor[1].set.tor = 0;
+    CHASSIS.wheel_motor[0].set.vel = 0;
+    CHASSIS.wheel_motor[1].set.vel = 0;
+
+    CHASSIS.wheel_motor[0].set.value =
+        PID_calc(&CHASSIS.pid.wheel_stop[0], CHASSIS.wheel_motor[0].fdb.vel, 0);
+    CHASSIS.wheel_motor[1].set.value =
+        PID_calc(&CHASSIS.pid.wheel_stop[1], CHASSIS.wheel_motor[1].fdb.vel, 0);
 }
 
 static void ConsoleCalibrate(void)
@@ -911,6 +927,24 @@ static void ConsoleNormal(void)
     // QUESTION: 排查电机发送的力矩要反向的问题，这种情况下控制正常
     CHASSIS.wheel_motor[0].set.tor = -(t[0] * (W0_DIRECTION));  //不知道为什么要反向，待后续研究
     CHASSIS.wheel_motor[1].set.tor = -(t[1] * (W1_DIRECTION));  //不知道为什么要反向，待后续研究
+}
+
+static void ConsoleDebug(void)
+{
+    CHASSIS.joint_motor[0].set.tor = 0;
+    CHASSIS.joint_motor[1].set.tor = 0;
+    CHASSIS.joint_motor[2].set.tor = 0;
+    CHASSIS.joint_motor[3].set.tor = 0;
+
+    CHASSIS.joint_motor[0].set.vel = 0;
+    CHASSIS.joint_motor[1].set.vel = 0;
+    CHASSIS.joint_motor[2].set.vel = 0;
+    CHASSIS.joint_motor[3].set.vel = 0;
+
+    CHASSIS.wheel_motor[0].set.value = CHASSIS.wheel_motor[0].set.tor =
+        CHASSIS.rc->rc.ch[1] * RC_TO_ONE * 100;
+    CHASSIS.wheel_motor[1].set.value = CHASSIS.wheel_motor[1].set.tor =
+        CHASSIS.rc->rc.ch[1] * RC_TO_ONE * 100;
 }
 
 static void ConsoleStandUp(void)
@@ -998,7 +1032,6 @@ static void SendJointMotorCmd(void)
         switch (CHASSIS.mode) {
             case CHASSIS_FOLLOW_GIMBAL_YAW:
             case CHASSIS_CUSTOM:
-            case CHASSIS_DEBUG:
             case CHASSIS_FREE: {
 #if LOCATION_CONTROL
                 DmMitCtrlPosition(&CHASSIS.joint_motor[0], NORMAL_POS_KP, NORMAL_POS_KD);
@@ -1038,6 +1071,7 @@ static void SendJointMotorCmd(void)
                     DmSavePosZero(&CHASSIS.joint_motor[3]);
                 }
             } break;
+            case CHASSIS_DEBUG:
             case CHASSIS_ZERO_FORCE:
             default: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], ZERO_FORCE_VEL_KP);
@@ -1059,7 +1093,6 @@ static void SendWheelMotorCmd(void)
     switch (CHASSIS.mode) {
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         case CHASSIS_CUSTOM:
-        case CHASSIS_DEBUG:
         case CHASSIS_FREE: {
             LkMultipleTorqueControl(
                 WHEEL_CAN, CHASSIS.wheel_motor[0].set.tor, CHASSIS.wheel_motor[1].set.tor, 0, 0);
@@ -1072,10 +1105,15 @@ static void SendWheelMotorCmd(void)
         case CHASSIS_CALIBRATE: {
             LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
         } break;
-        case CHASSIS_OFF:
+        case CHASSIS_OFF: {
+            LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
+        } break;
+        case CHASSIS_DEBUG:
         case CHASSIS_ZERO_FORCE:
         default: {
-            LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
+            LkMultipleTorqueControl(
+                WHEEL_CAN, CHASSIS.wheel_motor[0].set.value, CHASSIS.wheel_motor[1].set.value, 0,
+                0);
         }
     }
 }

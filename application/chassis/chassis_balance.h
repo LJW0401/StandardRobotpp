@@ -143,6 +143,7 @@ typedef struct
 #endif
 
     pid_type_def stand_up;
+    pid_type_def wheel_stop[2];
 } PID_t;
 
 typedef struct LPF
