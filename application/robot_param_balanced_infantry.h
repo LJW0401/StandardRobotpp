@@ -230,8 +230,8 @@
 // 起立用的pid
 #define KP_CHASSIS_STAND_UP       (1800.0f)
 #define KI_CHASSIS_STAND_UP       (0.0f)
-#define KD_CHASSIS_STAND_UP       (0.0f)
-#define MAX_IOUT_CHASSIS_STAND_UP (20.0f)
+#define KD_CHASSIS_STAND_UP       (10.0f)
+#define MAX_IOUT_CHASSIS_STAND_UP (0.0f)
 #define MAX_OUT_CHASSIS_STAND_UP  (2000.0f)
 
 //LPF parameters ---------------------
