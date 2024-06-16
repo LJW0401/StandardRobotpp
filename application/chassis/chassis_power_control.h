@@ -18,3 +18,9 @@
 #include "main.h"
 
 #endif
+
+
+#define K0 0.3//转矩常数(电调手册)
+#define R0 0.0989//车的热损
+#define P0 8.186//车车静息损耗
+
