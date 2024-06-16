@@ -65,6 +65,8 @@ extern void LowPassFilterInit(LowPassFilter_t * filter, float alpha);
 
 extern float LowPassFilterCalc(LowPassFilter_t * filter, float input);
 
+extern float ThetaRangeLimit(float theta, float max, float min, uint8_t return_value);
+
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)
 

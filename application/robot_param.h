@@ -25,7 +25,7 @@
 #include "robot_param_omni_infantry.h"
 
 // 选择机器人的各种类型
-#define __DEVELOP 0                    // 开发模式
+#define __DEVELOP 1                    // 开发模式
 #define __DEBUG 0                      // 调试模式
 #define __TUNING 0                     // 调参模式
 #define __MUSIC_ON 0                   // 开启音乐
