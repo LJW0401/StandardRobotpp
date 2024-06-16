@@ -278,17 +278,17 @@ void ChassisSetMode(void)
     last_mode = CHASSIS.mode;
 
     if (CHASSIS.error_code & DBUS_ERROR_OFFSET) {  // 遥控器出错时的状态处理
-        CHASSIS.mode = CHASSIS_ZERO_FORCE;
+        CHASSIS.mode = CHASSIS_SAFE;
         return;
     }
 
     if (CHASSIS.error_code & IMU_ERROR_OFFSET) {  // IMU出错时的状态处理
-        CHASSIS.mode = CHASSIS_ZERO_FORCE;
+        CHASSIS.mode = CHASSIS_SAFE;
         return;
     }
 
     if (CHASSIS.error_code & JOINT_ERROR_OFFSET) {  // 关节电机出错时的状态处理
-        CHASSIS.mode = CHASSIS_ZERO_FORCE;
+        CHASSIS.mode = CHASSIS_SAFE;
         return;
     }
 
@@ -315,7 +315,7 @@ void ChassisSetMode(void)
     } else if (switch_is_mid(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
         CHASSIS.mode = CHASSIS_CUSTOM;
     } else if (switch_is_down(CHASSIS.rc->rc.s[CHASSIS_MODE_CHANNEL])) {
-        CHASSIS.mode = CHASSIS_ZERO_FORCE;
+        CHASSIS.mode = CHASSIS_SAFE;
     }
 
     switch (CHASSIS.mode)  //进入起立模式的判断
@@ -324,7 +324,7 @@ void ChassisSetMode(void)
         case CHASSIS_FOLLOW_GIMBAL_YAW:
         case CHASSIS_CUSTOM: {  // 若上一次模式为底盘关闭或底盘无力，则进入起立模式
             if (last_mode == CHASSIS_OFF ||         // 上一次模式为底盘关闭
-                last_mode == CHASSIS_ZERO_FORCE ||  // 上一次模式为底盘无力
+                last_mode == CHASSIS_SAFE ||  // 上一次模式为底盘无力
                 last_mode == CHASSIS_STAND_UP) {    // 上一次模式为起立模式
                 CHASSIS.mode = CHASSIS_STAND_UP;
             }
@@ -654,7 +654,7 @@ void ChassisConsole(void)
             ConsoleStandUp();
         } break;
         case CHASSIS_OFF:
-        case CHASSIS_ZERO_FORCE:
+        case CHASSIS_SAFE:
         default: {
             ConsoleZeroForce();
         }
@@ -1072,7 +1072,7 @@ static void SendJointMotorCmd(void)
                 }
             } break;
             case CHASSIS_DEBUG:
-            case CHASSIS_ZERO_FORCE:
+            case CHASSIS_SAFE:
             default: {
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[0], ZERO_FORCE_VEL_KP);
                 DmMitCtrlVelocity(&CHASSIS.joint_motor[1], ZERO_FORCE_VEL_KP);
@@ -1109,7 +1109,7 @@ static void SendWheelMotorCmd(void)
             LkMultipleTorqueControl(WHEEL_CAN, 0, 0, 0, 0);
         } break;
         case CHASSIS_DEBUG:
-        case CHASSIS_ZERO_FORCE:
+        case CHASSIS_SAFE:
         default: {
             LkMultipleTorqueControl(
                 WHEEL_CAN, CHASSIS.wheel_motor[0].set.value, CHASSIS.wheel_motor[1].set.value, 0,
