@@ -118,7 +118,7 @@ typedef __packed struct  //0x0201
     uint16_t maximum_HP;                    //机器人血量上限
     uint16_t shooter_barrel_cooling_value;  //机器人枪口热量每秒冷却值
     uint16_t shooter_barrel_heat_limit;     //机器人枪口热量上限
-    uint16_t chassis_power_limit;           //机器人底盘功率上限
+    uint16_t chassis_power_limit;           //机器人底盘功率上限////
     uint8_t
         power_management_gimbal_output : 1;  //电源管理模块的输出情况：gimbal 口输出：0 为无输出，1 为 24V 输出
     uint8_t power_management_chassis_output : 1;  //chassis 口输出：0 为无输出，1 为 24V 输出
@@ -129,8 +129,8 @@ typedef __packed struct  //0x0202
 {
     uint16_t chassis_voltage;  //电源管理模块的 chassis 口输出电压（单位：mV）
     uint16_t chassis_current;  //电源管理模块的 chassis 口输出电流（单位：mA）
-    float chassis_power;       //底盘功率（单位：W）
-    uint16_t buffer_energy;    //缓冲能量（单位：J）
+    float chassis_power;       //底盘功率（单位：W）////
+    uint16_t buffer_energy;    //缓冲能量（单位：J）////
     uint16_t shooter_17mm_1_barrel_heat;  //第 1 个 17mm 发射机构的枪口热量
     uint16_t shooter_17mm_2_barrel_heat;  //第 2 个 17mm 发射机构的枪口热量
     uint16_t shooter_42mm_barrel_heat;    //42mm 发射机构的枪口热量
