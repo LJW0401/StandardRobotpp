@@ -211,6 +211,11 @@ void ChassisHandleException(void)
         }
     }
 
+    if ((CHASSIS.mode == CHASSIS_OFF || CHASSIS.mode == CHASSIS_SAFE) &&
+        fabs(CHASSIS.pid.stand_up.max_out) != 0.0f) {
+        PID_clear(&CHASSIS.pid.stand_up);
+    }
+
     GroundTouchDectect();  // 离地检测
 }
 
@@ -322,10 +327,10 @@ void ChassisSetMode(void)
     {
         case CHASSIS_FREE:
         case CHASSIS_FOLLOW_GIMBAL_YAW:
-        case CHASSIS_CUSTOM: {  // 若上一次模式为底盘关闭或底盘无力，则进入起立模式
-            if (last_mode == CHASSIS_OFF ||         // 上一次模式为底盘关闭
-                last_mode == CHASSIS_SAFE ||  // 上一次模式为底盘无力
-                last_mode == CHASSIS_STAND_UP) {    // 上一次模式为起立模式
+        case CHASSIS_CUSTOM: {  // 若上一次模式为底盘关闭或底盘安全，则进入起立模式
+            if (last_mode == CHASSIS_OFF ||       // 上一次模式为底盘关闭
+                last_mode == CHASSIS_SAFE ||      // 上一次模式为底盘安全
+                last_mode == CHASSIS_STAND_UP) {  // 上一次模式为起立模式
                 CHASSIS.mode = CHASSIS_STAND_UP;
             }
         } break;
@@ -977,7 +982,7 @@ static void ConsoleStandUp(void)
         fp32_constrain(CHASSIS.joint_motor[3].set.pos, MIN_J3_ANGLE, MAX_J3_ANGLE);
 
     // ===驱动轮pid控制===
-    float feedforward = -200;
+    float feedforward = -220;
     PID_calc(&CHASSIS.pid.stand_up, CHASSIS.fdb.phi, 0);
     CHASSIS.wheel_motor[0].set.value = (feedforward + CHASSIS.pid.stand_up.out) * W0_DIRECTION;
     CHASSIS.wheel_motor[1].set.value = (feedforward + CHASSIS.pid.stand_up.out) * W1_DIRECTION;
