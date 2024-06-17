@@ -231,8 +231,8 @@ void LkSingleTorqueControl(Motor_s * p_motor)
 
     SingleTorqueControl(
         hcan, p_motor->id,
-        fp32_constrain(p_motor->set.tor, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) /
-            TORQUE_COEFFICIENT * CURRENT_TO_MF_CONTROL);
+        fp32_constrain(p_motor->set.tor, LK_MIN_MF_TORQUE, LK_MAX_MF_TORQUE) / TORQUE_COEFFICIENT *
+            CURRENT_TO_MF_CONTROL);
 }
 
 void LkSingleSpeedControl(Motor_s * p_motor)
@@ -263,5 +263,25 @@ void LkMultipleTorqueControl(
     MultipleTorqueControl(
         hcan, current[0] * CURRENT_TO_MULTICONTROL, current[1] * CURRENT_TO_MULTICONTROL,
         current[2] * CURRENT_TO_MULTICONTROL, current[3] * CURRENT_TO_MULTICONTROL);
+}
+
+void LkMultipleIqControl(
+    uint8_t can, int16_t iqControl_1, int16_t iqControl_2, int16_t iqControl_3, int16_t iqControl_4)
+{
+    hcan_t * hcan = NULL;
+    if (can == 1)
+        hcan = &hcan1;
+    else if (can == 2)
+        hcan = &hcan2;
+
+    if (hcan == NULL) return;
+
+    int16_t current[4];
+    current[0] = int16_constrain(iqControl_1, -2000, 2000);
+    current[1] = int16_constrain(iqControl_2, -2000, 2000);
+    current[2] = int16_constrain(iqControl_3, -2000, 2000);
+    current[3] = int16_constrain(iqControl_4, -2000, 2000);
+
+    MultipleTorqueControl(hcan, current[0], current[1], current[2], current[3]);
 }
 /************************ END OF FILE ************************/

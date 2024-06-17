@@ -41,17 +41,17 @@
 /*-------------------- Structural definition --------------------*/
 
 typedef enum {
-    CHASSIS_OFF,         // 底盘关闭
-    CHASSIS_ZERO_FORCE,  // 底盘无力，所有控制量置0
-    CHASSIS_STAND_UP,    // 底盘起立，从倒地状态到站立状态的中间过程
-    CHASSIS_CALIBRATE,   // 底盘校准
+    CHASSIS_OFF,        // 底盘关闭
+    CHASSIS_SAFE,       // 底盘无力，所有控制量置0
+    CHASSIS_STAND_UP,   // 底盘起立，从倒地状态到站立状态的中间过程
+    CHASSIS_CALIBRATE,  // 底盘校准
     CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
     CHASSIS_FLOATING,    // 底盘悬空状态
     CHASSIS_CUSHIONING,  // 底盘缓冲状态
     CHASSIS_FREE,        // 底盘不跟随云台
-    CHASSIS_SPIN,        // 底盘小陀螺模式
     CHASSIS_AUTO,        // 底盘自动模式
-    CHASSIS_DEBUG        // 调试模式
+    CHASSIS_DEBUG,       // 调试模式
+    CHASSIS_CUSTOM       // 自定义模式
 } ChassisMode_e;
 
 typedef struct Leg
@@ -123,6 +123,15 @@ typedef struct
     pid_type_def yaw_angle;
     pid_type_def yaw_velocity;
 
+    pid_type_def vel_add;
+
+#if LOCATION_CONTROL
+    pid_type_def roll_angle;
+
+    pid_type_def pitch_angle;
+    pid_type_def pitch_vel;
+#else
+
     pid_type_def roll_angle;
     // pid_type_def roll_velocity;
 
@@ -133,6 +142,10 @@ typedef struct
     pid_type_def leg_length_speed[2];
 
     pid_type_def leg_angle_angle;
+#endif
+
+    pid_type_def stand_up;
+    pid_type_def wheel_stop[2];
 } PID_t;
 
 typedef struct LPF
