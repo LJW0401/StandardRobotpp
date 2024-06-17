@@ -781,7 +781,7 @@ static void LegController(double joint_pos_l[2], double joint_pos_r[2])
 {
     float dAngle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi, CHASSIS.ref.phi);
     float delta_Angle = PID_calc(&CHASSIS.pid.pitch_angle, CHASSIS.fdb.phi_dot, dAngle);
-    // delta_Angle = 0;
+    delta_Angle = 0;
 
     CHASSIS.ref.leg[0].rod.Angle = M_PI_2 + delta_Angle;
     CHASSIS.ref.leg[1].rod.Angle = M_PI_2 + delta_Angle;
