@@ -41,10 +41,10 @@
 /*-------------------- Structural definition --------------------*/
 
 typedef enum {
-    CHASSIS_OFF,         // 底盘关闭
-    CHASSIS_SAFE,  // 底盘无力，所有控制量置0
-    CHASSIS_STAND_UP,    // 底盘起立，从倒地状态到站立状态的中间过程
-    CHASSIS_CALIBRATE,   // 底盘校准
+    CHASSIS_OFF,        // 底盘关闭
+    CHASSIS_SAFE,       // 底盘无力，所有控制量置0
+    CHASSIS_STAND_UP,   // 底盘起立，从倒地状态到站立状态的中间过程
+    CHASSIS_CALIBRATE,  // 底盘校准
     CHASSIS_FOLLOW_GIMBAL_YAW,  // 底盘跟随云台（运动方向为云台坐标系方向，需进行坐标转换）
     CHASSIS_FLOATING,    // 底盘悬空状态
     CHASSIS_CUSHIONING,  // 底盘缓冲状态
@@ -127,7 +127,9 @@ typedef struct
 
 #if LOCATION_CONTROL
     pid_type_def roll_angle;
+
     pid_type_def pitch_angle;
+    pid_type_def pitch_vel;
 #else
 
     pid_type_def roll_angle;
