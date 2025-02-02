@@ -31,7 +31,7 @@
   - [ ] 麦轮底盘
   - [ ] 全向轮底盘
   - [ ] 舵轮底盘
-  - [ ] 平衡底盘
+  - [x] 平衡底盘
   
   详细信息请参考 [CHASSIS_README](./application/chassis/CHASSIS_README.md)
 
